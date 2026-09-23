@@ -48,6 +48,7 @@ const BRANCHES: MapBranch[] = [
     color: 'blue',
     pages: [
       { label: 'Comunidade', to: '/comunidade', description: 'Números, redes e formas de participar.' },
+      { label: 'Multichat', to: '/multichat', description: 'Chats e transmissões em um só lugar.' },
       { label: 'Discord oficial', to: '/discord', description: 'Atalho para o servidor oficial da comunidade.', direct: true, external: true },
       { label: 'Parceiros', to: '/parceiros', description: 'Possibilidades para marcas e projetos.' },
     ],

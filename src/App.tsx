@@ -42,6 +42,7 @@ function lazyWithReload<T extends ComponentType<unknown>>(load: () => Promise<{ 
 // qualquer visitante da Home. Um único Suspense pro grupo inteiro (a
 // navegação entre elas já é rara o suficiente pra não precisar de
 // granularidade por rota).
+const MultichatPage = lazyWithReload(() => import('./features/multichat/MultichatPage'))
 const Login = lazyWithReload(() => import('./routes/admin/Login').then((m) => ({ default: m.Login })))
 const AdminIndex = lazyWithReload(() => import('./routes/admin/Index').then((m) => ({ default: m.AdminIndex })))
 const Schedule = lazyWithReload(() => import('./routes/admin/Schedule').then((m) => ({ default: m.Schedule })))
@@ -75,6 +76,7 @@ const router = createBrowserRouter([
       { path: '/fazenda', element: <Fazenda /> },
       { path: '/mods', element: <Mods /> },
       { path: '/comunidade', element: <Comunidade /> },
+      { path: '/multichat', element: withAdminSuspense(<MultichatPage />) },
       { path: '/sobre', element: <Sobre /> },
       { path: '/parceiros', element: <Parceiros /> },
       { path: '/privacidade', element: <Privacidade /> },

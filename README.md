@@ -1,9 +1,9 @@
 # GalindoGamerBR — Hub Portal
 
-[![Deploy](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/deploy.yml)
-[![CI](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/security-scan.yml/badge.svg)](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/security-scan.yml)
-[![CodeQL](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/codeql.yml/badge.svg)](https://github.com/galindogamerbr/galindogamerbr-portal/actions/workflows/codeql.yml)
+[![Deploy](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml)
+[![CI](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/security-scan.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/security-scan.yml)
+[![CodeQL](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/codeql.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/codeql.yml)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
@@ -137,3 +137,7 @@ Pra aplicar numa situação fora do fluxo normal de deploy:
 ```
 npm run db:migrate:remote
 ```
+
+## Multichat
+
+A rota /multichat integra os serviços multichat-command e multichat-reader. Consulte [o guia de Docker e configuração](docs/multichat/README.md).

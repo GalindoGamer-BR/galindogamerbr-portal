@@ -4,6 +4,7 @@ export const NAV_ITEMS = [
   { label: 'Conteúdos', to: '/conteudos' },
   { label: 'Participe da Fazenda', to: '/fazenda' },
   { label: 'Comunidade', to: '/comunidade' },
+  { label: 'Multichat', to: '/multichat' },
   { label: 'Sobre', to: '/sobre' },
   { label: 'Parceiros', to: '/parceiros' },
 ] as const
