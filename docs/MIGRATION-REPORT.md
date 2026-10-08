@@ -38,10 +38,10 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 
 ## Pontos de atenção
 1. **Ordem de deploy dos dados**: aplicar migrations (auth-service → multichat-command → galindogamerbr-api → fs25) em staging antes; as migrations *movem* tabelas de `public` para schemas próprios (`ALTER TABLE … SET SCHEMA`). O command/auth-service antigos leem `public.*`: fazer a troca de serviços e das tabelas no mesmo passo (ou criar views temporárias em `public`).
-2. **Importar o D1**: `wrangler d1 export --remote` (somente leitura) e carga no schema `portal` — não há script pronto; as colunas de data continuam `text` no mesmo formato.
+2. **Importar o D1**: `npm run import:d1 -- --from-d1` (dry run) e depois `--apply`, no repo `galindogamerbr-api` — somente leitura no D1, uma transação, idempotente; imprime o `ADMIN_EMAILS`. Validado contra o Postgres local com dados de exemplo (ids, sequências, blocos da programação). Ainda não executado contra o D1 real.
 3. **Admin**: o cookie `ggb_session` agora carrega o access token do Supabase (+ `ggb_session_refresh` em `/api/auth`). Sessões antigas deixam de valer; o frontend admin não muda. `admin_allowlist` do D1 vira `ADMIN_EMAILS`.
 4. **PostgREST**: os schemas `auth_service` e `multichat` precisam estar em *Exposed schemas* (acesso só para `service_role`) porque auth-service e command usam `supabase-js`.
 5. **Segredos compartilhados** (iguais entre serviços): `TOKEN_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, `INTERNAL_WAKE_SECRET`, `SUPABASE_JWT_*`, `ORIGIN_AUTH_SECRET` — ver `k8s-platform/README.md`.
 6. **Legado a remover somente após validar**: `functions/` e `workers/social-stats-cron` (já removidos *apenas* na branch `refactor/pages-frontend-only`; a `feat/multichat` mantém tudo), D1/KV, Azure Functions. `compose.preview.yaml`, `compose.tiktok-*.yaml` e `deploy-preview.yml` ainda assumem o serviço `portal` com Wrangler e precisam ser revistos.
 7. **Segredos locais**: `.env.docker` e `.dev.vars` contêm credenciais reais do painel FS25 (ignorados pelo git) — rotacionar após a migração.
-8. **Pendências conhecidas do plano**: script de importação do D1; `NetworkPolicy` para `/internal` só existe para o auth-service; limite do Supabase Free (500 MB) para o banco; `wrangler.toml` local (skip-worktree) ainda lista D1/KV.
+8. **Pendências conhecidas do plano**: `NetworkPolicy` para `/internal` só existe para o auth-service; limite do Supabase Free (500 MB) para o banco; `wrangler.toml` local (skip-worktree) ainda lista D1/KV.
