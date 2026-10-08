@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    allowedHosts: ["portal"],
+    allowedHosts: ["portal", "localhost"],
     strictPort: true,
     // O backend roda fora do Pages (K3s). Em desenvolvimento, as rotas de backend vao para o gateway
     // local do compose (Traefik) ou para outra origem definida em VITE_API_PROXY.

@@ -22,7 +22,7 @@ O avatar vem de user.info.basic. Estatísticas sociais só são consultadas quan
 - A autorização Login Kit não habilita envio ao chat LIVE.
 
 ## Configuração local
-Execute Docker Compose com compose.yaml e compose.tiktok-tunnel.yaml.
+Execute Docker Compose com compose.yaml e compose.tiktok-tunnel.yaml. O callback `/oauth/tiktok/*` é atendido pelo `auth-service` (via gateway).
 Cadastre no Login Kit Web o HTTPS do túnel com /oauth/tiktok/callback e use a mesma URL em TIKTOK_REDIRECT_URI. Preserve o callback de produção do admin.
 O proxy público permite somente GET /oauth/tiktok/authorize e /oauth/tiktok/callback.
 Quick Tunnel é temporário: ao reiniciar, confira o hostname e atualize a configuração.

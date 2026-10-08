@@ -1,7 +1,5 @@
 # GalindoGamerBR — Hub Portal
 
-> **Arquitetura (branch `refactor/pages-frontend-only`)**: o Cloudflare Pages serve só o frontend estático. O backend saiu de `functions/`: conteúdo, estatísticas e webhooks estão em `galindogamerbr-api`; autenticação (admin, OAuth, contas) em `auth-service`; chat em `multichat-command`/`multichat-reader` — todos no K3s (Oracle) com dados no Supabase. A única Function que resta é `functions/[[path]].ts`, um proxy para `API_ORIGIN` (Cloudflare Tunnel) que preserva a mesma origem e as URLs públicas. Variáveis do Pages: `API_ORIGIN` e `ORIGIN_AUTH_SECRET`. O SEO por rota (antes `_middleware.ts`) é gerado no build por `scripts/seo-prerender.mjs`; rotas desconhecidas caem em `spa.html` (noindex). As seções abaixo sobre D1/KV/Workers descrevem a arquitetura anterior até o cutover (D1/KV/Worker de estatísticas continuam intactos na produção até a validação).
-
 
 [![Deploy](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml)
 [![CI](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml)
@@ -14,133 +12,68 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-F38020?logo=cloudflare&logoColor=white)
 
-Portal da comunidade GalindoGamerBR. React + TypeScript + Vite no front, Cloudflare Pages Functions (`/functions`) + Cloudflare D1 no back — mesmo repositório, deploy único.
+Portal da comunidade GalindoGamerBR. **Frontend** React + TypeScript + Vite, publicado como site estático no Cloudflare Pages. O backend roda em outros repositórios, no K3s (Oracle) com dados no Supabase.
 
-## Stack
-
-- **Front**: Vite + React + TypeScript + Tailwind CSS
-- **Back**: Cloudflare Pages Functions (colocadas em `/functions`) + Cloudflare D1
-- **Cache**: Cloudflare Workers KV (binding `PUBLIC_CACHE`) — live status, viewer count, status Twitch/Kick, inscritos/posts de redes sociais e a programação publicada são cache-first no KV; D1 continua sendo a fonte de verdade normalizada. Compartilhado entre produção e preview (mesmo namespace).
-- **Auth**: código OTP por e-mail via Resend
-- **Live/vídeos**: sem API key do YouTube — feed Atom público + oEmbed (ver `functions/lib/youtube.ts`)
-- **Métricas de redes sociais**: coletadas por um worker separado (`workers/social-stats-cron`, cron a cada 20min) que escreve no KV (produção e preview) e no D1 (só produção) — ver seção própria abaixo
-
-## Rodando local
+## Arquitetura
 
 ```
-npm install
-npm run dev
+Browser → Cloudflare Pages (estático) ── functions/[[path]].ts (proxy) ──► API_ORIGIN
+                                                    Cloudflare Tunnel → Traefik → serviços
 ```
 
-Abre em `http://127.0.0.1:5173` — o Vite serve o front-end com hot reload e encaminha `/api/*` para as Pages Functions locais, executadas pelo Wrangler em `http://127.0.0.1:8788`. Um watcher mantém `dist/` reconstruído a cada mudança, então a porta `8788` também reflete o build atual.
+| Parte | Repositório |
+|---|---|
+| Identidade, OAuth, contas, login admin (`/oauth/*`, `/api/auth/*`, `/api/account*`, `/api/member`) | `auth-service` |
+| Conteúdo, estatísticas, webhooks, admin (`/api/*`, `/webhooks/*`, `/discord`) | `galindogamerbr-api` |
+| Envio de mensagens (`/api/chat/*`, `/api/tiktok/*`) / leitura de chat | `multichat-command` / `multichat-reader` |
+| Monitor do servidor FS25 e sincronização de mods | `fs25-monitoring-worker` / `fs25-mods-sync` |
+| Namespace, túnel, roteamento, guia de instalação | `k8s-platform` |
 
-`npm run dev:full` continua disponível como alias de `npm run dev`. Para subir apenas o front-end com hot reload, use `npm run dev:client`.
+- A **única** Pages Function é `functions/[[path]].ts`: repassa `/api`, `/oauth`, `/webhooks` e `/discord` ao `API_ORIGIN` (mesma origem do portal, então cookies e callbacks OAuth/WebSub/Instagram continuam nas URLs atuais). Restringida por `public/_routes.json`.
+- SEO por rota (antes `_middleware.ts`): `scripts/seo-prerender.mjs` gera `dist/<rota>/index.html` no build; rotas desconhecidas e `/admin*` caem em `dist/spa.html` (`noindex`) via `public/_redirects`.
+- O front só conhece chaves públicas: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` e `VITE_MULTICHAT_COMMAND_URL`.
+- Relatório e pendências da migração: [`docs/MIGRATION-REPORT.md`](docs/MIGRATION-REPORT.md).
 
-O `dev:full` exige que as duas portas estejam livres. Se precisar testar só as Pages Functions, use:
+## Rodando local (stack completa em Docker)
 
-```
-npm run dev:worker
-```
-
-Sem hot reload — precisa rodar de novo a cada mudança, mas sempre funciona. Abra `http://127.0.0.1:8788` nesse modo.
-
-Só front-end, sem `/api/*` (mais rápido pra mexer em CSS/layout que não depende de dados):
-
-```
-npm run dev
-```
-
-### Banco de dados local
+Requer Docker. Os repositórios irmãos precisam estar lado a lado (`../auth-service`, `../galindogamerbr-api`, `../multichat-command`, `../multichat-reader`, `../fs25-*`).
 
 ```
-npm run db:migrate:local
+node scripts/multichat-env.mjs                     # gera .env.docker com segredos locais (preserva o existente)
+docker compose --env-file .env.docker up --build -d --wait
 ```
 
-Aplica as migrations em `/migrations` num D1 local (sqlite via `wrangler`, isolado do banco de produção).
+Abre em `http://127.0.0.1:5173` (Vite com hot reload). As rotas de backend passam pelo gateway Traefik (`http://127.0.0.1:8088`, `GATEWAY_PORT`), que espelha o roteamento de produção. Supabase local em `http://127.0.0.1:54321`. As migrations de todos os serviços rodam no serviço `migrate`.
 
-Pra testar com dado real em vez de um banco local vazio/desatualizado, dá pra puxar um snapshot completo do D1 de produção pro local (`wrangler pages dev`/`dev:full` continuam sempre lendo do D1 local — não existe `--remote` pra Pages dev):
+Perfis opcionais: `--profile simulation` (plataformas simuladas), `--profile fs25` (monitor, mods-sync e nginx de mods; exigem credenciais do Bisect), `--profile jobs` (`docker compose --profile jobs run --rm social-stats`). Overrides: `compose.preview.yaml` (expõe o backend local a um preview do Pages por túnel; defina `PREVIEW_BRIDGE_KEY`) e `compose.tiktok-tunnel.yaml` (callback https do TikTok). Mais detalhes do multichat em `docs/multichat/README.md`.
 
-```
-npm run db:sync-from-prod
-```
+Só o frontend, apontando para outro backend: `VITE_API_PROXY=https://… npm run dev`.
 
-Roda `wrangler d1 export --remote` no banco de produção e importa o resultado no D1 local (`scripts/db-sync-from-prod.mjs`), substituindo o conteúdo local inteiro. Sob demanda, não é automático — roda de novo sempre que precisar atualizar o snapshot.
-
-### Outros comandos úteis
+### Comandos úteis
 
 ```
-npm run typecheck   # só o TypeScript, sem buildar
-npm run build        # build de produção (dist/)
-npm run lint          # oxlint
+npm run typecheck   # tsc -b
+npm run lint        # oxlint
+npm test            # vitest
+npm run build       # tsc -b + vite build + seo-prerender (dist/)
 ```
 
-## Workflow de edição (main protegida)
+## Fluxo de edição (main protegida)
 
-A branch `main` é protegida — sem push direto. Todo mundo edita por branch + Pull Request:
-
-```
-git checkout main
-git pull
-git checkout -b minha-mudanca
-# ... edita, commita ...
-git push -u origin minha-mudanca
-```
-
-Abre o PR no GitHub, revisa, e **merge pra `main`** — isso dispara o deploy automático de produção (ver `.github/workflows/deploy.yml`).
+Sem push direto em `main`: branch + Pull Request (Conventional Branches/Commits). O merge em `main` dispara o deploy.
 
 ## Deploy
 
-### Produção (automático)
+### Produção
+`deploy.yml` dispara via `workflow_run` quando o CI termina com sucesso em `main` (ou manualmente), reaproveita o `dist/` do CI e publica com `wrangler pages deploy --branch=main`. Não há mais migrations nem Worker de estatísticas aqui (agora são CronJobs da `galindogamerbr-api`).
 
-`deploy.yml` **não** dispara direto no push — dispara via `workflow_run` só depois que `ci.yml` terminar com sucesso num push em `main` (lint/typecheck/audit/sequência de migrations viram gate real do deploy, não só do PR). Reusa o `dist/` já buildado no `ci.yml` (`upload-artifact`/`download-artifact`) em vez de buildar de novo. Tem `concurrency` (`group: deploy-production`) pra nunca rodar duas migrations/deploys de D1 em paralelo. Também dá pra disparar manualmente (`workflow_dispatch`, ex.: pra pegar uma env var nova do dashboard da Cloudflare sem mudar código) — nesse caso builda direto, sem artefato de CI associado.
+Secrets do repositório: `CLOUDFLARE_API_TOKEN` (editar Pages) e `CLOUDFLARE_ACCOUNT_ID`. Variáveis do projeto Pages (produção): `API_ORIGIN` (`https://origin.<domínio>`) e `ORIGIN_AUTH_SECRET` (o mesmo valor do `galindogamerbr-api`).
 
-Passos: aplica migrations do D1 → `wrangler pages deploy` com `--branch=main` → dispara uma rodada de coleta do worker de social stats (ver seção própria abaixo), sem esperar os até 20min do cron.
+### Preview (manual)
+`deploy-preview.yml` publica `--branch=preview` (URL fixa). Para o backend do preview, defina no ambiente *Preview* do Pages `API_ORIGIN` (URL do túnel de `compose.preview.yaml`) e `ORIGIN_AUTH_SECRET` igual a `PREVIEW_BRIDGE_KEY`. As URLs `*.pages.dev` podem estar atrás do Cloudflare Access.
 
-Precisa desses secrets configurados no repositório (Settings → Secrets and variables → Actions):
+### Worker `fs25-portal-proxy`
+Segue como Cloudflare Worker (`workers/fs25-portal-proxy`, deploy em `deploy-fs25-portal-proxy.yml`), fora desta migração.
 
-- `CLOUDFLARE_API_TOKEN` — token com permissão de editar Pages, D1 e Workers
-- `CLOUDFLARE_ACCOUNT_ID` — id da conta Cloudflare (não fica hardcoded em lugar nenhum do repo)
-- `CLOUDFLARE_D1_DATABASE_ID` — id do banco D1 de produção; o workflow substitui o placeholder do `wrangler.toml` por esse valor antes de aplicar migrations/deployar (o id real nunca fica commitado — só nesse secret e no working tree local, via `skip-worktree`)
-- `CLOUDFLARE_KV_NAMESPACE_ID` — id do namespace Workers KV (`PUBLIC_CACHE`) usado pelo cache-first de live/viewer/Twitch/Kick/social stats/programação — mesmo tratamento de placeholder que o `CLOUDFLARE_D1_DATABASE_ID`. Compartilhado entre produção e preview (mesmo namespace, id igual nos dois).
-- `CRON_TRIGGER_SECRET` — autoriza o gatilho manual de coleta do worker `workers/social-stats-cron` depois do deploy (ver seção própria). Não derruba o deploy se faltar/errar (só não aquece o cache antes da hora).
-
-### Preview (manual, outras branches)
-
-O workflow `deploy-preview.yml` roda sob demanda (Actions → Deploy Preview → Run workflow, escolhendo a branch) — não dispara sozinho a cada push. Mesmos passos do deploy de produção (typecheck → build → migrations → deploy), mas publicando como *preview deployment*.
-
-**URL fixa, não uma por branch**: todo run publica com `--branch=preview` (alias fixo), então a URL é sempre `https://preview.galindogamerbr-hub-portal.pages.dev`, não importa qual branch rodou o workflow. Antes de publicar o novo, o workflow apaga todo deployment de preview existente (`wrangler pages deployment list/delete`) — só existe "o" preview atual, nunca um acumulado de runs antigos com hash na URL.
-
-O preview usa banco D1 **separado** (`galindogamerbr_hub_preview`) — nunca lê/escreve no banco de produção. Cloudflare Pages ignora seções `[env.preview]` no `wrangler.toml` (isso é coisa de Workers, não de Pages — confirmado testando), então o workflow sobrescreve com `sed` o `database_id` e o `ENVIRONMENT` do bloco de topo antes de buildar, só nesse job (nunca fica commitado assim). O KV (`PUBLIC_CACHE`) **não** é separado — preview e produção compartilham o mesmo namespace de propósito (é só cache de dado público, sem custo em duplicar por ambiente). Também precisa de:
-
-- `CLOUDFLARE_D1_PREVIEW_DATABASE_ID` — id do banco D1 de preview (também usado pelo worker de social stats, ver abaixo, pra escrever nos dois D1)
-
-O e-mail de OTP em preview também sai de um remetente separado (`acesso-preview@galindogamerbr.com.br`, ver `functions/lib/resend.ts`), pra não misturar com o remetente de produção.
-
-**As URLs de preview (`*.pages.dev`) exigem login na conta Cloudflare pra abrir** — tem uma Cloudflare Access Application protegendo elas por padrão. Isso é intencional por ora: removê-la exige ativar o Zero Trust na conta, que pede cadastro de cartão mesmo no plano free. Só quem tem acesso à conta Cloudflare consegue ver os previews; pra liberar pra qualquer um (ex.: mandar link pra alguém de fora revisar), seria preciso ativar o Zero Trust e apagar/editar a Access Application em Zero Trust → Access → Applications.
-
-Pra rodar um preview manualmente a partir de outra branch, sem esperar o push:
-
-```
-git checkout minha-mudanca
-npm run deploy
-```
-
-Isso builda e faz `wrangler pages deploy dist --project-name=galindogamerbr-portal` **sem** `--branch` fixo — o wrangler detecta o branch git atual e publica como preview (numa URL própria daquela branch, diferente da URL fixa `/preview` que `deploy-preview.yml` usa). Só que localmente o `wrangler.toml` tem o `database_id`/KV `id` de produção nos bindings de topo (é o que o `skip-worktree` guarda) — então um deploy manual local com esse comando ainda aponta pro banco/cache de produção; prefira deixar o `deploy-preview.yml` cuidar disso.
-
-### Worker de social stats (`workers/social-stats-cron`)
-
-Worker separado (cron, não Pages Functions — ver `workers/social-stats-cron/README.md`) que coleta seguidores/posts do YouTube/TikTok/Instagram/Twitch/Kick a cada 20min, escrevendo no KV compartilhado (`PUBLIC_CACHE`, lido pelo site) e no D1 — nos **dois** bancos, produção e preview, pra nenhum dos dois ambientes ficar com o fallback de leitura vazio. Um segundo agendamento, fixo aos domingos meia-noite BRT, soma o total de visitas do site desde o início (a GraphQL Analytics API da Cloudflare só cobre ~90 dias por consulta) e persiste em D1 + KV — lido pelo contador de visitas lifetime na Home (`resolveLifetimeVisits` em `functions/api/community-stats.ts`). Deploy próprio (`deploy-cron-worker.yml`, dispara em push que mexe em `workers/social-stats-cron/**` ou manualmente), com um `fetch()` handler protegido por secret (`CRON_TRIGGER_SECRET`, header `x-trigger-secret`) que `deploy.yml`, `deploy-preview.yml` e o próprio `deploy-cron-worker.yml` chamam depois de todo deploy — assim o cache nunca fica frio esperando os 20min do agendamento normal. Precisa, além dos secrets de produção/preview já citados, dos secrets próprios do worker (`YOUTUBE_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `TIKTOK_CLIENT_KEY`/`TIKTOK_CLIENT_SECRET`, `CRON_TRIGGER_SECRET`, `CLOUDFLARE_ANALYTICS_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) — ver `workers/social-stats-cron/README.md`.
-
-### Banco remoto (D1)
-
-Migrations novas em `/migrations` sobem sozinhas: o workflow de deploy aplica `wrangler d1 migrations apply --remote` antes de publicar. Não precisa rodar nada manualmente depois de um merge em `main`.
-
-Pra aplicar numa situação fora do fluxo normal de deploy:
-
-```
-npm run db:migrate:remote
-```
-
-## Multichat
-
-A rota /multichat integra os serviços multichat-command e multichat-reader. Consulte [o guia de Docker e configuração](docs/multichat/README.md).
+## Legado
+A `feat/multichat` mantém as Pages Functions, o D1/KV e o Worker de estatísticas até o corte validar a nova arquitetura. A pasta `migrations/` guarda o histórico do D1 (a versão Postgres está em `galindogamerbr-api/supabase/migrations`).

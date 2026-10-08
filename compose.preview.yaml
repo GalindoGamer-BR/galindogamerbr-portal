@@ -1,20 +1,26 @@
+# Exposes the local backend to a Cloudflare Pages *preview* deployment through a quick tunnel.
+# The preview's Pages Function proxy (functions/[[path]].ts) must run with
+#   API_ORIGIN=<tunnel url>   ORIGIN_AUTH_SECRET=<PREVIEW_BRIDGE_KEY>
+# so nginx only answers requests that carry that secret in X-Origin-Auth.
 services:
-  command:
+  auth-service:
     environment:
       FRONTEND_URL: https://preview.galindogamerbr.com.br
       TIKTOK_REDIRECT_URI: https://preview.galindogamerbr.com.br/oauth/tiktok/callback
+  command:
+    environment:
+      FRONTEND_URL: https://preview.galindogamerbr.com.br
   auth:
     environment:
       GOTRUE_SITE_URL: https://preview.galindogamerbr.com.br
       GOTRUE_URI_ALLOW_LIST: https://preview.galindogamerbr.com.br/**
       API_EXTERNAL_URL: https://preview.galindogamerbr.com.br/auth/v1
+      GOTRUE_JWT_ISSUER: https://preview.galindogamerbr.com.br/auth/v1
       GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI: https://preview.galindogamerbr.com.br/auth/v1/callback
-  portal:
-    environment:
-      VITE_SUPABASE_URL: https://preview.galindogamerbr.com.br
-      VITE_MULTICHAT_COMMAND_URL: https://preview.galindogamerbr.com.br
   preview-proxy:
     image: nginx:stable-alpine
+    depends_on:
+      gateway: { condition: service_started }
     environment:
       PREVIEW_BRIDGE_KEY: ${PREVIEW_BRIDGE_KEY:?Preview bridge key required}
     volumes:

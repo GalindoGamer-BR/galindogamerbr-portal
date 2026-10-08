@@ -1,3 +1,5 @@
+> **Obsoleto**: o piloto com navegador isolado (`tiktok-worker` + `TIKTOK_WORKER_*`) foi removido da integração — o command não chama mais um worker externo e `compose.tiktok-pilot.yaml`/`start-tiktok-pilot.ps1` foram apagados. O envio TikTok atual é o `TikTokDirect` embutido no `multichat-command`, desligado por padrão (`TIKTOK_SEND_ENABLED=false`). O experimento continua em `multichat-command/experimental/tiktok-worker` apenas como referência.
+
 # TikTok LIVE — sessões por usuário
 
 Cada usuário autenticado do portal possui uma sessão independente. O worker mantém navegador Chromium, display X com autenticação própria, usuário Linux, fila de comandos e armazenamento criptografado separados. A chave de cada arquivo deriva do ID autenticado; arquivos não podem ser trocados entre contas.

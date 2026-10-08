@@ -1,5 +1,8 @@
 name: Deploy Preview
 
+# O backend do preview vem do ambiente *Preview* do projeto Pages: API_ORIGIN (URL do túnel de
+# compose.preview.yaml) e ORIGIN_AUTH_SECRET (= PREVIEW_BRIDGE_KEY). Ver README.
+
 on:
   workflow_dispatch:
 
