@@ -23,6 +23,9 @@ function jwt(role) {
   );
 }
 const values = {
+  TWITCH_AUTH_ENABLED: "false",
+  TWITCH_CLIENT_ID: "",
+  TWITCH_CLIENT_SECRET: "",
   POSTGRES_PASSWORD: randomBytes(24).toString("hex"),
   JWT_SECRET: secret,
   ANON_KEY: jwt("anon"),

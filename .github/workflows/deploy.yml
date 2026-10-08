@@ -73,6 +73,24 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply galindogamerbr_hub --remote
 
+      - name: Configurar secrets FS25 no Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          FS25_BISECT_API_KEY: ${{ secrets.FS25_BISECT_API_KEY }}
+          FS25_BISECT_SERVER_UUID: ${{ secrets.FS25_BISECT_SERVER_UUID }}
+          FS25_BISECT_PANEL_BASE_URL: ${{ secrets.FS25_BISECT_PANEL_BASE_URL }}
+          FS25_BISECT_PANEL_USERNAME: ${{ secrets.FS25_BISECT_PANEL_USERNAME }}
+          FS25_BISECT_PANEL_PASSWORD: ${{ secrets.FS25_BISECT_PANEL_PASSWORD }}
+          FS25_XML_CODE: ${{ secrets.FS25_XML_CODE }}
+        run: |
+          node --input-type=module <<'NODE' | npx wrangler pages secret bulk --project-name=galindogamerbr-portal
+          const keys = ["FS25_BISECT_API_KEY","FS25_BISECT_SERVER_UUID","FS25_BISECT_PANEL_BASE_URL","FS25_BISECT_PANEL_USERNAME","FS25_BISECT_PANEL_PASSWORD","FS25_XML_CODE"];
+          const missing = keys.filter(key => !process.env[key]);
+          if (missing.length) throw new Error('Secrets FS25 ausentes: ' + missing.join(', '));
+          process.stdout.write(JSON.stringify(Object.fromEntries(keys.map(key => [key, process.env[key]]))));
+          NODE
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:

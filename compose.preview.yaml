@@ -1,0 +1,26 @@
+services:
+  command:
+    environment:
+      FRONTEND_URL: https://preview.galindogamerbr.com.br
+      TIKTOK_REDIRECT_URI: https://preview.galindogamerbr.com.br/oauth/tiktok/callback
+  auth:
+    environment:
+      GOTRUE_SITE_URL: https://preview.galindogamerbr.com.br
+      GOTRUE_URI_ALLOW_LIST: https://preview.galindogamerbr.com.br/**
+      API_EXTERNAL_URL: https://preview.galindogamerbr.com.br/auth/v1
+      GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI: https://preview.galindogamerbr.com.br/auth/v1/callback
+  portal:
+    environment:
+      VITE_SUPABASE_URL: https://preview.galindogamerbr.com.br
+      VITE_MULTICHAT_COMMAND_URL: https://preview.galindogamerbr.com.br
+  preview-proxy:
+    image: nginx:stable-alpine
+    environment:
+      PREVIEW_BRIDGE_KEY: ${PREVIEW_BRIDGE_KEY:?Preview bridge key required}
+    volumes:
+      - ./docker/preview.conf.template:/etc/nginx/templates/default.conf.template:ro
+  preview-tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://preview-proxy:8080
+    depends_on:
+      - preview-proxy

@@ -1,0 +1,10 @@
+services:
+  tiktok-oauth-proxy:
+    image: nginx:stable-alpine
+    volumes:
+      - ./docker/tiktok-oauth-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+  tiktok-oauth-tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://tiktok-oauth-proxy:8080
+    depends_on:
+      - tiktok-oauth-proxy

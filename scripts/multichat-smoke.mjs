@@ -12,6 +12,7 @@ const values = Object.fromEntries(
       return [line.slice(0, index), line.slice(index + 1)];
     }),
 );
+if (values.MOCK_PLATFORMS !== "true") throw new Error("Smoke test requires an explicitly simulated environment; real providers must not receive test messages.");
 const client = createClient("http://localhost:54321", values.ANON_KEY, {
   auth: { persistSession: false },
 });
