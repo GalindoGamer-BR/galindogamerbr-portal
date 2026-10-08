@@ -23,6 +23,10 @@ export const messageSchema = z.object({
   timestamp: z.iso.datetime({ offset: true }),
   metadata: z
     .object({
+      fragments: z
+        .array(z.object({ text: z.string(), emoteId: z.string().optional() }))
+        .max(1000)
+        .optional(),
       badges: z.array(z.string()).optional(),
       color: z.string().optional(),
       donation: z
@@ -69,7 +73,7 @@ export type Accounts = Record<
   { connected: boolean; username?: string }
 >;
 export type SendResult = {
-  platform: WritablePlatform;
+  platform: Platform;
   success: boolean;
   error?: string;
 };

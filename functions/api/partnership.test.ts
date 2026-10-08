@@ -7,7 +7,7 @@ const validSubmission = {
   name: 'Ana Responsável',
   email: 'contato@marcaexemplo.com.br',
   phone: '(11) 99999-9999',
-  partnershipType: 'campaignSpecialAction',
+  partnershipType: 'campaignSpecialAction' as const,
   message: 'Gostaríamos de apresentar uma campanha para a comunidade.',
 }
 

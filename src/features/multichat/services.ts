@@ -1,19 +1,34 @@
 import { createClient } from "@supabase/supabase-js";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+export const realtimePublicKey = key;
 const commandUrl = import.meta.env.VITE_MULTICHAT_COMMAND_URL;
 export const configured = !!(url && key && commandUrl);
-export const supabase = configured ? createClient(url, key) : null;
+export const supabase = configured
+  ? createClient(url, key, { auth: { flowType: "pkce" } })
+  : null;
+export class PortalSessionRequired extends Error {}
+async function portalSession() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const result = await Promise.race([
+      supabase!.auth.getSession(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Não foi possível recuperar sua sessão. Recarregue a página para tentar novamente.")), 15000);
+      })
+    ]);
+    if (result.error) throw result.error;
+    if (!result.data.session) throw new PortalSessionRequired("Entre na sua conta para continuar.");
+    return result.data.session;
+  } finally { clearTimeout(timer); }
+}
 export async function command<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
   if (!supabase || !commandUrl)
     throw new Error("Multichat ainda não configurado.");
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) throw new Error("Entre na sua conta para continuar.");
+  const session = await portalSession();
   let response: Response;
   try {
     response = await fetch(`${commandUrl.replace(/\/$/, "")}${path}`, {
@@ -22,16 +37,51 @@ export async function command<T>(
       headers: {
         ...options.headers,
         Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
+        ...(options.body != null ? { "Content-Type": "application/json" } : {}),
       },
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(20_000),
     });
   } catch {
     throw new Error(
-      "O serviço de envio não respondeu. Tente novamente em instantes.",
+      "O serviço do portal não respondeu. Tente novamente em instantes.",
     );
   }
-  if (!response.ok)
+  if (!response.ok) {
+    if (response.status === 401) throw new PortalSessionRequired("Sua sessão expirou. Entre novamente.");
+    const details = await response.json().catch(() => null);
+    if (details?.error === "email_verification_required") {
+      if (window.location.pathname !== "/login") window.location.assign("/login");
+      throw new PortalSessionRequired("Confirme seu e-mail para continuar.");
+    }
+    const emailErrors: Record<string, string> = {
+      email_send_failed: "Não foi possível enviar o código. Tente novamente em instantes.",
+      email_code_invalid: "Código inválido ou expirado. Confira o código ou solicite outro.",
+      email_attempt_expired: "A confirmação expirou. Solicite um novo código.",
+      email_already_verified: "Seu e-mail já está confirmado. Entre novamente.",
+      account_merge_conflict: "As contas possuem vínculos diferentes da mesma plataforma. Nenhum vínculo foi sobrescrito; a união não foi concluída.",
+      account_merge_failed: "Não foi possível unir os cadastros. Solicite um novo código e tente novamente.",
+      account_merge_changed: "Seu cadastro mudou durante a confirmação. Solicite um novo código.",
+      try_again_later: "Aguarde a solicitação atual terminar e tente novamente."
+    };
+    if (emailErrors[details?.error]) throw new Error(emailErrors[details.error]);
+    if (details?.error === "tiktok_revoke_failed")
+      throw new Error("Não foi possível confirmar a revogação no TikTok. Sua conta no portal não foi excluída. Tente novamente.");
+    if (details?.error === "last_login_method")
+      throw new Error("Esta é sua única conta de acesso. Para remover o cadastro, use Excluir conta.");
+    if (details?.error === "account_already_linked")
+      throw new Error("Esta conta TikTok já está vinculada a outro perfil, ou seu perfil já tem outro TikTok vinculado.");
+    if (details?.error === "invalid_login_attempt")
+      throw new Error("A tentativa expirou. Entre com o TikTok novamente.");
+    if (details?.error === "tiktok_worker_unavailable")
+      throw new Error("Não foi possível preparar o navegador TikTok. Tente conectar novamente.");
+    if (details?.error === "worker_capacity")
+      throw new Error("As sessões TikTok disponíveis estão em uso. Tente novamente após uma desconexão.");
+    if (details?.error === "session_journal_full")
+      throw new Error("Limite de tentativas desta sessão atingido. Desvincule e conecte novamente.");
+    if (details?.error === "tiktok_https_callback_required")
+      throw new Error("O login TikTok precisa de um callback HTTPS configurado no servidor.");
+    if (details?.error === "provider_not_configured")
+      throw new Error("Esta plataforma ainda precisa das credenciais de conexão no servidor.");
     throw new Error(
       response.status === 429
         ? "Muitas solicitações. Aguarde alguns segundos."
@@ -39,5 +89,20 @@ export async function command<T>(
           ? "Sua sessão expirou. Entre novamente."
           : "Não foi possível concluir a solicitação.",
     );
+  }
   return response.status === 204 ? (undefined as T) : response.json();
+}
+
+export async function publicCommand<T>(path: string, body: unknown): Promise<T> {
+  if (!commandUrl) throw new Error("Login ainda não configurado.");
+  const response = await fetch(commandUrl.replace(/\/$/, "") + path, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body), signal: AbortSignal.timeout(15_000)
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error === "invalid_login_attempt"
+    ? "A tentativa expirou. Entre com o TikTok novamente."
+    : result.error === "email_verification_required" ? "Confirme o e-mail do seu cadastro antes de entrar."
+    : "Não foi possível concluir o login. Tente novamente.");
+  return result;
 }

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from './navItems'
-import { SocialLinks } from './SocialLinks'
 import { MobileMenu } from './MobileMenu'
 import { Logo } from '../ui/Logo'
 
@@ -50,7 +49,7 @@ export function Header() {
         </nav>
 
         <div className="hidden xl:block">
-          <SocialLinks />
+          <div className="flex items-center gap-4"><Link to="/membro" className="text-sm font-semibold hover:text-gold">Área do membro</Link></div>
         </div>
 
         <button

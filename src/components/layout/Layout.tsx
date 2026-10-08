@@ -16,6 +16,8 @@ export function Layout() {
     window.scrollTo({ top: 0, behavior })
   }, [pathname])
 
+  if (pathname === "/multichat") return <><Seo /><Outlet /></>
+
   return (
     <div className="flex min-h-screen flex-col">
       <Seo />

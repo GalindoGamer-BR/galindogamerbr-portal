@@ -7,7 +7,7 @@ import { logWarn, logError } from './log'
 // moderador, sem broadcaster autorizando nada. helix/streams é dado
 // público (o mesmo "N assistindo" que qualquer um vê no site da Twitch),
 // só exige credencial de aplicativo pra chamar a API oficial.
-async function getAppAccessToken(env: Env): Promise<string | null> {
+export async function getAppAccessToken(env: Env): Promise<string | null> {
   const res = await fetchWithTimeout('https://id.twitch.tv/oauth2/token', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },

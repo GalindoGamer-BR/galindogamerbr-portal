@@ -60,10 +60,13 @@ export type Env = {
   // conectado uma vez pelo admin, o worker renova o token sozinho depois.
   TIKTOK_CLIENT_KEY: string
   TIKTOK_CLIENT_SECRET: string
-  // Function key (query param `code`) do Azure Function fs25-discord-monitor
-  // (functions/lib/farmStatus.ts) — monitora o servidor dedicado da Fazenda
-  // Nova Aliança. Sem essa key o endpoint responde 401.
-  FS25_MONITOR_FUNCTION_CODE: string
+  // Credenciais do servidor FS25, disponíveis somente no Worker.
+  FS25_BISECT_API_KEY: string
+  FS25_BISECT_SERVER_UUID: string
+  FS25_BISECT_PANEL_BASE_URL: string
+  FS25_BISECT_PANEL_USERNAME: string
+  FS25_BISECT_PANEL_PASSWORD: string
+  FS25_XML_CODE: string
   // Webhook exclusivo do canal de programações. Mantido como secret no
   // Cloudflare; permite publicar e remover apenas mensagens desse webhook.
   DISCORD_SCHEDULE_WEBHOOK_URL?: string

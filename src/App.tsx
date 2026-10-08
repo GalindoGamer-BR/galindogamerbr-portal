@@ -1,5 +1,8 @@
+import PortalMember from './features/multichat/PortalMember'
+import PortalLogin from './features/multichat/PortalLogin'
+import PortalAccount from './features/multichat/PortalAccount'
 import { lazy, Suspense, type ComponentType, type ReactElement } from 'react'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, isRouteErrorResponse, Navigate, RouterProvider, useRouteError } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { Home } from './routes/Home'
 import { BemVindo } from './routes/BemVindo'
@@ -42,6 +45,7 @@ function lazyWithReload<T extends ComponentType<unknown>>(load: () => Promise<{ 
 // qualquer visitante da Home. Um único Suspense pro grupo inteiro (a
 // navegação entre elas já é rara o suficiente pra não precisar de
 // granularidade por rota).
+
 const MultichatPage = lazyWithReload(() => import('./features/multichat/MultichatPage'))
 const Login = lazyWithReload(() => import('./routes/admin/Login').then((m) => ({ default: m.Login })))
 const AdminIndex = lazyWithReload(() => import('./routes/admin/Index').then((m) => ({ default: m.AdminIndex })))
@@ -62,10 +66,24 @@ function withAdminSuspense(element: ReactElement): ReactElement {
   return <Suspense fallback={<AdminRouteFallback />}>{element}</Suspense>
 }
 
+function RouteError() {
+  const error = useRouteError()
+  if (isRouteErrorResponse(error) && error.status === 404) return <NotFound />
+  return (
+    <section className="px-6 py-24 text-center" role="alert">
+      <h1 className="text-3xl">Não foi possível carregar a página</h1>
+      <p className="mt-4 text-muted">Tente recarregar para abrir a versão atual do portal.</p>
+      <button type="button" onClick={() => window.location.reload()} className="mt-8 rounded-md bg-gold px-5 py-3 font-semibold text-bg">
+        Recarregar página
+      </button>
+    </section>
+  )
+}
+
 const router = createBrowserRouter([
   {
     element: <Layout />,
-    errorElement: <NotFound />,
+    errorElement: <RouteError />,
     children: [
       { path: '/', element: <Home /> },
       { path: '/boasvindas', element: <BemVindo /> },
@@ -76,6 +94,9 @@ const router = createBrowserRouter([
       { path: '/fazenda', element: <Fazenda /> },
       { path: '/mods', element: <Mods /> },
       { path: '/comunidade', element: <Comunidade /> },
+      { path: '/login', element: withAdminSuspense(<PortalLogin />) },
+      { path: '/membro', element: <PortalMember /> },
+      { path: '/conta', element: withAdminSuspense(<PortalAccount />) },
       { path: '/multichat', element: withAdminSuspense(<MultichatPage />) },
       { path: '/sobre', element: <Sobre /> },
       { path: '/parceiros', element: <Parceiros /> },

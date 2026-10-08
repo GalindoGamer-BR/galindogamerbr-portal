@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { z } from "zod";
-import { supabase } from "./services";
+import { supabase, realtimePublicKey } from "./services";
 import {
   appendMessages,
   messageSchema,
@@ -20,21 +20,22 @@ export function useMultichat(session: Session | null) {
   const [providers, setProviders] = useState<
     Partial<Record<Platform, ProviderStatus>>
   >({});
-  const [connection, setConnection] = useState("Entre para acompanhar o chat");
+  const [connection, setConnection] = useState("Conectando aos chats…");
   const [live, setLive] = useState<boolean | null>(null);
   const [simulation, setSimulation] = useState(false);
   useEffect(() => {
-    if (!supabase || !session) {
+    if (!supabase) {
       setMessages([]);
       setMetrics({});
       setProviders({});
       setLive(null);
       setSimulation(false);
-      setConnection("Entre para acompanhar o chat");
+      setConnection("Multichat ainda não configurado");
       return;
     }
     const client = supabase;
     let disposed = false;
+    let subscribedAt = Date.now();
     let buffer: ChatMessage[] = [];
     let lastSnapshot = Date.now();
     setConnection("Conectando aos chats…");
@@ -47,7 +48,7 @@ export function useMultichat(session: Session | null) {
           .object({ messages: z.array(messageSchema).max(100) })
           .safeParse(payload);
         if (parsed.success)
-          buffer = [...buffer, ...parsed.data.messages].slice(-1000);
+          buffer = [...buffer, ...parsed.data.messages.filter(m => Date.parse(m.timestamp) >= subscribedAt)].slice(-1000);
       })
       .on("broadcast", { event: "metrics" }, ({ payload }) => {
         const parsed = z
@@ -82,10 +83,11 @@ export function useMultichat(session: Session | null) {
         }
       });
     void client.realtime
-      .setAuth(session.access_token)
+      .setAuth(session?.access_token ?? realtimePublicKey)
       .then(() => {
         if (disposed) return;
         channel.subscribe((status) => {
+          if (status === "SUBSCRIBED") subscribedAt = Date.now();
           if (!disposed)
             setConnection(
               status === "SUBSCRIBED"
@@ -95,7 +97,7 @@ export function useMultichat(session: Session | null) {
         });
       })
       .catch(() => {
-        if (!disposed) setConnection("Falha ao conectar. Entre novamente.");
+        if (!disposed) setConnection("Falha ao conectar ao chat. Tente recarregar.");
       });
     const flush = setInterval(() => {
       if (buffer.length) {
@@ -118,12 +120,6 @@ export function useMultichat(session: Session | null) {
       clearInterval(stale);
       void client.removeChannel(channel);
     };
-  }, [session]);
-  useEffect(() => {
-    if (session?.access_token && supabase)
-      void supabase.realtime
-        .setAuth(session.access_token)
-        .catch(() => setConnection("Falha ao renovar a sessão."));
   }, [session?.access_token]);
   return { messages, metrics, providers, connection, live, simulation };
 }

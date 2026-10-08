@@ -1,4 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { TikTokChatConnection } from "./TikTokChatConnection";
+import { type TikTokConnectionState } from "./TikTokConnection";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
@@ -13,6 +15,10 @@ import {
 } from "./types";
 import { useMultichat } from "./useMultichat";
 import { ChatVirtualList } from "./ChatVirtualList";
+import { useEmotes } from "./useEmotes";
+import { EmotePicker } from "./EmotePicker";
+import { PlatformIcon } from "./PlatformIcon";
+import { MultichatDialog } from "./MultichatDialog";
 import "./multichat.css";
 const emptyAccounts: Accounts = {
   twitch: { connected: false },
@@ -28,6 +34,9 @@ const statusLabels = {
   disabled: "Não configurado",
 };
 const errors: Record<string, string> = {
+  delivery_unknown: "Envio sem confirmação. Confira no TikTok antes de repetir.",
+  chat_not_ready: "O chat TikTok ainda não está pronto; confirme a sessão nas configurações.",
+  tiktok_unavailable: "O TikTok não respondeu à consulta da live.",
   rate_limit: "Limite atingido; aguarde.",
   account_not_linked: "Conecte sua conta.",
   reconnect_required: "Reconecte sua conta.",
@@ -38,26 +47,38 @@ const errors: Record<string, string> = {
 };
 export default function MultichatPage() {
   const [session, setSession] = useState<Session | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [tiktok, setTikTok] = useState<TikTokConnectionState>({connected:false,canSend:false});
+  useEffect(()=>{
+    let active=true;
+    setTikTok({connected:false,canSend:false});
+    if(!session)return;
+    const refresh=()=>{void command<TikTokConnectionState>("/api/tiktok/live").then(s=>{if(active)setTikTok(s);}).catch(()=>{});};
+    refresh();
+    window.addEventListener("focus",refresh);
+    return()=>{active=false;window.removeEventListener("focus",refresh);};
+  },[session?.user.id]);
   const [accounts, setAccounts] = useState<Accounts>(emptyAccounts);
-  const [filters, setFilters] = useState<Record<Platform, boolean>>({
-    twitch: true,
-    youtube: true,
-    kick: true,
-    tiktok: true,
-  });
-  const [targets, setTargets] = useState<Record<WritablePlatform, boolean>>({
-    twitch: true,
-    youtube: false,
-    kick: false,
-  });
+  const [filter, setFilter] = useState<Platform | "all">("all");
+  const [theater, setTheater] = useState(false);
+  const [settings, setSettings] = useState(false);
+  const [help, setHelp] = useState(false);
+  const [picker, setPicker] = useState(false);
+  const composer = useRef<HTMLTextAreaElement>(null);
+  const emoteButton = useRef<HTMLButtonElement>(null);
+  const emotes = useEmotes();
+  useEffect(() => {
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setTheater(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, []);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<SendResult[]>([]);
-  const [player, setPlayer] = useState<WritablePlatform | null>(null);
+  const [player, setPlayer] = useState<WritablePlatform>("twitch");
   const chat = useMultichat(session);
   const liveStatus = useLiveStatus();
   const refreshAccounts = async () => {
@@ -69,7 +90,8 @@ export default function MultichatPage() {
     let active = true;
     void supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) throw error;
         if (active) setSession(data.session);
       })
       .catch(() => {
@@ -79,8 +101,21 @@ export default function MultichatPage() {
       if (active) setSession(value);
     });
     const params = new URLSearchParams(window.location.search);
-    if (params.has("oauth_error"))
-      setNotice("Não foi possível vincular a conta. Tente novamente.");
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    if (params.has("error") || hashParams.has("error"))
+      setNotice("O login não foi concluído. Tente novamente.");
+    if (params.has("oauth_error")) {
+      const oauthErrors: Record<string, string> = {
+        access_denied: "A autorização foi negada ou cancelada na plataforma.",
+        redirect_uri_mismatch: "O endereço de retorno do servidor não confere com o cadastrado no provedor.",
+        provider_api_disabled: "A API da plataforma não está habilitada no projeto do servidor.",
+        provider_misconfigured: "As credenciais do servidor para esta plataforma estão incorretas.",
+        invalid_grant: "A autorização expirou. Tente conectar novamente.",
+        youtube_channel_required: "Esta conta Google não tem um canal do YouTube.",
+        account_not_found: "Não foi possível identificar a conta na plataforma.",
+      };
+      setNotice(oauthErrors[params.get("oauth_error") || ""] || "Não foi possível vincular a conta. Tente novamente.");
+    }
     if (params.has("linked"))
       setNotice(
         params.has("simulation")
@@ -97,29 +132,7 @@ export default function MultichatPage() {
     if (session)
       void refreshAccounts().catch((error) => setNotice(error.message));
   }, [session]);
-  const auth = async (event: FormEvent, signup = false) => {
-    event.preventDefault();
-    if (!supabase) return;
-    setBusy(true);
-    setNotice("");
-    try {
-      const { error } = signup
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      if (signup)
-        setNotice(
-          "Cadastro enviado. Confira seu e-mail se a confirmação estiver habilitada.",
-        );
-      setPassword("");
-    } catch {
-      setNotice(
-        "Não foi possível entrar ou cadastrar. Confira os dados e tente novamente.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
+  const login = () => { window.location.assign("/login"); };
   const link = async (platform: WritablePlatform) => {
     setBusy(true);
     setNotice("Inicializando serviço de envio…");
@@ -144,8 +157,11 @@ export default function MultichatPage() {
       setBusy(false);
     }
   };
+  const tikTokLinked = tiktok.connected && tiktok.canSend;
+  const connectedPlatforms: Platform[] = [...writablePlatforms.filter((p)=>accounts[p].connected), ...(tikTokLinked ? ["tiktok" as const] : [])];
   const send = async (event: FormEvent) => {
     event.preventDefault();
+    if (!canSend) return;
     setSending(true);
     setResults([]);
     setNotice("Inicializando serviço de envio…");
@@ -156,13 +172,13 @@ export default function MultichatPage() {
           method: "POST",
           body: JSON.stringify({
             message,
-            platforms: writablePlatforms.filter(
-              (p) => targets[p] && accounts[p].connected,
-            ),
+            id: crypto.randomUUID(),
+            platforms: connectedPlatforms,
           }),
         },
       );
       setResults(data.results);
+      if(data.results.some(r=>r.platform==="tiktok" && r.error==="reconnect_required")) setTikTok({connected:false,canSend:false});
       setNotice("");
       if (data.results.every((r) => r.success)) setMessage("");
     } catch (error) {
@@ -171,14 +187,17 @@ export default function MultichatPage() {
       setSending(false);
     }
   };
-  const limit = targets.youtube && accounts.youtube.connected ? 200 : 500;
+  const limit = tikTokLinked ? 150 : accounts.youtube.connected ? 200 : 500;
   const canSend =
     !!session &&
     message.trim().length > 0 &&
     Array.from(message.trim()).length <= limit &&
-    writablePlatforms.some((p) => targets[p] && accounts[p].connected) &&
-    !sending;
-  const visible = chat.messages.filter((m) => filters[m.platform]);
+    connectedPlatforms.length > 0 &&
+    !sending &&
+    !busy;
+  const visible = chat.messages.filter(
+    (m) => filter === "all" || m.platform === filter,
+  );
   const playerUrl =
     player === "twitch"
       ? `https://player.twitch.tv/?channel=galindogamerbr&parent=${encodeURIComponent(window.location.hostname)}&autoplay=false`
@@ -187,274 +206,420 @@ export default function MultichatPage() {
         : liveStatus?.isLive && liveStatus.videoId
           ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveStatus.videoId)}?autoplay=0`
           : null;
+  const insertEmote = (code: string) => {
+    const input = composer.current;
+    if (!session || sending || !input) return;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const prefix = message.slice(0, start);
+    const suffix = message.slice(end);
+    const insert = (prefix && !/\s$/.test(prefix) ? " " : "") + code + " ";
+    setMessage(prefix + insert + suffix);
+    setPicker(false);
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(start + insert.length, start + insert.length);
+    });
+  };
   return (
-    <div className="mc-page">
-      <div className="mc-heading">
-        <div>
-          <span className="mc-eyebrow">GALINDOGAMERBR / AO VIVO</span>
-          <h1>
-            Uma live. <em>Todas as conversas.</em>
-          </h1>
-          <p>Escolha onde assistir. Participe com toda a comunidade.</p>
+    <div className={`mc-page ${theater ? "mc-theater" : ""}`}>
+      <header className="mc-topbar">
+        <a className="mc-brand" href="/" aria-label="Voltar ao portal GalindoGamerBR">
+          <img src="/assets/logos/galindogamerbr.webp" alt="" />
+          <span>
+            GALINDO<span className="mc-brand-gold">GAMERBR</span>
+            <small>MULTICHAT</small>
+          </span>
+        </a>
+        <nav className="mc-player-tabs" aria-label="Plataforma do player">
+          {writablePlatforms.map((p) => (
+            <button
+              key={p}
+              aria-pressed={player === p}
+              onClick={() => setPlayer(p)}
+            >
+              <PlatformIcon platform={p} />
+              {labels[p]}
+            </button>
+          ))}
+        </nav>
+        <div className="mc-top-actions">
+          <button
+            onClick={() => setHelp(true)}
+            aria-label="Como funciona o Multichat"
+          >
+            ?
+          </button>
+          <button onClick={() => setSettings(true)}>
+            ⚙ <span>Conexões</span>
+          </button>
+          {session ? (
+            <button
+              onClick={() => window.location.assign("/conta")}
+            >
+              Minha conta
+            </button>
+          ) : (
+            <button
+              className="mc-twitch-login"
+              disabled={busy || !configured}
+              onClick={() => login()}
+            >
+              Entrar
+            </button>
+          )}
         </div>
-        <span className="mc-connection" role="status">
-          <i />
-          {chat.connection}
-        </span>
-      </div>
-      {!configured && (
-        <div className="mc-notice">
-          O multichat está sendo preparado. A conexão estará disponível em
-          breve.
-        </div>
-      )}
-      {chat.simulation && (
-        <div className="mc-notice">
-          Ambiente de testes · mensagens e contas simuladas
-        </div>
-      )}
-      <div className="mc-grid">
-        <section className="mc-main">
-          <div className="mc-player">
-            <div className="mc-section-head">
-              <h2>Assista do seu jeito</h2>
-              <div className="mc-tabs">
-                {writablePlatforms.map((p) => (
-                  <button
-                    key={p}
-                    className={player === p ? "active" : ""}
-                    aria-pressed={player === p}
-                    onClick={() => setPlayer(p)}
-                  >
-                    {labels[p]}
-                  </button>
-                ))}
-                {player && (
-                  <button
-                    onClick={() => setPlayer(null)}
-                    aria-label="Fechar player"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="mc-video">
-              {!player ? (
-                <div className="mc-player-empty">
-                  <span>▷</span>
-                  <strong>Sua transmissão, sua escolha</strong>
-                  <p>Selecione uma plataforma acima para abrir o player.</p>
-                </div>
-              ) : !playerUrl ? (
-                <div className="mc-player-empty">
-                  <strong>Nenhuma transmissão ativa no YouTube</strong>
-                  <a
-                    href="https://www.youtube.com/@galindogamerbr/live"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Abrir canal ↗
-                  </a>
-                </div>
-              ) : (
-                <iframe
-                  key={player}
-                  title={`Transmissão ${labels[player]}`}
-                  src={playerUrl}
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                />
-              )}
-            </div>
+      </header>
+      <div className="mc-workspace">
+        <main className="mc-stage">
+          <div className="mc-stage-toolbar">
+            <span>
+              <span className="mc-dot" />{" "}
+              {chat.simulation
+                ? "Ambiente de testes · chat simulado"
+                : "GalindoGamerBR · Multichat"}
+            </span>
+            <button
+              aria-pressed={theater}
+              onClick={() => setTheater(!theater)}
+              title="Modo teatro (Esc para sair)"
+            >
+              {theater ? "⊡ Sair do teatro" : "▣ Modo teatro"}
+            </button>
           </div>
-          <div className="mc-metrics">
-            {platforms.map((p) => (
-              <div key={p}>
-                <span className={`mc-platform mc-${p}`}>{labels[p]}</span>
-                <strong>
-                  {chat.metrics[p]?.viewers?.toLocaleString("pt-BR") ?? "—"}
-                </strong>
-                <small>
-                  {chat.metrics[p]
-                    ? `${chat.metrics[p]!.messagesPerMinute} msg/min · ${chat.metrics[p]!.activeChatUsers} no chat`
-                    : "Aguardando métricas"}
-                </small>
+          <div className="mc-video">
+            {playerUrl ? (
+              <iframe
+                key={player}
+                title={`Transmissão ${labels[player]}`}
+                src={playerUrl}
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="mc-player-empty">
+                <strong>Nenhuma transmissão ativa no YouTube</strong>
+                <a
+                  href="https://www.youtube.com/@galindogamerbr/live"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir canal ↗
+                </a>
               </div>
-            ))}
+            )}
           </div>
-          <section className="mc-panel mc-accounts">
-            <div className="mc-section-head">
-              <h2>Suas conexões</h2>
-              <span>TikTok · somente leitura</span>
+          <section className="mc-channel-info">
+            <img
+              className="mc-channel-avatar"
+              src="/assets/logos/galindogamerbr.webp"
+              alt=""
+            />
+            <div className="mc-channel-copy">
+              <h1>
+                GalindoGamerBR{" "}
+                <span className="mc-platform-label">{labels[player]}</span>
+              </h1>
+              <p>
+                {player === "youtube" && liveStatus?.isLive
+                  ? liveStatus.title
+                  : "A live é uma só. A comunidade está em todo lugar."}
+              </p>
+              <span className="mc-muted">
+                Português ·{" "}
+                {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"}{" "}
+                assistindo
+              </span>
             </div>
-            <p>Vincule suas contas para enviar mensagens em cada plataforma.</p>
-            <div className="mc-account-list">
-              {writablePlatforms.map((p) => (
-                <div key={p}>
-                  <span className={`mc-platform mc-${p}`}>{labels[p]}</span>
-                  <small>
-                    {accounts[p].connected
-                      ? accounts[p].username
-                      : "Não conectada"}
-                  </small>
-                  <button
-                    disabled={!session || busy}
-                    onClick={() =>
-                      accounts[p].connected ? void unlink(p) : void link(p)
-                    }
-                  >
-                    {accounts[p].connected ? "Desconectar" : "Conectar"}
-                  </button>
-                </div>
-              ))}
+            <div className="mc-support">
+              <a
+                className="mc-sub"
+                href="https://www.twitch.tv/subs/galindogamerbr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                ☆ Inscrever-se
+              </a>
+              <a
+                href="https://www.twitch.tv/subs/galindogamerbr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                ♧ Dar um sub ↗
+              </a>
             </div>
           </section>
-        </section>
-        <section className="mc-chat mc-panel">
-          <div className="mc-section-head">
-            <h2>Chat da comunidade</h2>
-            <span>{visible.length} mensagens</span>
-          </div>
-          <div className="mc-filters">
-            {platforms.map((p) => (
-              <label key={p} title={chat.providers[p]?.error}>
-                <input
-                  type="checkbox"
-                  checked={filters[p]}
-                  onChange={(event) =>
-                    setFilters({ ...filters, [p]: event.target.checked })
-                  }
-                />
-                <span className={`mc-platform mc-${p}`}>{labels[p]}</span>
-                <small>
-                  {chat.providers[p]
-                    ? statusLabels[chat.providers[p]!.status]
-                    : "Aguardando"}
-                </small>
-              </label>
-            ))}
-          </div>
-          {chat.live === false && (
-            <div className="mc-offline">Nenhuma transmissão ativa.</div>
-          )}
-          <ChatVirtualList messages={visible} />
-          <form className="mc-composer" onSubmit={send}>
-            <div className="mc-targets">
-              <span>Enviar para</span>
-              {writablePlatforms.map((p) => (
-                <label key={p}>
-                  <input
-                    type="checkbox"
-                    checked={targets[p]}
-                    disabled={!accounts[p].connected}
-                    onChange={(event) =>
-                      setTargets({ ...targets, [p]: event.target.checked })
-                    }
-                  />
-                  {labels[p]}
-                </label>
-              ))}
+          <section className="mc-about">
+            <h2>Juntos em todas as plataformas.</h2>
+            <p>Escolha onde assistir e acompanhe a conversa em um só lugar.</p>
+            <div className="mc-channel-links">
+              <a
+                href="https://www.twitch.tv/galindogamerbr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Twitch ↗
+              </a>
+              <a
+                href="https://www.youtube.com/@galindogamerbr/join"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Seja membro no YouTube ↗
+              </a>
+              <a
+                href="https://kick.com/galindogamerbr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Apoiar na Kick ↗
+              </a>
             </div>
-            <label className="mc-sr" htmlFor="mc-message">
-              Sua mensagem
-            </label>
-            <textarea
-              id="mc-message"
-              placeholder={
-                session ? "Entre na conversa…" : "Entre para enviar mensagens"
-              }
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              disabled={!session || sending}
-              rows={2}
-            />
-            <div className="mc-composer-bottom">
-              <small>
-                {Array.from(message).length}/{limit}
-              </small>
-              <button className="mc-primary" disabled={!canSend}>
-                {sending ? "Enviando…" : "Enviar mensagem ↗"}
+          </section>
+          <footer className="mc-footer">
+            <a href="/">Voltar ao portal</a>
+            <a href="/privacidade">Privacidade</a>
+            <a href="/termos">Termos de uso</a>
+          </footer>
+        </main>
+        <aside className="mc-chat" aria-label="Chat da comunidade">
+          <div className="mc-chat-heading">
+            <div>
+              <h2>Chat da comunidade</h2>
+              <span className="mc-muted">{chat.connection}</span>
+            </div>
+            <button
+              onClick={() => setSettings(true)}
+              aria-label="Configurações de conexões"
+            >
+              ⚙
+            </button>
+          </div>
+          <nav className="mc-chat-tabs" aria-label="Filtrar mensagens">
+            {(["all", ...platforms] as const).map((p) => (
+              <button
+                key={p}
+                aria-pressed={filter === p}
+                onClick={() => setFilter(p)}
+                title={p === "all" ? "Todas as plataformas" : labels[p]}
+              >
+                {p === "all" ? (
+                  "Todos"
+                ) : (
+                  <>
+                    <PlatformIcon platform={p} />
+                    <span>{labels[p]}</span>
+                  </>
+                )}
+              </button>
+            ))}
+          </nav>
+          {filter !== "all" && (
+            <div className="mc-provider-status">
+              {labels[filter]} ·{" "}
+              {chat.providers[filter]
+                ? (chat.providers[filter]!.error === "tiktok_access_blocked" ? "TikTok recusou a conexão" : statusLabels[chat.providers[filter]!.status])
+                : "Aguardando"}
+            </div>
+          )}
+          {!configured && (
+            <div className="mc-notice">O Multichat está sendo preparado.</div>
+          )}
+          <ChatVirtualList messages={visible} catalog={emotes.catalog} />
+          {notice && (
+            <div className="mc-notice" role="status">
+              {notice}
+            </div>
+          )}
+          <form className="mc-composer" onSubmit={send}>
+            {picker && (
+              <EmotePicker
+                emotes={emotes.emotes}
+                state={emotes.state}
+                onClose={() => {
+                  setPicker(false);
+                  emoteButton.current?.focus();
+                }}
+                onSelect={insertEmote}
+              />
+            )}
+            <div className="mc-input-wrap">
+              <textarea
+                ref={composer}
+                id="mc-message"
+                aria-label="Sua mensagem"
+                placeholder={
+                  session
+                    ? "Envie uma mensagem…"
+                    : "Entre com a Twitch para conversar"
+                }
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={!session || sending}
+                rows={2}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !e.nativeEvent.isComposing
+                  ) {
+                    e.preventDefault();
+                    if (canSend) e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+              />
+              <button
+                ref={emoteButton}
+                type="button"
+                className="mc-emote-trigger"
+                aria-label="Abrir emotes"
+                aria-expanded={picker}
+                aria-controls="mc-emote-picker"
+                onClick={() => setPicker(!picker)}
+              >
+                ☺
               </button>
             </div>
-            <div aria-live="polite">
+            <div className="mc-composer-bottom">
+              <span className="mc-muted">
+                {Array.from(message).length}/{limit}
+              </span>
+              {session ? (
+                <button className="mc-primary" disabled={!canSend}>
+                  {sending ? "Enviando…" : "Enviar"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="mc-twitch-login"
+                  disabled={busy || !configured}
+                  onClick={() => login()}
+                >
+                  Entrar
+                </button>
+              )}
+            </div>
+            <div className="mc-connected">
+              <span>Contas conectadas</span>
+              {connectedPlatforms.map((p) => (
+                <PlatformIcon key={p} platform={p} />
+              ))}
+              <button type="button" onClick={() => setSettings(true)}>
+                {connectedPlatforms.length ? "Gerenciar" : "Conectar"}
+              </button>
+            </div>
+            <div className="mc-send-results" aria-live="polite">
               {results.map((r) => (
-                <p
+                <span
                   key={r.platform}
                   className={r.success ? "mc-success" : "mc-error"}
                 >
-                  {labels[r.platform]}:{" "}
+                  <PlatformIcon platform={r.platform} />
                   {r.success
                     ? "Enviada"
-                    : errors[r.error || ""] || "Não foi possível enviar."}
-                </p>
+                    : errors[r.error || ""] || "Falha no envio"}
+                </span>
               ))}
             </div>
           </form>
-        </section>
+        </aside>
       </div>
-      {notice && (
-        <div className="mc-notice" role="status">
-          {notice}
-        </div>
-      )}
-      {configured && (
-        <section className="mc-panel mc-auth">
-          {session ? (
-            <>
-              <p>
-                Conectado como <strong>{session.user.email}</strong>
-              </p>
-              <button
-                onClick={() => {
-                  void supabase?.auth.signOut().then(({ error }) => {
-                    if (error) setNotice("Não foi possível sair.");
-                  });
-                }}
-              >
-                Sair
-              </button>
-            </>
-          ) : (
-            <form onSubmit={auth}>
-              <div>
-                <h2>Entre na conversa</h2>
-                <p>Uma conta para acompanhar e conectar suas plataformas.</p>
+      {settings && (
+        <MultichatDialog
+          title="Suas conexões"
+          onClose={() => setSettings(false)}
+        >
+          <div className="mc-dialog-body">
+            <p>
+              Uma mensagem para todas as contas conectadas para envio. Para parar de enviar
+              a uma plataforma, desvincule sua conta.
+            </p>
+            {notice && <p role="alert" className="mc-notice">{notice}</p>}
+            {writablePlatforms.map((p) => (
+              <div className="mc-account-row" key={p}>
+                <PlatformIcon platform={p} />
+                <div>
+                  <strong>{labels[p]}</strong>
+                  <small>
+                    {accounts[p].connected
+                      ? accounts[p].username || "Conectada"
+                      : "Não conectada"}
+                  </small>
+                </div>
+                <button
+                  disabled={!session || busy || sending}
+                  onClick={() =>
+                    accounts[p].connected ? void unlink(p) : void link(p)
+                  }
+                >
+                  {accounts[p].connected ? "Desvincular" : "Conectar"}
+                </button>
               </div>
-              <label>
-                E-mail
-                <input
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </label>
-              <label>
-                Senha
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </label>
-              <button className="mc-primary" disabled={busy}>
+            ))}
+            <TikTokChatConnection key={session?.user.id ?? "guest"} signedIn={!!session} state={tiktok} onChange={setTikTok} />
+            <section aria-labelledby="tiktok-chat-flow">
+              <h3 id="tiktok-chat-flow">Como conectar o chat TikTok</h3>
+              <p>O vínculo usado para entrar no portal é separado da sessão de envio ao chat.</p>
+              <ol className="mc-help-list">
+                <li><strong>Conecte o chat uma vez</strong><p>Na primeira conexão, você escaneará um QR code com o aplicativo TikTok e confirmará o login no celular.</p></li>
+                <li><strong>Continue sem repetir o login</strong><p>Reutilizaremos sua sessão enquanto ela estiver válida. Se ela expirar ou for revogada, será necessário conectar novamente.</p></li>
+                <li><strong>Escreva no multichat</strong><p>Com o chat conectado, suas mensagens também serão enviadas ao TikTok, em seu nome, sem confirmação a cada envio. Para parar, desconecte o chat nas configurações.</p></li>
+              </ol>
+            </section>
+            {!session && (
+              <button
+                className="mc-twitch-login"
+                disabled={busy || !configured}
+                onClick={() => login()}
+              >
                 Entrar
               </button>
-              <button
-                type="button"
-                disabled={busy || !email || password.length < 8}
-                onClick={(event) => void auth(event, true)}
-              >
-                Criar conta
-              </button>
-            </form>
-          )}
-        </section>
+            )}
+          </div>
+        </MultichatDialog>
+      )}
+      {help && (
+        <MultichatDialog
+          title="Uma mensagem. Várias plataformas."
+          onClose={() => setHelp(false)}
+        >
+          <div className="mc-dialog-body">
+            <ol className="mc-help-list">
+              <li>
+                <strong>Conecte suas contas</strong>
+                <p>
+                  Entre no portal e abra Conexões para vincular Twitch,
+                  YouTube, Kick e TikTok. No TikTok, conecte a sessão do chat nas configurações;
+                  o fluxo de conexão está explicado nas configurações.
+                </p>
+              </li>
+              <li>
+                <strong>Entre na conversa</strong>
+                <p>
+                  Seu envio vai para todas as contas conectadas. As abas filtram
+                  somente o que você lê.
+                </p>
+              </li>
+              <li>
+                <strong>Use seus emotes</strong>
+                <p>
+                  Abra o sorriso ao lado da mensagem para buscar emotes Twitch e
+                  BTTV, incluindo animados.
+                </p>
+              </li>
+              <li>
+                <strong>Assista do seu jeito</strong>
+                <p>
+                  Escolha a plataforma no topo e ative o modo teatro para
+                  ampliar o player. Escape sai do teatro.
+                </p>
+              </li>
+            </ol>
+            <button className="mc-primary" onClick={() => setHelp(false)}>
+              Entendi
+            </button>
+          </div>
+        </MultichatDialog>
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from './navItems'
-import { SocialLinks } from './SocialLinks'
 
 type MobileMenuProps = {
   open: boolean
@@ -27,7 +26,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
             {item.label}
           </NavLink>
         ))}
-        <SocialLinks className="mt-3 px-3" />
+        <NavLink to="/membro" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Área do membro</NavLink>
       </nav>
     </div>
   )

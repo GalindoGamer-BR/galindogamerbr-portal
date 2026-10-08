@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    allowedHosts: ["portal"],
     strictPort: true,
     // O navegador abre o Vite (HMR confiável em :5173). Só as chamadas de
     // API vão para o Wrangler Pages em :8788, que executa as Functions e

@@ -1,3 +1,4 @@
+import { CommunityJoinBanner } from '../components/shared/CommunityJoinBanner'
 import { Link } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { Eyebrow } from '../components/ui/Eyebrow'
@@ -33,6 +34,7 @@ export function Home() {
   return (
     <>
       <Hero />
+      <CommunityJoinBanner />
       <FazendaTeaser />
       <TransmissoesTeaser />
       <JogosBannerCta />

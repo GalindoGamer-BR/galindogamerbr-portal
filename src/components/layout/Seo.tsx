@@ -14,6 +14,9 @@ type SeoData = {
 
 const ROUTE_SEO: Record<string, SeoData> = {
   '/': { description: DEFAULT_DESCRIPTION },
+  '/login': { title: 'Entrar na comunidade', description: 'Entre na comunidade GalindoGamerBR com sua conta TikTok.', noIndex: true },
+  '/membro': { title: 'Área do membro', description: 'Seu espaço na comunidade GalindoGamerBR.', noIndex: true },
+  '/conta': { title: 'Minha conta', description: 'Gerencie sua conta da comunidade GalindoGamerBR.', noIndex: true },
   '/boasvindas': {
     title: 'Boas vindas',
     description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, da fazenda e da comunidade.',
@@ -35,6 +38,7 @@ const ROUTE_SEO: Record<string, SeoData> = {
     description: 'Entre nos canais oficiais e faça parte da comunidade GalindoGamerBR.',
   },
   '/multichat': {
+    noIndex: true,
     title: 'Multichat',
     description: 'Acompanhe os chats de Twitch, YouTube, Kick e TikTok em uma única conversa.',
   },

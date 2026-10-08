@@ -1,14 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { labels, type ChatMessage } from "./types";
-export function ChatVirtualList({ messages }: { messages: ChatMessage[] }) {
+import { type ChatMessage } from "./types";
+import { messageParts, type Emote } from "./emotes";
+import { EmoteImage } from "./EmotePicker";
+import { PlatformIcon } from "./PlatformIcon";
+export function ChatVirtualList({
+  messages,
+  catalog,
+}: {
+  messages: ChatMessage[];
+  catalog: Map<string, Emote>;
+}) {
   const parent = useRef<HTMLDivElement>(null);
   const following = useRef(true);
   const [paused, setPaused] = useState(false);
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => parent.current,
-    estimateSize: () => 82,
+    estimateSize: () => 38,
     overscan: 8,
     getItemKey: (index) => messages[index].id,
   });
@@ -63,30 +72,45 @@ export function ChatVirtualList({ messages }: { messages: ChatMessage[] }) {
                   transform: `translateY(${row.start}px)`,
                 }}
               >
-                <div className={`mc-avatar mc-${message.platform}`}>
-                  {message.user.displayName.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="mc-message-content">
-                  <div className="mc-message-meta">
-                    <strong>{message.user.displayName}</strong>
-                    <span className={`mc-platform mc-${message.platform}`}>
-                      {labels[message.platform]}
-                    </span>
-                    <time dateTime={message.timestamp}>
-                      {new Date(message.timestamp).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </time>
-                  </div>
-                  <p>{message.message}</p>
-                  {message.metadata?.donation && (
-                    <small>
-                      Contribuição: {message.metadata.donation.amount}{" "}
-                      {message.metadata.donation.currency}
-                    </small>
+                <PlatformIcon platform={message.platform} />
+                <strong
+                  className="mc-message-user"
+                  style={{
+                    color: /^#[0-9a-f]{6}$/i.test(message.metadata?.color || "")
+                      ? message.metadata!.color
+                      : undefined,
+                  }}
+                >
+                  {message.user.displayName}
+                </strong>
+                <span>: </span>
+                <span className="mc-message-text">
+                  {messageParts(message, catalog).map((part, index) =>
+                    part.emote ? (
+                      <EmoteImage
+                        key={index + part.emote.id}
+                        emote={part.emote}
+                      />
+                    ) : /^https?:\/\/\S+$/i.test(part.text) ? (
+                      <a
+                        key={index}
+                        href={part.text}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {part.text}
+                      </a>
+                    ) : (
+                      part.text
+                    ),
                   )}
-                </div>
+                </span>
+                {message.metadata?.donation && (
+                  <small>
+                    Contribuição: {message.metadata.donation.amount}{" "}
+                    {message.metadata.donation.currency}
+                  </small>
+                )}
               </article>
             );
           })}
