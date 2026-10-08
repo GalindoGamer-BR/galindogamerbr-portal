@@ -15,6 +15,11 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 | k8s-platform (novo) | `main` | namespace, cloudflared, Traefik Ingress, guia de instalação |
 `fs25-portal-proxy` não foi tocado (permanece Cloudflare Worker). Os projetos originais do GitLab/Azure e o D1/KV/Worker de produção estão intactos.
 
+## Validado com Docker (2026-10-08)
+- `docker compose --env-file .env.docker up`: 11 serviços saudáveis (GoTrue, Realtime, auth-service, command, reader, portal-api, gateway Traefik, Vite, monitor FS25, mods-sync, nginx de mods); migrations dos 4 repos aplicadas em Postgres real (tabelas de `public` movidas para `auth_service`/`multichat`, dados preservados).
+- Ponta a ponta pelo gateway: rotas públicas da API com dados reais; JWT do GoTrue validado localmente no command; gate de e-mail; OTP admin (request/verify/me/logout) e acesso a `/api/admin/*` por cookie; criar/publicar programação (RETURNING, transação, KV); rate limit; exclusão de conta; `/internal/*` sem rota pública e com token de serviço; job de estatísticas; monitor FS25 e mods-sync (API, lock, dotfiles bloqueados).
+- Build do portal (tsc + Vite + SEO) e lint; `kubeconform` (23 recursos válidos); imagens `linux/arm64` de todos os serviços construídas.
+
 ## Validado (local, sem Docker)
 - Testes: auth-service 12, multichat-command 14, galindogamerbr-api 56 (inclui 52 portados), fs25-monitoring-worker 6, fs25-mods-sync 8 — todos passando; `tsc --noEmit` limpo nos projetos TypeScript; `esbuild` gera `dist/server.js` e o job.
 - Tradução D1→Postgres (`?`→`$n`, `datetime('now'[, mod])`) testada; teste de deriva garante que toda tabela usada no código existe na migration.
@@ -23,8 +28,8 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 - Geração de SEO por rota (`scripts/seo-prerender.mjs`) conferida em diretório temporário.
 
 ## NÃO validado (depende de infraestrutura ou credenciais)
-- **Docker indisponível nesta máquina**: `docker compose up`, build das imagens (arm64/amd64), `kubeconform`/`kubectl apply --dry-run`, e as migrations SQL contra um Postgres/GoTrue reais não foram executados. O primeiro `docker compose up` pode exigir ajustes.
-- Rotas do `galindogamerbr-api` contra um Postgres real (o adaptador D1→pg só tem teste unitário); paridade fina de respostas com as Pages Functions antigas.
+- `kubectl apply` em um cluster real (só `kubeconform` foi executado) e execução das imagens em arm64 de verdade.
+- Paridade fina de respostas da `galindogamerbr-api` com as Pages Functions antigas (rotas testadas contra Postgres real, mas não comparadas lado a lado com o D1 de produção).
 - Login admin por OTP com e-mail real: exige SMTP no Supabase (ex.: Resend) com OTP de 6 dígitos e `ADMIN_EMAILS`; o usuário ganha `app_metadata.role=admin` no primeiro login.
 - OAuth Twitch/Kick/YouTube/TikTok, webhooks (WebSub, Instagram, Kick) e callbacks após a troca de origem (as URLs públicas continuam em `galindogamerbr.com.br` pelo proxy; confirmar redirect URIs nos provedores).
 - Realtime do multichat, monitor FS25 (Bisect real), mods-sync (SFTP real), CronJobs, recuperação de pods, ARM64 em runtime.
