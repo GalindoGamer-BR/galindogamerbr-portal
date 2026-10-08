@@ -59,7 +59,7 @@ services:
       db: { condition: service_healthy }
     environment:
       PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
-      PGRST_DB_SCHEMAS: public
+      PGRST_DB_SCHEMAS: public,auth_service,multichat
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
   realtime:
@@ -111,7 +111,10 @@ services:
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ../multichat-command/supabase/migrations:/migrations:ro
+      - ../auth-service/supabase/migrations:/migrations/1-auth-service:ro
+      - ../multichat-command/supabase/migrations:/migrations/2-multichat-command:ro
+      - ../galindogamerbr-api/supabase/migrations:/migrations/3-galindogamerbr-api:ro
+      - ../fs25-monitoring-worker/supabase/migrations:/migrations/4-fs25:ro
       - ./docker/realtime.sql:/realtime.sql:ro
       - ./docker/migrate.sh:/migrate.sh:ro
     entrypoint: [/bin/sh, /migrate.sh]
@@ -122,35 +125,65 @@ services:
       MOCK_PLATFORM_SECRET: ${MOCK_PLATFORM_SECRET}
     volumes: ["../multichat-reader/scripts/mock-platform.mjs:/app/mock-platform.mjs:ro"]
     command: [node, /app/mock-platform.mjs]
+  auth-service:
+    build: ../auth-service
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      supabase: { condition: service_healthy }
+    ports: ["127.0.0.1:3003:3000"]
+    environment:
+      PORT: 3000
+      SUPABASE_URL: http://supabase:8000
+      SUPABASE_SECRET_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_JWT_ISSUER: http://localhost:54321/auth/v1
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      FRONTEND_URL: http://localhost:5173
+      MOCK_PLATFORMS: "false"
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
+      TWITCH_REDIRECT_URI: http://localhost:5173/oauth/twitch/callback
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: http://localhost:5173/oauth/youtube/callback
+      KICK_CLIENT_ID: ${KICK_CLIENT_ID:-}
+      KICK_CLIENT_SECRET: ${KICK_CLIENT_SECRET:-}
+      KICK_REDIRECT_URI: http://localhost:5173/oauth/kick/callback
+      TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY:-}
+      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
+      TIKTOK_REDIRECT_URI: ${TIKTOK_REDIRECT_URI:-}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
   command:
     build: ../multichat-command
     depends_on:
       migrate: { condition: service_completed_successfully }
       supabase: { condition: service_healthy }
+      auth-service: { condition: service_healthy }
     ports: ["127.0.0.1:3001:3000"]
     environment:
+      PORT: 3000
       READER_URL: http://reader:3000
       INTERNAL_WAKE_SECRET: ${INTERNAL_WAKE_SECRET}
-      PORT: 3000
       SUPABASE_URL: http://supabase:8000
       SUPABASE_SECRET_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_JWT_ISSUER: http://localhost:54321/auth/v1
+      AUTH_SERVICE_URL: http://auth-service:3000
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
       FRONTEND_URL: http://localhost:5173
-      TWITCH_REDIRECT_URI: http://localhost:3001/oauth/twitch/callback
-      KICK_REDIRECT_URI: http://localhost:3001/oauth/kick/callback
-      TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY:-}
-      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
-      TIKTOK_REDIRECT_URI: ${TIKTOK_REDIRECT_URI:-}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: http://localhost:3001/oauth/youtube/callback
       YOUTUBE_LIVE_CHAT_ID: ${YOUTUBE_LIVE_CHAT_ID:-}
+      LIVE_STATUS_URL: http://gateway/api/live
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
-      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
       TWITCH_BROADCASTER_ID: ${TWITCH_BROADCASTER_ID:-}
-      KICK_CLIENT_ID: ${KICK_CLIENT_ID:-}
-      KICK_CLIENT_SECRET: ${KICK_CLIENT_SECRET:-}
       KICK_BROADCASTER_ID: ${KICK_BROADCASTER_ID:-}
+      TIKTOK_SEND_ENABLED: "false"
       MOCK_PLATFORMS: "false"
       MOCK_PLATFORM_URL: http://mock-platform:3100
       MOCK_PLATFORM_SECRET: ${MOCK_PLATFORM_SECRET}
@@ -176,7 +209,7 @@ services:
       TWITCH_REFRESH_TOKEN: ${TWITCH_REFRESH_TOKEN:-}
       TWITCH_READER_USER_ID: ${TWITCH_READER_USER_ID:-}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
-      YOUTUBE_LIVE_STATUS_URL: http://portal:5173/api/live
+      YOUTUBE_LIVE_STATUS_URL: http://portal-api:3000/api/live
       TIKTOK_USERNAME: galindogamerbr
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
       TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
@@ -192,14 +225,20 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-  portal:
-    build: .
+  portal-api:
+    build: ../galindogamerbr-api
     depends_on:
-      command: { condition: service_healthy }
-      reader: { condition: service_healthy }
-    ports: ["127.0.0.1:5173:5173"]
+      migrate: { condition: service_completed_successfully }
+      supabase: { condition: service_healthy }
+    ports: ["127.0.0.1:3004:3000"]
     environment:
-      MULTICHAT_DOCKER: "true"
+      PORT: 3000
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      DATABASE_SCHEMA: portal
+      SUPABASE_URL: http://supabase:8000
+      SUPABASE_JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_JWT_ISSUER: http://localhost:54321/auth/v1
+      ENVIRONMENT: development
       FS25_BISECT_API_KEY: ${FS25_BISECT_API_KEY:-}
       FS25_BISECT_SERVER_UUID: ${FS25_BISECT_SERVER_UUID:-}
       FS25_BISECT_PANEL_BASE_URL: ${FS25_BISECT_PANEL_BASE_URL:-}
@@ -210,19 +249,98 @@ services:
       YOUTUBE_CHANNEL_ID: ${YOUTUBE_CHANNEL_ID:-}
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
       TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
-      VITE_SUPABASE_URL: http://localhost:54321
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
-      VITE_MULTICHAT_COMMAND_URL: http://localhost:3001
-      WRANGLER_SEND_METRICS: "false"
-    volumes:
-      - portal-state:/app/.wrangler
     healthcheck:
-      test: [CMD, node, -e, "fetch('http://localhost:5173/multichat').then(r=>{if(!r.ok)process.exit(1)})"]
+      test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"]
       interval: 5s
       timeout: 3s
-      start_period: 60s
       retries: 20
-    command: ["sh", "-c", "node scripts/multichat-worker-env.mjs && npm run db:migrate:local && npm run build && npx concurrently -k 'vite --host 0.0.0.0' 'wrangler pages dev dist --ip 0.0.0.0 --port 8788'"]
+  # Espelha o Ingress do Traefik de producao (k8s-platform) para o desenvolvimento local.
+  gateway:
+    image: traefik:v3.1
+    depends_on:
+      auth-service: { condition: service_healthy }
+      command: { condition: service_healthy }
+      portal-api: { condition: service_healthy }
+    command:
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --entrypoints.web.address=:80
+    ports: ["127.0.0.1:8080:80"]
+    volumes: ["./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro"]
+  # Frontend estatico em modo dev (Vite); chamadas de backend passam pelo gateway (mesma origem, como o proxy do Pages).
+  portal:
+    image: node:22-bookworm-slim
+    depends_on:
+      gateway: { condition: service_started }
+    working_dir: /app
+    ports: ["127.0.0.1:5173:5173"]
+    environment:
+      VITE_SUPABASE_URL: http://localhost:54321
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${ANON_KEY}
+      VITE_MULTICHAT_COMMAND_URL: http://localhost:5173
+      VITE_API_PROXY: http://gateway:80
+    volumes:
+      - .:/app
+      - portal-node-modules:/app/node_modules
+    command: ["sh", "-c", "npm ci && npx vite --host 0.0.0.0"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://localhost:5173/').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 5s
+      timeout: 3s
+      start_period: 90s
+      retries: 30
+  # --- FS25 (precisa de credenciais reais do Bisect): docker compose --profile fs25 up ---
+  fs25-monitor:
+    profiles: ["fs25"]
+    build: ../fs25-monitoring-worker
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      STATUS_TOKEN: ${STATUS_TOKEN}
+      FS25_BISECT_API_KEY: ${FS25_BISECT_API_KEY:-}
+      FS25_BISECT_SERVER_UUID: ${FS25_BISECT_SERVER_UUID:-}
+      FS25_BISECT_PANEL_BASE_URL: ${FS25_BISECT_PANEL_BASE_URL:-}
+      FS25_BISECT_PANEL_USERNAME: ${FS25_BISECT_PANEL_USERNAME:-}
+      FS25_BISECT_PANEL_PASSWORD: ${FS25_BISECT_PANEL_PASSWORD:-}
+      FS25_XML_CODE: ${FS25_XML_CODE:-}
+      DISCORD_WEBHOOK_URL: ${FS25_DISCORD_WEBHOOK_URL:-}
+    ports: ["127.0.0.1:3005:3000"]
+  fs25-mods-sync:
+    profiles: ["fs25"]
+    build: ../fs25-mods-sync
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      API_KEY: ${STATUS_TOKEN}
+      MODS_DIR: /data/mods
+      BLOB_PUBLIC_BASE_URL: http://localhost:8081
+      FS25_PANEL_BASE_URL: ${FS25_BISECT_PANEL_BASE_URL:-}
+      FS25_XML_CODE: ${FS25_XML_CODE:-}
+      FTP_HOST: ${FS25_FTP_HOST:-}
+      FTP_USER: ${FS25_FTP_USER:-}
+      FTP_PASSWORD: ${FS25_FTP_PASSWORD:-}
+    volumes: ["mods-data:/data/mods"]
+    ports: ["127.0.0.1:3006:3000"]
+  mods-files:
+    profiles: ["fs25"]
+    image: nginxinc/nginx-unprivileged:1.27-alpine
+    volumes:
+      - mods-data:/data/mods:ro
+      - ./docker/mods-files.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: ["127.0.0.1:8081:8080"]
+  # Cron de estatisticas sob demanda: docker compose --profile jobs run --rm social-stats
+  social-stats:
+    profiles: ["jobs"]
+    build: ../galindogamerbr-api
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    command: ["node", "dist/jobs/social-stats/main.js", "collect"]
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      DATABASE_SCHEMA: portal
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
 volumes:
   multichat-db:
-  portal-state:
+  portal-node-modules:
+  mods-data:

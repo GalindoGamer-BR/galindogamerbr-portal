@@ -1,0 +1,33 @@
+# Mirrors k8s-platform/base/platform.yaml (Ingress) for local development.
+# /internal/* has no route on purpose: it only exists between containers.
+http:
+  routers:
+    command:
+      rule: "PathPrefix(`/api/chat`) || (PathPrefix(`/api/tiktok`) && !PathPrefix(`/api/tiktok/connection`)) || PathPrefix(`/api/member/activity`)"
+      service: command
+      priority: 300
+    reader-kick-webhook:
+      rule: "PathPrefix(`/webhooks/kick`)"
+      service: reader
+      priority: 300
+    auth-service:
+      rule: "PathPrefix(`/oauth`) || PathPrefix(`/api/auth`) || PathPrefix(`/api/account`) || PathPrefix(`/api/member`) || PathPrefix(`/api/tiktok/connection`)"
+      service: auth-service
+      priority: 200
+    portal-api:
+      rule: "PathPrefix(`/api`) || PathPrefix(`/webhooks`) || PathPrefix(`/discord`)"
+      service: portal-api
+      priority: 1
+  services:
+    command:
+      loadBalancer:
+        servers: [{ url: "http://command:3000" }]
+    reader:
+      loadBalancer:
+        servers: [{ url: "http://reader:3000" }]
+    auth-service:
+      loadBalancer:
+        servers: [{ url: "http://auth-service:3000" }]
+    portal-api:
+      loadBalancer:
+        servers: [{ url: "http://portal-api:3000" }]

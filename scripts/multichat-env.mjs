@@ -1,8 +1,17 @@
 import { randomBytes, createHmac } from "node:crypto";
-import { writeFileSync, existsSync } from "node:fs";
+import { writeFileSync, existsSync, readFileSync, appendFileSync } from "node:fs";
 const destination = new URL("../.env.docker", import.meta.url);
+const extra = {
+  INTERNAL_SERVICE_TOKEN: randomBytes(32).toString("hex"),
+  STATUS_TOKEN: randomBytes(24).toString("hex"),
+  ORIGIN_AUTH_SECRET: randomBytes(32).toString("hex"),
+};
 if (existsSync(destination)) {
-  console.log(".env.docker já existe; preservado.");
+  // Preserve existing secrets; only add the variables introduced by the service split.
+  const current = readFileSync(destination, "utf8");
+  const missing = Object.entries(extra).filter(([key]) => !new RegExp("^" + key + "=", "m").test(current));
+  if (missing.length) appendFileSync(destination, missing.map(([key, value]) => key + "=" + value + "\n").join(""));
+  console.log(".env.docker já existe; preservado" + (missing.length ? " (variáveis novas adicionadas)." : "."));
   process.exit(0);
 }
 const secret = randomBytes(32).toString("hex");
@@ -35,6 +44,7 @@ const values = {
   MOCK_PLATFORM_SECRET: randomBytes(32).toString("hex"),
   SECRET_KEY_BASE: randomBytes(64).toString("hex"),
   REALTIME_DB_ENC_KEY: randomBytes(8).toString("hex"),
+  ...extra,
 };
 writeFileSync(
   destination,
