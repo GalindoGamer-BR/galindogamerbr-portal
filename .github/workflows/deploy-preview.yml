@@ -29,19 +29,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Apontar wrangler.toml pro banco/ambiente de preview
-        run: |
-          sed -i "s/00000000-0000-0000-0000-000000000000/${{ secrets.CLOUDFLARE_D1_PREVIEW_DATABASE_ID }}/" wrangler.toml
-          sed -i "s/PENDING_KV_NAMESPACE_ID/${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}/" wrangler.toml
-          sed -i 's/ENVIRONMENT = "production"/ENVIRONMENT = "preview"/' wrangler.toml
-
-      - name: Apply D1 migrations (preview)
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply DB --remote
-
       # Todo preview publica sob o mesmo alias fixo (--branch=preview abaixo),
       # não o nome da branch de verdade — só existe "o" preview atual, nunca
       # um por branch. Apaga qualquer deployment de preview anterior (de
@@ -67,9 +54,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=galindogamerbr-portal --branch=preview
-
-      # Mesmo cache KV do preview e da produção (PUBLIC_CACHE) — roda uma
-      # coleta agora em vez de esperar o cron. Não derruba o job se falhar.
-      - name: Disparar coleta de social stats agora
-        run: |
-          curl -s -X POST -H "x-trigger-secret: ${{ secrets.CRON_TRIGGER_SECRET }}" https://galindogamerbr-social-stats-cron.dignanet.workers.dev/ || true

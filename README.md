@@ -1,5 +1,8 @@
 # GalindoGamerBR — Hub Portal
 
+> **Arquitetura (branch `refactor/pages-frontend-only`)**: o Cloudflare Pages serve só o frontend estático. O backend saiu de `functions/`: conteúdo, estatísticas e webhooks estão em `galindogamerbr-api`; autenticação (admin, OAuth, contas) em `auth-service`; chat em `multichat-command`/`multichat-reader` — todos no K3s (Oracle) com dados no Supabase. A única Function que resta é `functions/[[path]].ts`, um proxy para `API_ORIGIN` (Cloudflare Tunnel) que preserva a mesma origem e as URLs públicas. Variáveis do Pages: `API_ORIGIN` e `ORIGIN_AUTH_SECRET`. O SEO por rota (antes `_middleware.ts`) é gerado no build por `scripts/seo-prerender.mjs`; rotas desconhecidas caem em `spa.html` (noindex). As seções abaixo sobre D1/KV/Workers descrevem a arquitetura anterior até o cutover (D1/KV/Worker de estatísticas continuam intactos na produção até a validação).
+
+
 [![Deploy](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml)
 [![CI](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml)
 [![Security Scan](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/security-scan.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/security-scan.yml)

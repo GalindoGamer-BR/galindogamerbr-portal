@@ -8,16 +8,14 @@ export default defineConfig({
     port: 5173,
     allowedHosts: ["portal"],
     strictPort: true,
-    // O navegador abre o Vite (HMR confiável em :5173). Só as chamadas de
-    // API vão para o Wrangler Pages em :8788, que executa as Functions e
-    // usa os bindings locais de D1/KV. Isso evita depender de --proxy do
-    // Wrangler, cujo repasse do WebSocket de HMR é instável.
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8788',
-        changeOrigin: true,
-      },
-    },
+    // O backend roda fora do Pages (K3s). Em desenvolvimento, as rotas de backend vao para o gateway
+    // local do compose (Traefik) ou para outra origem definida em VITE_API_PROXY.
+    proxy: Object.fromEntries(
+      ['/api', '/oauth', '/webhooks', '/discord'].map((prefix) => [
+        prefix,
+        { target: process.env.VITE_API_PROXY ?? 'http://127.0.0.1:8080', changeOrigin: true },
+      ]),
+    ),
   },
   build: {
     // Navegadores usados hoje já suportam ES2020 nativo — target mais baixo
