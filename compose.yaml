@@ -29,6 +29,7 @@ services:
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_ISSUER: http://localhost:54321/auth/v1
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_EXTERNAL_TWITCH_ENABLED: "true"
@@ -264,7 +265,7 @@ services:
     command:
       - --providers.file.filename=/etc/traefik/dynamic.yml
       - --entrypoints.web.address=:80
-    ports: ["127.0.0.1:8080:80"]
+    ports: ["127.0.0.1:${GATEWAY_PORT:-8088}:80"]
     volumes: ["./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro"]
   # Frontend estatico em modo dev (Vite); chamadas de backend passam pelo gateway (mesma origem, como o proxy do Pages).
   portal:
