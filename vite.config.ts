@@ -8,6 +8,9 @@ export default defineConfig({
     port: 5173,
     allowedHosts: ["portal", "localhost"],
     strictPort: true,
+    // Volume do Docker no Windows/macOS nao propaga eventos de arquivo: sem polling o Vite serve modulos antigos.
+    // O compose liga VITE_USE_POLLING; fora do Docker o comportamento padrao continua.
+    watch: process.env.VITE_USE_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
     // O backend roda fora do Pages (K3s). Em desenvolvimento, as rotas de backend vao para o gateway
     // local do compose (Traefik) ou para outra origem definida em VITE_API_PROXY.
     proxy: Object.fromEntries(

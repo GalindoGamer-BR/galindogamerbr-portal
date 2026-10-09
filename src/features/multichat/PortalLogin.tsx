@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { configured, supabase, publicCommand } from "./services";
 import { PlatformIcon } from "./PlatformIcon";
+import { tiktokLinking } from "./flags";
 import "./account.css";
 
 const proofKey = "portal:tiktok:proof";
@@ -113,9 +114,9 @@ export default function PortalLogin() {
     {requiresEmail ? <MemberEmail onComplete={() => navigate("/membro", { replace: true })} /> : <>
     <h1>Entre na comunidade</h1>
     {route.state?.accountDeleted === true && <p role="status">Conta excluída com sucesso.</p>}
-    <p>Use sua conta Twitch ou TikTok para criar ou acessar seu perfil na comunidade.</p>
+    <p>{tiktokLinking ? "Use sua conta Twitch ou TikTok para criar ou acessar seu perfil na comunidade." : "Use sua conta Twitch para criar ou acessar seu perfil na comunidade."}</p>
     <button className="portal-twitch-login" disabled={busy || !configured} onClick={() => void loginTwitch()}><PlatformIcon platform="twitch" />Entrar com Twitch</button>
-    <button className="portal-tiktok-login" disabled={busy || !configured} onClick={() => void login()}><PlatformIcon platform="tiktok" />{busy ? "Aguarde…" : "Entrar com TikTok"}</button>
+    {tiktokLinking && <button className="portal-tiktok-login" disabled={busy || !configured} onClick={() => void login()}><PlatformIcon platform="tiktok" />{busy ? "Aguarde…" : "Entrar com TikTok"}</button>}
     {error && <p role="alert" className="portal-account-error">{error}</p>}
     </>}
     <p className="portal-account-legal">Consulte os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.</p>

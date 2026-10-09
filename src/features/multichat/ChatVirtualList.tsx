@@ -72,6 +72,9 @@ export function ChatVirtualList({
                   transform: `translateY(${row.start}px)`,
                 }}
               >
+                <time dateTime={message.timestamp} title={new Date(message.timestamp).toLocaleString("pt-BR")}>
+                  {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </time>
                 <PlatformIcon platform={message.platform} />
                 <strong
                   className="mc-message-user"

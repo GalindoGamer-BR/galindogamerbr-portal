@@ -60,6 +60,10 @@ jobs:
       - name: Build
         if: github.event_name == 'workflow_dispatch'
         run: npm run build
+        env:
+          # Interruptor da vinculacao do TikTok no frontend (variavel do repositorio TIKTOK_LINKING_ENABLED=true liga).
+          VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
+          VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

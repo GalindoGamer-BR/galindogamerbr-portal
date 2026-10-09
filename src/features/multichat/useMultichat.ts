@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { z } from "zod";
-import { supabase, realtimePublicKey } from "./services";
+import { supabase, realtimePublicKey, publicGet } from "./services";
 import {
   appendMessages,
   messageSchema,
+  parseHistory,
   metricsSchema,
   statusSchema,
   type ChatMessage,
@@ -12,6 +13,8 @@ import {
   type PlatformMetrics,
   type ProviderStatus,
 } from "./types";
+// Ao abrir o chat mostra so as ultimas mensagens (de todas as plataformas), em ordem de horario.
+const HISTORY_LIMIT = 15;
 export function useMultichat(session: Session | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [metrics, setMetrics] = useState<
@@ -39,6 +42,15 @@ export function useMultichat(session: Session | null) {
     let buffer: ChatMessage[] = [];
     let lastSnapshot = Date.now();
     setConnection("Conectando aos chats…");
+    // Historico recente (o que o reader guardou): mostra o chat ja com conteudo ao abrir; o merge ordena por
+    // horario e deduplica pelas mensagens ao vivo que chegarem.
+    void publicGet<{ messages?: unknown }>(`/api/chat/recent?limit=${HISTORY_LIMIT}`)
+      .then((body) => {
+        if (disposed) return;
+        const history = parseHistory(body.messages, HISTORY_LIMIT);
+        if (history.length) setMessages((previous) => appendMessages(previous, history));
+      })
+      .catch(() => {});
     const channel = client.channel("live:galindogamerbr", {
       config: { private: true },
     });

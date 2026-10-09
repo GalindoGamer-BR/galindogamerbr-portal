@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
+import { tiktokLinking } from "./flags";
 import "./member.css";
 
 type Member = { name: string; avatarUrl: string | null; memberSince: string; connectedAccounts: number; profileUpdatedAt: string | null; tiktokConnected: boolean };
@@ -43,7 +44,7 @@ export default function PortalMember() {
           <div className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</div>
           <div><span className="member-eyebrow">Seu lugar na comunidade</span><h1>Olá, {member.name}.</h1><p>Bem-vindo à sua área de membro.</p><span className="member-badge">{member.tiktokConnected ? "TikTok vinculado" : "Perfil da comunidade"}</span></div>
         </div>
-        <div className="member-actions"><button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button><Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
+        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
       <div className="member-section-title"><div><span className="member-eyebrow">O que vem por aí</span><h2>Uma comunidade feita com você.</h2></div><span className="member-preview">Recursos futuros</span></div>

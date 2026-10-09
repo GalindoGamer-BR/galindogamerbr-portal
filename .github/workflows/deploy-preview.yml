@@ -1,7 +1,7 @@
 name: Deploy Preview
 
-# O backend do preview vem do ambiente *Preview* do projeto Pages: API_ORIGIN (URL do túnel de
-# compose.preview.yaml) e ORIGIN_AUTH_SECRET (= PREVIEW_BRIDGE_KEY). Ver README.
+# O backend do preview vem do ambiente *Preview* do projeto Pages: API_ORIGIN (URL do backend
+# do preview) e ORIGIN_AUTH_SECRET. Ver README.
 
 on:
   workflow_dispatch:
@@ -31,6 +31,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Interruptor da vinculacao do TikTok no frontend (variavel do repositorio TIKTOK_LINKING_ENABLED=true liga).
+          VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
+          VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
 
       # Todo preview publica sob o mesmo alias fixo (--branch=preview abaixo),
       # não o nome da branch de verdade — só existe "o" preview atual, nunca

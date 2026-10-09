@@ -77,6 +77,20 @@ export type SendResult = {
   success: boolean;
   error?: string;
 };
+/**
+ * Valida o historico vindo da API (ignora o que nao tem o formato esperado) e devolve as `limit` mais recentes
+ * em ordem cronologica pelo horario da plataforma.
+ */
+export function parseHistory(payload: unknown, limit = 200): ChatMessage[] {
+  if (!Array.isArray(payload)) return [];
+  const messages: ChatMessage[] = [];
+  for (const value of payload) {
+    const parsed = messageSchema.safeParse(value);
+    if (parsed.success) messages.push(parsed.data);
+  }
+  messages.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+  return messages.slice(-limit);
+}
 export function appendMessages(
   current: ChatMessage[],
   incoming: ChatMessage[],
@@ -88,12 +102,16 @@ export function appendMessages(
     ),
   );
   const next = [...current];
+  let added = false;
   for (const message of incoming) {
     const key = `${message.platform}:${message.platformMessageId}`;
     if (!seen.has(key)) {
       seen.add(key);
       next.push(message);
+      added = true;
     }
   }
+  // Ordem cronologica pelo horario da plataforma; o sort e estavel, entao empates mantem a ordem de chegada.
+  if (added) next.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
   return next.slice(-limit);
 }

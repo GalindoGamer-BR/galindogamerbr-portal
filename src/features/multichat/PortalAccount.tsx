@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { command, supabase } from "./services";
 import { TikTokConnection, type TikTokConnectionState } from "./TikTokConnection";
+import { tiktokLinking } from "./flags";
 import "./account.css";
 
 export default function PortalAccount() {
@@ -19,6 +20,7 @@ export default function PortalAccount() {
       if (!active) return;
       if (error || !data.user) { navigate("/login", { replace: true }); return; }
       setUser(data.user);
+      if (!tiktokLinking) return;
       const account = await command<TikTokConnectionState>("/api/tiktok/connection");
       if (active) setTikTok(account);
     }).catch(() => { if (active) setError("Não foi possível carregar a conta."); });
@@ -47,7 +49,7 @@ export default function PortalAccount() {
     <h1>Minha conta</h1>
     {user ? <>
       <h2>Conta vinculada</h2>
-      <TikTokConnection signedIn state={tiktok} onChange={setTikTok}/>
+      {tiktokLinking && <TikTokConnection signedIn state={tiktok} onChange={setTikTok}/>}
       <button disabled={busy} onClick={() => void logout()}>Sair da conta</button>
       <Link to="/membro">Voltar à área do membro</Link>
       <div className="portal-account-danger"><h2>Excluir conta</h2><p>Revoga a autorização deste aplicativo no TikTok e apaga seu cadastro e os vínculos salvos no portal. Sua conta TikTok continua existindo.</p>

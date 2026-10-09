@@ -93,6 +93,13 @@ export async function command<T>(
   return response.status === 204 ? (undefined as T) : response.json();
 }
 
+/** GET publico no command (sem login): usado pelo historico do chat, que qualquer visitante pode ver. */
+export async function publicGet<T>(path: string): Promise<T> {
+  if (!commandUrl) throw new Error("Multichat ainda não configurado.");
+  const response = await fetch(commandUrl.replace(/\/$/, "") + path, { signal: AbortSignal.timeout(8_000) });
+  if (!response.ok) throw new Error("history_unavailable");
+  return response.json();
+}
 export async function publicCommand<T>(path: string, body: unknown): Promise<T> {
   if (!commandUrl) throw new Error("Login ainda não configurado.");
   const response = await fetch(commandUrl.replace(/\/$/, "") + path, {

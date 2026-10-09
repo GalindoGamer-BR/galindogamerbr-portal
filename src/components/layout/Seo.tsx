@@ -37,7 +37,7 @@ const ROUTE_SEO: Record<string, SeoData> = {
     title: 'Comunidade',
     description: 'Entre nos canais oficiais e faça parte da comunidade GalindoGamerBR.',
   },
-  '/multichat': {
+  '/live': {
     noIndex: true,
     title: 'Multichat',
     description: 'Acompanhe os chats de Twitch, YouTube, Kick e TikTok em uma única conversa.',

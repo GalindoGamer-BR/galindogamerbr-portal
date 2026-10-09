@@ -97,7 +97,7 @@ const router = createBrowserRouter([
       { path: '/login', element: withAdminSuspense(<PortalLogin />) },
       { path: '/membro', element: <PortalMember /> },
       { path: '/conta', element: withAdminSuspense(<PortalAccount />) },
-      { path: '/multichat', element: withAdminSuspense(<MultichatPage />) },
+      { path: '/live', element: withAdminSuspense(<MultichatPage />) },
       { path: '/sobre', element: <Sobre /> },
       { path: '/parceiros', element: <Parceiros /> },
       { path: '/privacidade', element: <Privacidade /> },

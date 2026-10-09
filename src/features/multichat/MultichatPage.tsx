@@ -1,4 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
+import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -6,7 +7,6 @@ import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
 import {
   labels,
-  platforms,
   writablePlatforms,
   type Accounts,
   type Platform,
@@ -42,16 +42,18 @@ const errors: Record<string, string> = {
   reconnect_required: "Reconecte sua conta.",
   message_too_long: "Mensagem acima do limite da plataforma.",
   no_active_live: "Nenhuma transmissão ativa.",
+  youtube_send_budget: "Limite diário de envios ao YouTube atingido; tente amanhã.",
   stream_not_configured: "Canal ainda não configurado.",
   message_rejected: "Mensagem recusada pela plataforma.",
 };
+const SEND_COOLDOWN_MS = 5000;
 export default function MultichatPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [tiktok, setTikTok] = useState<TikTokConnectionState>({connected:false,canSend:false});
   useEffect(()=>{
     let active=true;
     setTikTok({connected:false,canSend:false});
-    if(!session)return;
+    if(!session||!tiktokLinking)return;
     const refresh=()=>{void command<TikTokConnectionState>("/api/tiktok/live").then(s=>{if(active)setTikTok(s);}).catch(()=>{});};
     refresh();
     window.addEventListener("focus",refresh);
@@ -78,6 +80,20 @@ export default function MultichatPage() {
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<SendResult[]>([]);
+  // Intervalo minimo entre envios: o botao e o Enter ficam bloqueados e a contagem aparece na tela.
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [clock, setClock] = useState(Date.now());
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) return;
+    setClock(Date.now());
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setClock(now);
+      if (now >= cooldownUntil) clearInterval(timer);
+    }, 250);
+    return () => clearInterval(timer);
+  }, [cooldownUntil]);
+  const cooldown = Math.max(0, Math.ceil((cooldownUntil - clock) / 1000));
   const [player, setPlayer] = useState<WritablePlatform>("twitch");
   const chat = useMultichat(session);
   const liveStatus = useLiveStatus();
@@ -158,10 +174,11 @@ export default function MultichatPage() {
     }
   };
   const tikTokLinked = tiktok.connected && tiktok.canSend;
-  const connectedPlatforms: Platform[] = [...writablePlatforms.filter((p)=>accounts[p].connected), ...(tikTokLinked ? ["tiktok" as const] : [])];
+  const connectedPlatforms: Platform[] = [...linkablePlatforms.filter((p)=>accounts[p].connected), ...(tikTokLinked ? ["tiktok" as const] : [])];
   const send = async (event: FormEvent) => {
     event.preventDefault();
     if (!canSend) return;
+    const sent = message;
     setSending(true);
     setResults([]);
     setNotice("Inicializando serviço de envio…");
@@ -180,20 +197,24 @@ export default function MultichatPage() {
       setResults(data.results);
       if(data.results.some(r=>r.platform==="tiktok" && r.error==="reconnect_required")) setTikTok({connected:false,canSend:false});
       setNotice("");
-      if (data.results.every((r) => r.success)) setMessage("");
+      // So limpa se a pessoa nao digitou nada novo enquanto o envio corria.
+      if (data.results.every((r) => r.success)) setMessage((current) => (current === sent ? "" : current));
     } catch (error) {
       setNotice((error as Error).message);
     } finally {
       setSending(false);
+      setCooldownUntil(Date.now() + SEND_COOLDOWN_MS);
+      requestAnimationFrame(() => composer.current?.focus());
     }
   };
-  const limit = tikTokLinked ? 150 : accounts.youtube.connected ? 200 : 500;
+  const limit = tikTokLinked ? 150 : youtubeLinking && accounts.youtube.connected ? 200 : 500;
   const canSend =
     !!session &&
     message.trim().length > 0 &&
     Array.from(message.trim()).length <= limit &&
     connectedPlatforms.length > 0 &&
     !sending &&
+    cooldown === 0 &&
     !busy;
   const visible = chat.messages.filter(
     (m) => filter === "all" || m.platform === filter,
@@ -208,7 +229,7 @@ export default function MultichatPage() {
           : null;
   const insertEmote = (code: string) => {
     const input = composer.current;
-    if (!session || sending || !input) return;
+    if (!session || !input) return;
     const start = input.selectionStart;
     const end = input.selectionEnd;
     const prefix = message.slice(0, start);
@@ -396,7 +417,7 @@ export default function MultichatPage() {
             </button>
           </div>
           <nav className="mc-chat-tabs" aria-label="Filtrar mensagens">
-            {(["all", ...platforms] as const).map((p) => (
+            {(["all", ...chatFilterPlatforms] as const).map((p) => (
               <button
                 key={p}
                 aria-pressed={filter === p}
@@ -455,7 +476,7 @@ export default function MultichatPage() {
                 }
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                disabled={!session || sending}
+                disabled={!session}
                 rows={2}
                 onKeyDown={(e) => {
                   if (
@@ -483,10 +504,11 @@ export default function MultichatPage() {
             <div className="mc-composer-bottom">
               <span className="mc-muted">
                 {Array.from(message).length}/{limit}
+                {cooldown > 0 && ` · Aguarde ${cooldown}s para enviar outra mensagem`}
               </span>
               {session ? (
                 <button className="mc-primary" disabled={!canSend}>
-                  {sending ? "Enviando…" : "Enviar"}
+                  {sending ? "Enviando…" : cooldown > 0 ? `Aguarde ${cooldown}s` : "Enviar"}
                 </button>
               ) : (
                 <button
@@ -535,7 +557,7 @@ export default function MultichatPage() {
               a uma plataforma, desvincule sua conta.
             </p>
             {notice && <p role="alert" className="mc-notice">{notice}</p>}
-            {writablePlatforms.map((p) => (
+            {linkablePlatforms.map((p) => (
               <div className="mc-account-row" key={p}>
                 <PlatformIcon platform={p} />
                 <div>
@@ -556,8 +578,8 @@ export default function MultichatPage() {
                 </button>
               </div>
             ))}
-            <TikTokChatConnection key={session?.user.id ?? "guest"} signedIn={!!session} state={tiktok} onChange={setTikTok} />
-            <section aria-labelledby="tiktok-chat-flow">
+            {tiktokLinking && <TikTokChatConnection key={session?.user.id ?? "guest"} signedIn={!!session} state={tiktok} onChange={setTikTok} />}
+            {tiktokLinking && <section aria-labelledby="tiktok-chat-flow">
               <h3 id="tiktok-chat-flow">Como conectar o chat TikTok</h3>
               <p>O vínculo usado para entrar no portal é separado da sessão de envio ao chat.</p>
               <ol className="mc-help-list">
@@ -565,7 +587,7 @@ export default function MultichatPage() {
                 <li><strong>Continue sem repetir o login</strong><p>Reutilizaremos sua sessão enquanto ela estiver válida. Se ela expirar ou for revogada, será necessário conectar novamente.</p></li>
                 <li><strong>Escreva no multichat</strong><p>Com o chat conectado, suas mensagens também serão enviadas ao TikTok, em seu nome, sem confirmação a cada envio. Para parar, desconecte o chat nas configurações.</p></li>
               </ol>
-            </section>
+            </section>}
             {!session && (
               <button
                 className="mc-twitch-login"
@@ -588,9 +610,9 @@ export default function MultichatPage() {
               <li>
                 <strong>Conecte suas contas</strong>
                 <p>
-                  Entre no portal e abra Conexões para vincular Twitch,
-                  YouTube, Kick e TikTok. No TikTok, conecte a sessão do chat nas configurações;
-                  o fluxo de conexão está explicado nas configurações.
+                  Entre no portal e abra Conexões para vincular{" "}
+                  {linkablePlatforms.map((p) => labels[p]).join(", ").replace(/, ([^,]*)$/, " e $1")}
+                  {tiktokLinking ? ". No TikTok, conecte a sessão do chat nas configurações; o fluxo de conexão está explicado nas configurações" : ""}.
                 </p>
               </li>
               <li>

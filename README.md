@@ -45,7 +45,7 @@ docker compose --env-file .env.docker up --build -d --wait
 
 Abre em `http://127.0.0.1:5173` (Vite com hot reload). As rotas de backend passam pelo gateway Traefik (`http://127.0.0.1:8088`, `GATEWAY_PORT`), que espelha o roteamento de produção. Supabase local em `http://127.0.0.1:54321`. As migrations de todos os serviços rodam no serviço `migrate`.
 
-Perfis opcionais: `--profile simulation` (plataformas simuladas), `--profile fs25` (monitor, mods-sync e nginx de mods; exigem credenciais do Bisect), `--profile jobs` (`docker compose --profile jobs run --rm social-stats`). Overrides: `compose.preview.yaml` (expõe o backend local a um preview do Pages por túnel; defina `PREVIEW_BRIDGE_KEY`) e `compose.tiktok-tunnel.yaml` (callback https do TikTok). Mais detalhes do multichat em `docs/multichat/README.md`.
+Perfis opcionais: `--profile simulation` (plataformas simuladas), `--profile fs25` (monitor, mods-sync e nginx de mods; exigem credenciais do Bisect), `--profile jobs` (`docker compose --profile jobs run --rm social-stats`). A vinculação de contas fica desligada por padrão e a leitura do chat não depende dela: `TIKTOK_LINKING_ENABLED=true` (entrar com TikTok e sessão de envio por QR; o `tiktok-browser` só sobe com `--profile tiktok-link`) e `YOUTUBE_LINKING_ENABLED=true` (vincular o YouTube e enviar mensagens). No frontend (Pages) as mesmas flags são as variáveis de repositório `TIKTOK_LINKING_ENABLED` e `YOUTUBE_LINKING_ENABLED`, usadas no build; no k3s, as variáveis de `command.yaml` e `auth-service.yaml`. Override: `compose.tiktok-tunnel.yaml` (callback https do TikTok). Mais detalhes do multichat em `docs/multichat/README.md`.
 
 Só o frontend, apontando para outro backend: `VITE_API_PROXY=https://… npm run dev`.
 
@@ -70,7 +70,7 @@ Sem push direto em `main`: branch + Pull Request (Conventional Branches/Commits)
 Secrets do repositório: `CLOUDFLARE_API_TOKEN` (editar Pages) e `CLOUDFLARE_ACCOUNT_ID`. Variáveis do projeto Pages (produção): `API_ORIGIN` (`https://origin.<domínio>`) e `ORIGIN_AUTH_SECRET` (o mesmo valor do `galindogamerbr-api`).
 
 ### Preview (manual)
-`deploy-preview.yml` publica `--branch=preview` (URL fixa). Para o backend do preview, defina no ambiente *Preview* do Pages `API_ORIGIN` (URL do túnel de `compose.preview.yaml`) e `ORIGIN_AUTH_SECRET` igual a `PREVIEW_BRIDGE_KEY`. As URLs `*.pages.dev` podem estar atrás do Cloudflare Access.
+`deploy-preview.yml` publica `--branch=preview` (URL fixa). Para o backend do preview, defina no ambiente *Preview* do Pages `API_ORIGIN` (URL do backend do preview) e `ORIGIN_AUTH_SECRET`. As URLs `*.pages.dev` podem estar atrás do Cloudflare Access.
 
 ### Worker `fs25-portal-proxy`
 Segue como Cloudflare Worker (`workers/fs25-portal-proxy`, deploy em `deploy-fs25-portal-proxy.yml`), fora desta migração.

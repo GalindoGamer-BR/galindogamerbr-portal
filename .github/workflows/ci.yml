@@ -39,6 +39,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Mesmo interruptor do deploy: o dist/ gerado aqui e o que o deploy.yml publica.
+          VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
+          VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
 
       # deploy.yml (workflow_run, só dispara depois desse CI passar em main)
       # reusa esse artefato em vez de buildar de novo.
