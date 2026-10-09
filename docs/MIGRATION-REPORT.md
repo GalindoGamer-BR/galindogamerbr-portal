@@ -30,7 +30,7 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 ## NÃO validado (depende de infraestrutura ou credenciais)
 - `kubectl apply` em um cluster real (só `kubeconform` foi executado) e execução das imagens em arm64 de verdade.
 - Paridade fina de respostas da `galindogamerbr-api` com as Pages Functions antigas (rotas testadas contra Postgres real, mas não comparadas lado a lado com o D1 de produção).
-- Login admin por OTP com e-mail real: exige SMTP no Supabase (ex.: Resend) com OTP de 6 dígitos e `ADMIN_EMAILS`; o usuário ganha `app_metadata.role=admin` no primeiro login.
+- Login admin por OTP com e-mail real: o auth-service envia o código pela Resend (`RESEND_API_KEY`; geração via `generateLink` validada no GoTrue local, envio real não testado) e exige `ADMIN_EMAILS`; o usuário ganha `app_metadata.role=admin` no primeiro login.
 - OAuth Twitch/Kick/YouTube/TikTok, webhooks (WebSub, Instagram, Kick) e callbacks após a troca de origem (as URLs públicas continuam em `galindogamerbr.com.br` pelo proxy; confirmar redirect URIs nos provedores).
 - Realtime do multichat, monitor FS25 (Bisect real), mods-sync (SFTP real), CronJobs, recuperação de pods, ARM64 em runtime.
 - Cloudflare Tunnel/Traefik/runner self-hosted na VM Oracle (não existe ainda); o proxy do Pages só funciona com `API_ORIGIN` e `ORIGIN_AUTH_SECRET` definidos.
