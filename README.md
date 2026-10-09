@@ -1,5 +1,7 @@
 # GalindoGamerBR — Hub Portal
 
+> **Para agentes de LLM e novas pessoas:** o mapa do sistema (arquitetura, fluxos, flags, cota do YouTube, invariantes e pendências) está em [`docs/LLM-GUIDE.md`](docs/LLM-GUIDE.md); cada repositório tem um `AGENTS.md`.
+
 
 [![Deploy](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/deploy.yml)
 [![CI](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/GalindoGamer-BR/galindogamerbr-portal/actions/workflows/ci.yml)
