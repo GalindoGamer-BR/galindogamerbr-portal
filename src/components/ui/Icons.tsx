@@ -140,3 +140,20 @@ export function WindowIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M5.5 8.2a4.5 4.5 0 0 1 9 0c0 3.6 1.5 4.8 1.5 4.8H4s1.5-1.2 1.5-4.8Z" />
+      <path d="M8.4 15.6a1.8 1.8 0 0 0 3.2 0" />
+    </svg>
+  )
+}
+
+export function CrownIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M3 6.5 6.5 10 10 4.5 13.5 10 17 6.5 15.8 15H4.2L3 6.5Z" />
+    </svg>
+  )
+}

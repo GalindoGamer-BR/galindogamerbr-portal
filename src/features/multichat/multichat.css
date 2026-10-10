@@ -968,3 +968,10 @@
 .mc-message-text { color: #efeff1; word-break: break-word; }
 .mc-message .mc-emote { height: 34px; max-width: 120px; margin: 0 2px; vertical-align: middle; }
 .mc-message:hover { background: #26262c; }
+
+/* Botões de apoio por plataforma (YouTube e Kick), no mesmo formato dos da Twitch. */
+.mc-btn.mc-btn-youtube { background: #ff0033; border-color: #ff0033; color: #fff; }
+.mc-btn.mc-btn-youtube:hover { background: #d9002b; border-color: #d9002b; }
+.mc-btn.mc-btn-kick { background: #53fc18; border-color: #53fc18; color: #0b0e0f; }
+.mc-btn.mc-btn-kick:hover { background: #46d915; border-color: #46d915; }
+.mc-support[hidden] { display: none; }

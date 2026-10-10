@@ -1,5 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { HelpIcon, HomeIcon, SettingsIcon, SpeakerIcon, StickerIcon, WindowIcon } from "../../components/ui/Icons";
+import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, SpeakerIcon, StickerIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
@@ -24,6 +24,7 @@ import { useMyEmotes } from "./useMyEmotes";
 import { rememberReturnTo, startTwitchLogin } from "./loginFlows";
 import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
+import { useYoutubeChannel } from "./useYoutubeChannel";
 import { EmotePicker, type PickerEmote } from "./EmotePicker";
 import { emoteKey } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
@@ -77,6 +78,10 @@ const GiftIcon = () => (
 const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
 // "Dar um sub" (presente) é um modal da própria página do canal na Twitch, sem URL nem API pública: abre o canal.
 const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
+// YouTube: o "sub_confirmation" abre direto o diálogo de inscrição; "join" é a página de membros do canal.
+const youtubeSubscribeUrl = "https://www.youtube.com/@galindogamerbr?sub_confirmation=1";
+const youtubeJoinUrl = "https://www.youtube.com/@galindogamerbr/join";
+const kickChannelUrl = "https://kick.com/galindogamerbr";
 // Extensões de painel do canal. O popout da Twitch não pode ser embutido (X-Frame-Options: SAMEORIGIN): abre em janela.
 // As extensões só funcionam dentro do twitch.tv (dependem do Twitch.ext), por isso o portal só abre o painel.
 const twitchPanels = [
@@ -136,6 +141,7 @@ export default function MultichatPage() {
   const emotes = useEmotes();
   const badges = useBadges();
   const twitchChannel = useTwitchChannel();
+  const youtubeChannel = useYoutubeChannel(player === "youtube");
   const myEmotes = useMyEmotes(!!session);
   // Seus emotes (inscrições etc.) primeiro, marcados; o restante do catálogo sem repetir os ids.
   const pickerEmotes = useMemo<PickerEmote[]>(() => {
@@ -513,20 +519,43 @@ export default function MultichatPage() {
                 <span className="mc-platform-label">{labels[player]}</span>
               </h1>
               <p>
-                {player === "youtube" && liveStatus?.isLive
-                  ? liveStatus.title
+                {player === "youtube"
+                  ? liveStatus?.isLive
+                    ? liveStatus.title
+                    : "Nenhuma live no YouTube no momento."
                   : player === "twitch" && twitchChannel?.title
                     ? twitchChannel.title
                     : "A live é uma só. A comunidade está em todo lugar."}
               </p>
               {player === "twitch" && twitchChannel?.game && <span className="mc-channel-game">{twitchChannel.game}</span>}
               <span className="mc-muted">
-                Português ·{" "}
-                {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"}{" "}
-                assistindo
+                {player === "youtube" && !liveStatus?.isLive
+                  ? "Offline"
+                  : <>Português · {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"} assistindo</>}
+                {player === "youtube" && youtubeChannel?.subscribers != null && <> · {youtubeChannel.subscribers.toLocaleString("pt-BR")} inscritos</>}
               </span>
             </div>
-            <div className="mc-support">
+            {player === "youtube" && (
+              <div className="mc-support">
+                <a className="mc-btn mc-btn-youtube" href={youtubeSubscribeUrl} target="_blank" rel="noreferrer" title="Inscrever-se no canal do YouTube">
+                  <BellIcon /> Inscrever-se
+                </a>
+                <a className="mc-btn mc-btn-primary" href={youtubeJoinUrl} target="_blank" rel="noreferrer" title="Virar membro do canal no YouTube">
+                  <CrownIcon /> Seja membro
+                </a>
+              </div>
+            )}
+            {player === "kick" && (
+              <div className="mc-support">
+                <a className="mc-btn mc-btn-secondary" href={kickChannelUrl} target="_blank" rel="noreferrer" title="Abre o canal na Kick, onde fica o botão Seguir">
+                  <HeartIcon /> Seguir
+                </a>
+                <a className="mc-btn mc-btn-kick" href={kickChannelUrl} target="_blank" rel="noreferrer" title="Abre o canal na Kick, onde fica o botão Inscrever-se">
+                  <StarIcon /> Inscrever-se
+                </a>
+              </div>
+            )}
+            <div className="mc-support" hidden={player !== "twitch"}>
               {subscription?.following ? (
                 <span className="mc-btn mc-btn-icon-only mc-btn-secondary" title="Você segue este canal na Twitch" role="img" aria-label="Você segue este canal na Twitch">
                   <HeartIcon filled />
@@ -581,10 +610,17 @@ export default function MultichatPage() {
               </a>
             </p>
           )}
-          {twitchChannel?.description && (
+          {player === "twitch" && twitchChannel?.description && (
             <section className="mc-about mc-twitch-about">
               <h2>Sobre {twitchChannel.name}</h2>
               <p>{twitchChannel.description}</p>
+            </section>
+          )}
+          {player === "youtube" && youtubeChannel?.description && (
+            <section className="mc-about mc-twitch-about">
+              <h2>Sobre {youtubeChannel.name}</h2>
+              <p>{youtubeChannel.description}</p>
+              {youtubeChannel.videos != null && <p className="mc-muted">{youtubeChannel.videos.toLocaleString("pt-BR")} vídeos no canal</p>}
             </section>
           )}
           <section className="mc-about">
