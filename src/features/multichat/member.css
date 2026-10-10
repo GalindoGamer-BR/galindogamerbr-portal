@@ -35,3 +35,6 @@
 .member-dot{width:7px;height:7px;border-radius:50%;background:#5d5d68;flex:0 0 7px}
 .member-dot-on{background:#6fd08c;box-shadow:0 0 0 3px #6fd08c22}
 @media(max-width:760px){.member-dropdown .member-accounts{grid-template-columns:1fr}}
+
+.member-modal-card.portal-account-card{display:grid;gap:18px;padding:28px;max-width:480px}
+.member-modal-card.portal-account-card .member-modal-close{margin:0;justify-self:end}
