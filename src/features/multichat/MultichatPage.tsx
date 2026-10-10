@@ -1,5 +1,7 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { HomeIcon } from "../../components/ui/Icons";
+import { HelpIcon, HomeIcon, SettingsIcon } from "../../components/ui/Icons";
+import { MultichatUserMenu } from "./MultichatUserMenu";
+import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
@@ -94,6 +96,7 @@ function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUr
 }
 
 export default function MultichatPage() {
+  const { member: navMember, logout: navLogout } = useNavSession();
   const [session, setSession] = useState<Session | null>(null);
   const [tiktok, setTikTok] = useState<TikTokConnectionState>({connected:false,canSend:false});
   useEffect(()=>{
@@ -324,20 +327,18 @@ export default function MultichatPage() {
         </nav>
         <div className="mc-top-actions">
           <button
+            className="mc-icon-btn mc-icon-only"
             onClick={() => setHelp(true)}
             aria-label="Como funciona o Multichat"
+            title="Como funciona o Multichat"
           >
-            ?
+            <HelpIcon />
           </button>
-          <button onClick={() => setSettings(true)}>
-            ⚙ <span>Conexões</span>
+          <button className="mc-icon-btn" onClick={() => setSettings(true)} title="Contas conectadas ao chat">
+            <SettingsIcon /> <span>Conexões</span>
           </button>
           {session ? (
-            <button
-              onClick={() => window.location.assign("/membro")}
-            >
-              Minha conta
-            </button>
+            <MultichatUserMenu member={navMember} onLogout={() => void navLogout()} />
           ) : (
             <button
               className="mc-twitch-login"

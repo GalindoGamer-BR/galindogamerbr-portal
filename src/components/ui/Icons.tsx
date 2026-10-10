@@ -56,3 +56,21 @@ export function LogoutIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function HelpIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M7.9 7.9a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.8M10 14v.01" />
+    </svg>
+  )
+}
+
+export function SettingsIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="2.6" />
+      <path d="M10 2.8v1.9M10 15.3v1.9M2.8 10h1.9M15.3 10h1.9M4.9 4.9l1.3 1.3M13.8 13.8l1.3 1.3M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3" />
+    </svg>
+  )
+}
