@@ -1,7 +1,7 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
@@ -47,6 +47,17 @@ const errors: Record<string, string> = {
   message_rejected: "Mensagem recusada pela plataforma.",
 };
 const SEND_COOLDOWN_MS = 5000;
+// A página de inscrição da Twitch não pode ser embutida (X-Frame-Options: SAMEORIGIN), então abre numa janela
+// centralizada sobre o portal; se o navegador bloquear, o link abre em nova aba normalmente.
+const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
+function openSubsWindow(event: MouseEvent<HTMLAnchorElement>) {
+  const width = 520, height = 760;
+  const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+  const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+  const popup = window.open(twitchSubsUrl, "twitch-subs", `popup=yes,width=${width},height=${height},left=${left},top=${top}`);
+  if (popup) { event.preventDefault(); popup.focus(); }
+}
+
 export default function MultichatPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [tiktok, setTikTok] = useState<TikTokConnectionState>({connected:false,canSend:false});
@@ -368,7 +379,8 @@ export default function MultichatPage() {
               {subscription?.status === "subscribed" ? (
                 <a
                   className="mc-sub mc-sub-active"
-                  href="https://www.twitch.tv/subs/galindogamerbr"
+                  href={twitchSubsUrl}
+                  onClick={openSubsWindow}
                   target="_blank"
                   rel="noreferrer"
                   title={`Você é inscrito neste canal na Twitch (Tier ${Number(subscription.tier ?? "1000") / 1000}${subscription.gift ? ", presente" : ""})`}
@@ -378,7 +390,8 @@ export default function MultichatPage() {
               ) : (
                 <a
                   className="mc-sub"
-                  href="https://www.twitch.tv/subs/galindogamerbr"
+                  href={twitchSubsUrl}
+                  onClick={openSubsWindow}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -386,7 +399,8 @@ export default function MultichatPage() {
                 </a>
               )}
               <a
-                href="https://www.twitch.tv/subs/galindogamerbr"
+                href={twitchSubsUrl}
+                  onClick={openSubsWindow}
                 target="_blank"
                 rel="noreferrer"
               >
