@@ -190,7 +190,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 - `k8s-platform/base/`: `platform.yaml` (namespace `multichat`, `cloudflared`, Ingress), `healthz.yaml` (`GET /healthz` com a versão de cada serviço), `deployer.yaml` (RBAC do runner, só o namespace).
 - `k8s-platform/scripts/`: `cloudflare-tunnel.sh` (cria tunnel/hostnames/DNS pela API; grava `tunnel.env` com modo 600), `bootstrap-vm.sh` (k3s + base + runner), `record-version.sh` / `wait-version.sh`.
 - Deploy de cada serviço: `kubectl set image` + `rollout status` + `platform-record-version <serviço> <sha>` num runner self-hosted (`[self-hosted, k3s]`); `infra-check.yml` verifica de fora (runner do GitHub) se o `/healthz` responde.
-- Terraform **não é usado** (decisão: uma VM só, criada uma vez).
+- A VM e a rede são criadas **à mão no console da Oracle**; o Terraform é **exportado depois** (Resource Discovery) e guardado em `k8s-platform/terraform/` (roteiro: `terraform/README.md`). Não rode `terraform apply` se o plano propuser recriar a instância (apaga os volumes do k3s).
 - `[NÃO VALIDADO]` Nada foi aplicado em um cluster real: `bootstrap-vm.sh`, `cloudflare-tunnel.sh` (testado só contra uma API simulada), os manifests em runtime e o gRPC a partir da VM da Oracle.
 
 ## 10. Convenções e invariantes (não quebre)
