@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
 import { tiktokLinking } from "./flags";
 import { MemberProfileEditor } from "./MemberProfileEditor";
 import { MemberAccounts } from "./MemberAccounts";
 import { AccountSettings } from "./AccountSettings";
+import { CameraIcon } from "../../components/ui/Icons";
 import "./member.css";
 import "./account.css";
 
@@ -12,7 +13,7 @@ type Member = { tiktokName?: string | null; name: string; avatarUrl: string | nu
 const date = (value: string) => new Date(value).toLocaleDateString("pt-BR");
 export default function PortalMember() {
   const navigate = useNavigate();
-  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false);
+  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false), [actionsOpen, setActionsOpen] = useState(false), [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [avatarFailed, setAvatarFailed] = useState(false);
   // Abre a seção ao voltar do OAuth de vínculo (?linked / ?oauth_error), para mostrar o resultado.
   const [accountsOpen, setAccountsOpen] = useState(() => { const query = new URLSearchParams(window.location.search); return query.has("linked") || query.has("oauth_error"); });
@@ -41,43 +42,73 @@ export default function PortalMember() {
     if (result.error) { setError("Não foi possível sair. Tente novamente."); setBusy(false); }
     else navigate("/login", { replace: true });
   }
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!actionsOpen) return;
+    const onPointerDown = (event: PointerEvent) => { if (!actionsRef.current?.contains(event.target as Node)) setActionsOpen(false); };
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setActionsOpen(false); };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("pointerdown", onPointerDown); document.removeEventListener("keydown", onKeyDown); };
+  }, [actionsOpen]);
+  function pickPhoto(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setError("Escolha um arquivo de imagem."); return; }
+    setError(""); setPhotoFile(file);
+  }
+  async function removePhoto() {
+    setBusy(true); setError("");
+    try { await command("/api/member/avatar", { method: "DELETE" }); setAvatarFailed(false); setReload(n => n + 1); }
+    catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
+  }
+  const onProfileChange = () => { setAvatarFailed(false); setReload(n => n + 1); window.dispatchEvent(new Event("portal:profile-updated")); };
+  const modal = (label: string, close: () => void, children: ReactNode, extraClass = "") => <div className="member-modal" role="dialog" aria-modal="true" aria-label={label} onClick={close} onKeyDown={event => { if (event.key === "Escape") close(); }}>
+    <div className={`member-modal-card ${extraClass}`.trim()} onClick={event => event.stopPropagation()}>
+      {children}
+      <button className="member-modal-close" onClick={close} autoFocus>Fechar</button>
+    </div>
+  </div>;
   return <section className="member-page">
     {error && <p className="member-error" role="alert">{error}</p>}
     {!member ? !error && <p role="status">Carregando seu espaço…</p> : <>
       <header className="member-hero">
         <div className="member-identity">
-          <div className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</div>
+          <button type="button" className="member-avatar-edit" disabled={busy} onClick={() => photoInput.current?.click()} aria-label="Trocar foto" title="Trocar foto">
+            <span className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</span>
+            <span className="member-avatar-overlay" aria-hidden="true"><CameraIcon className="member-camera" /></span>
+          </button>
+          <input ref={photoInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => { pickPhoto(event.target.files?.[0]); event.target.value = ""; }} />
           <div><span className="member-eyebrow">Seu lugar na comunidade</span><h1>Olá, {member.name}.</h1><p>Bem-vindo à sua área de membro.</p><span className="member-badge">{member.tiktokConnected ? "TikTok vinculado" : "Perfil da comunidade"}</span>{member.isAdmin && <span className="member-badge member-badge-admin">Admin</span>}</div>
         </div>
-        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
+        <div className="member-actions">
+          {tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}
+          <div ref={actionsRef} className="member-menu">
+            <button type="button" disabled={busy} aria-haspopup="menu" aria-expanded={actionsOpen} onClick={() => setActionsOpen(open => !open)}>Ações <span aria-hidden="true" className="member-menu-caret">▾</span></button>
+            {actionsOpen && <div role="menu" className="member-menu-list">
+              <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); setEditing(true); }}>Mudar nome de exibição</button>
+              {member.customized?.avatar && <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); void removePhoto(); }}>Remover foto personalizada</button>}
+              <button role="menuitem" type="button" className="member-menu-danger" onClick={() => { setActionsOpen(false); setManaging(true); }}>Excluir conta</button>
+            </div>}
+          </div>
+          <button disabled={busy} onClick={() => void logout()}>Sair</button>
+        </div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
       <details className="member-dropdown" open={accountsOpen} onToggle={event => setAccountsOpen(event.currentTarget.open)}>
         <summary><span><strong>Contas conectadas</strong><small>Contas usadas para enviar mensagens ao chat</small></span></summary>
         <MemberAccounts tiktokLogin={member.tiktokName} />
       </details>
-      {editing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Editar perfil" onClick={() => setEditing(false)} onKeyDown={event => { if (event.key === "Escape") setEditing(false); }}>
-        <div className="member-modal-card" onClick={event => event.stopPropagation()}>
-          <MemberProfileEditor key={member.name + (member.avatarUrl ?? "")} name={member.name} avatarUrl={member.avatarUrl} customized={member.customized ?? { name: false, avatar: false }} onChange={() => { setAvatarFailed(false); setReload(n => n + 1); }} />
-          <button className="member-modal-close" onClick={() => setEditing(false)} autoFocus>Fechar</button>
-        </div>
-      </div>}
-      {managing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Excluir conta" onClick={() => setManaging(false)} onKeyDown={event => { if (event.key === "Escape") setManaging(false); }}>
-        <div className="member-modal-card portal-account-card" onClick={event => event.stopPropagation()}>
-          <AccountSettings />
-          <button className="member-modal-close" onClick={() => setManaging(false)} autoFocus>Fechar</button>
-        </div>
-      </div>}
+      {editing && modal("Mudar nome de exibição", () => setEditing(false), <MemberProfileEditor key={member.name} mode="name" name={member.name} customized={member.customized ?? { name: false, avatar: false }} onChange={onProfileChange} />)}
+      {photoFile && modal("Trocar foto", () => setPhotoFile(null), <MemberProfileEditor mode="avatar" name={member.name} initialFile={photoFile} customized={member.customized ?? { name: false, avatar: false }} onChange={onProfileChange} onDone={() => setPhotoFile(null)} />)}
+      {managing && modal("Excluir conta", () => setManaging(false), <AccountSettings />, "portal-account-card")}
       <div className="member-section-title"><div><span className="member-eyebrow">O que vem por aí</span><h2>Uma comunidade feita com você.</h2></div><span className="member-preview">Recursos futuros</span></div>
       <div className="member-content-grid">
         <article><span className="member-card-number">01 / PARTICIPE</span><h3>Seu voto faz parte.</h3><p>Futuramente, você poderá votar nos próximos conteúdos do canal.</p><span className="member-coming">Votações · Em breve</span></article>
         <article><span className="member-card-number">02 / DESCUBRA</span><h3>Conteúdos para membros.</h3><p>Este será o espaço para encontrar os conteúdos da comunidade.</p><span className="member-coming">Conteúdos · Em breve</span></article>
         <article><span className="member-card-number">03 / ACOMPANHE</span><h3>As novidades, por aqui.</h3><p>Futuramente, avisos e novidades do canal estarão reunidos aqui.</p><span className="member-coming">Feed · Em breve</span></article>
       </div>
-      <section className="member-danger-card" aria-label="Excluir conta">
-        <div><strong>Excluir conta</strong><p>Apaga seu cadastro e os vínculos salvos no portal. Essa ação não pode ser desfeita.</p></div>
-        <button type="button" disabled={busy} onClick={() => setManaging(true)}>Excluir conta</button>
-      </section>
     </>}
   </section>;
 }

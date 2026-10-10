@@ -20,3 +20,12 @@ export function HomeIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function CameraIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M2.5 7.2c0-.9.7-1.7 1.7-1.7h1.4l1.1-1.6c.2-.3.5-.4.9-.4h4.8c.3 0 .6.1.8.4l1.1 1.6h1.5c.9 0 1.7.7 1.7 1.7v7c0 .9-.7 1.6-1.7 1.6H4.2c-.9 0-1.7-.7-1.7-1.6v-7Z" />
+      <circle cx="10" cy="10.6" r="2.9" />
+    </svg>
+  )
+}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent } from "react";
 import { command } from "./services";
 
-type Props = { name: string; avatarUrl: string | null; customized: { name: boolean; avatar: boolean }; onChange: () => void };
+// mode "name": só o nome de exibição. mode "avatar": abre direto o recorte da foto escolhida (initialFile).
+type Props = { name: string; mode: "name" | "avatar"; initialFile?: File | null; customized: { name: boolean; avatar: boolean }; onChange: () => void; onDone?: () => void };
 
 const PREVIEW = 256;
 
@@ -62,10 +63,9 @@ function AvatarCropper({ file, busy, onCancel, onConfirm }: { file: File; busy: 
   </div>;
 }
 
-export function MemberProfileEditor({ name, avatarUrl, customized, onChange }: Props) {
+export function MemberProfileEditor({ name, mode, initialFile = null, customized, onChange, onDone }: Props) {
   const [value, setValue] = useState(name), [busy, setBusy] = useState(false), [error, setError] = useState(""), [ok, setOk] = useState("");
-  const [cropping, setCropping] = useState<File | null>(null);
-  const input = useRef<HTMLInputElement>(null);
+  const [cropping, setCropping] = useState<File | null>(initialFile);
   async function run(task: () => Promise<void>, done: string) {
     setBusy(true); setError(""); setOk("");
     try { await task(); setOk(done); onChange(); return true; }
@@ -76,34 +76,27 @@ export function MemberProfileEditor({ name, avatarUrl, customized, onChange }: P
     event.preventDefault();
     void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: value }) }); }, "Nome atualizado.");
   };
-  const pick = (file?: File) => {
-    if (!file) return;
-    setError(""); setOk("");
-    if (!file.type.startsWith("image/")) { setError("Escolha um arquivo de imagem."); return; }
-    setCropping(file);
-  };
   const upload = async (blob: Blob) => {
     const sent = await run(async () => { await command("/api/member/avatar", { method: "POST", headers: { "Content-Type": "image/webp" }, body: blob }); }, "Foto atualizada.");
-    if (sent) setCropping(null);
+    if (sent) { setCropping(null); onDone?.(); }
   };
-  return <section className="member-card member-edit" aria-label="Editar perfil">
-    <h2>Editar perfil</h2>
-    {cropping ? <AvatarCropper file={cropping} busy={busy} onCancel={() => setCropping(null)} onConfirm={blob => void upload(blob)} /> : <>
-      <form onSubmit={saveName} className="member-edit-field">
-        <label htmlFor="member-name">Nome de exibição</label>
-        <div className="member-edit-inline">
-          <input id="member-name" value={value} onChange={e => setValue(e.target.value)} minLength={2} maxLength={24} required disabled={busy} autoComplete="off" />
-          <button disabled={busy || value.trim() === name}>Salvar</button>
-        </div>
-        {customized.name && <button type="button" className="member-link" disabled={busy} onClick={() => void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: null }) }); }, "Voltou ao nome da sua conta.")}>Restaurar o nome da conta</button>}
-      </form>
-      <div className="member-edit-row">
-        {avatarUrl ? <img className="member-edit-avatar" src={avatarUrl} alt="" referrerPolicy="no-referrer" /> : <span>Foto</span>}
-        <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e => { pick(e.target.files?.[0]); e.target.value = ""; }} />
-        <button disabled={busy} onClick={() => input.current?.click()}>Escolher foto</button>
-        {customized.avatar && <button disabled={busy} onClick={() => void run(async () => { await command("/api/member/avatar", { method: "DELETE" }); }, "Foto removida.")}>Remover foto</button>}
+  if (mode === "avatar") {
+    return <section className="member-card member-edit" aria-label="Trocar foto">
+      <h2>Trocar foto</h2>
+      {cropping && <AvatarCropper file={cropping} busy={busy} onCancel={() => { setCropping(null); onDone?.(); }} onConfirm={blob => void upload(blob)} />}
+      {error && <p role="alert" className="member-error">{error}</p>}
+    </section>;
+  }
+  return <section className="member-card member-edit" aria-label="Mudar nome de exibição">
+    <h2>Mudar nome de exibição</h2>
+    <form onSubmit={saveName} className="member-edit-field">
+      <label htmlFor="member-name">Nome de exibição</label>
+      <div className="member-edit-inline">
+        <input id="member-name" value={value} onChange={e => setValue(e.target.value)} minLength={2} maxLength={24} required disabled={busy} autoComplete="off" />
+        <button disabled={busy || value.trim() === name}>Salvar</button>
       </div>
-    </>}
+      {customized.name && <button type="button" className="member-link" disabled={busy} onClick={() => void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: null }) }); }, "Voltou ao nome da sua conta.")}>Restaurar o nome da conta</button>}
+    </form>
     {error && <p role="alert" className="member-error">{error}</p>}
     {ok && <p role="status" className="member-ok">{ok}</p>}
   </section>;
