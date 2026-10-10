@@ -15,14 +15,18 @@ export function EmoteImage({ emote }: { emote: Emote }) {
     />
   );
 }
+// "mine": emote que o membro pode usar na Twitch (lido com o token dele).
+export type PickerEmote = Emote & { mine?: boolean };
 export function EmotePicker({
   emotes,
   state,
+  notice,
   onSelect,
   onClose,
 }: {
-  emotes: Emote[];
+  emotes: PickerEmote[];
   state: string;
+  notice?: { text: string; action: string; onAction: () => void };
   onSelect: (code: string) => void;
   onClose: () => void;
 }) {
@@ -30,7 +34,7 @@ export function EmotePicker({
   const [provider, setProvider] = useState("all");
   const filtered = emotes.filter(
     (e) =>
-      (provider === "all" || e.provider === provider) &&
+      (provider === "all" || (provider === "mine" ? e.mine : e.provider === provider)) &&
       e.code.toLowerCase().includes(query.toLowerCase()),
   );
   return (
@@ -61,6 +65,7 @@ export function EmotePicker({
       <div className="mc-tabs">
         {[
           ["all", "Todos"],
+          ...(emotes.some((e) => e.mine) ? [["mine", "Meus"]] : []),
           ["twitch", "Twitch"],
           ["bttv", "BTTV"],
         ].map(([value, label]) => (
@@ -75,6 +80,12 @@ export function EmotePicker({
         ))}
       </div>
       {state && <p className="mc-muted">{state}</p>}
+      {notice && (
+        <p className="mc-muted">
+          {notice.text}{" "}
+          <button type="button" onClick={notice.onAction}>{notice.action}</button>
+        </p>
+      )}
       <div className="mc-emote-grid">
         {filtered.slice(0, 200).map((e) => (
           <button

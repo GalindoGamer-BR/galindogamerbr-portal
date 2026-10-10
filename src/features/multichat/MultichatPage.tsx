@@ -4,7 +4,7 @@ import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
@@ -20,9 +20,11 @@ import { useMultichat } from "./useMultichat";
 import { ChatVirtualList } from "./ChatVirtualList";
 import { useEmotes } from "./useEmotes";
 import { useBadges } from "./useBadges";
+import { useMyEmotes } from "./useMyEmotes";
+import { rememberReturnTo, startTwitchLogin } from "./loginFlows";
 import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
-import { EmotePicker } from "./EmotePicker";
+import { EmotePicker, type PickerEmote } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
 import { MultichatDialog } from "./MultichatDialog";
 import "./multichat.css";
@@ -131,6 +133,15 @@ export default function MultichatPage() {
   const emotes = useEmotes();
   const badges = useBadges();
   const twitchChannel = useTwitchChannel();
+  const myEmotes = useMyEmotes(!!session);
+  // Seus emotes (inscrições etc.) primeiro, marcados; o restante do catálogo sem repetir os ids.
+  const pickerEmotes = useMemo<PickerEmote[]>(() => {
+    const mine = new Set(myEmotes.emotes.map((e) => e.id));
+    return [
+      ...myEmotes.emotes.map((e) => ({ ...e, mine: true })),
+      ...emotes.emotes.filter((e) => !(e.provider === "twitch" && mine.has(e.id))),
+    ];
+  }, [myEmotes.emotes, emotes.emotes]);
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setTheater(false);
@@ -604,8 +615,13 @@ export default function MultichatPage() {
           <form className="mc-composer" onSubmit={send}>
             {picker && (
               <EmotePicker
-                emotes={emotes.emotes}
+                emotes={pickerEmotes}
                 state={emotes.state}
+                notice={myEmotes.status === "needs_reauth" ? {
+                  text: "Para usar seus emotes de inscrito, entre de novo com a Twitch e autorize o acesso aos emotes.",
+                  action: "Liberar meus emotes",
+                  onAction: () => { rememberReturnTo(); void startTwitchLogin().catch((error) => setNotice(error.message)); },
+                } : undefined}
                 onClose={() => {
                   setPicker(false);
                   emoteButton.current?.focus();

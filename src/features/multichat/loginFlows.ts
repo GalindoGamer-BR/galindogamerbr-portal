@@ -13,7 +13,7 @@ export async function startTwitchLogin() {
   clearAttempt();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "twitch",
-    options: { scopes: "user:read:email user:write:chat user:read:subscriptions user:read:follows", redirectTo: window.location.origin + "/login" }
+    options: { scopes: "user:read:email user:write:chat user:read:subscriptions user:read:follows user:read:emotes", redirectTo: window.location.origin + "/login" }
   });
   if (error) throw error;
 }
