@@ -1,5 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { HelpIcon, HomeIcon, SettingsIcon } from "../../components/ui/Icons";
+import { HelpIcon, HomeIcon, SettingsIcon, SpeakerIcon, StickerIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
@@ -82,13 +82,15 @@ const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
 const twitchPanels = [
   {
     label: "SoundAlerts",
-    description: "Toque sons e alertas na live.",
+    icon: SpeakerIcon,
+    description: "Toque sons e alertas na live, direto do soundboard do canal.",
     action: "Abrir soundboard",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel",
   },
   {
     label: "Stream Stickers",
-    description: "Cole stickers na tela da live.",
+    icon: StickerIcon,
+    description: "Cole stickers na tela da live e apareça junto com a galera.",
     action: "Abrir stickers",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel",
   },
@@ -613,8 +615,10 @@ export default function MultichatPage() {
             </div>
           </section>
           <section className="mc-about mc-interact">
-            <h2>Interaja na Twitch.</h2>
-            <p>Extensões do canal que abrem numa janela da Twitch.</p>
+            <div className="mc-interact-head">
+              <h2>Interaja na Twitch.</h2>
+              <p>Extensões do canal que abrem numa janela da Twitch.</p>
+            </div>
             <div className="mc-interact-grid">
               {twitchPanels.map((panel) => (
                 <a
@@ -625,9 +629,10 @@ export default function MultichatPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <strong>{panel.label}</strong>
+                  <span className="mc-interact-icon" aria-hidden="true"><panel.icon /></span>
+                  <strong>{panel.label} <span className="mc-interact-tag">Extensão</span></strong>
                   <span>{panel.description}</span>
-                  <em>{panel.action}</em>
+                  <em><WindowIcon />{panel.action}</em>
                 </a>
               ))}
             </div>

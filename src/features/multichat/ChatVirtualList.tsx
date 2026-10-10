@@ -4,6 +4,7 @@ import { type ChatMessage } from "./types";
 import { messageParts, type Emote } from "./emotes";
 import { EmoteImage } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
+import { readableColor } from "./chatColors";
 import type { Badge } from "./useBadges";
 export function ChatVirtualList({
   messages,
@@ -85,11 +86,7 @@ export function ChatVirtualList({
                 })}
                 <strong
                   className="mc-message-user"
-                  style={{
-                    color: /^#[0-9a-f]{6}$/i.test(message.metadata?.color || "")
-                      ? message.metadata!.color
-                      : undefined,
-                  }}
+                  style={{ color: readableColor(message.metadata?.color) }}
                 >
                   {message.user.displayName}
                 </strong>
