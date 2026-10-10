@@ -26,7 +26,7 @@ export function GameCard({ game }: { game: Game }) {
         </div>
         <h3 className="text-xl">{game.title}</h3>
         <p className="flex-1 text-sm text-muted">{game.description}</p>
-        <span className="text-sm font-semibold text-white/70 group-hover:text-gold">Ver playlist →</span>
+        <span className="text-sm font-semibold text-white/70 group-hover:text-gold">Ver playlist</span>
       </div>
     </a>
   )

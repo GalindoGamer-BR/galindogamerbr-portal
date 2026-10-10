@@ -144,7 +144,7 @@ export function Fazenda() {
                     <h4 className="mt-2 text-sm font-semibold uppercase tracking-wide">ASSISTA ÀS REGRAS DA FAZENDA</h4>
                     <p className="mt-2 text-sm leading-relaxed text-muted">Veja as regras e orientações para jogar no servidor.</p>
                   </div>
-                  <span className="mt-3 text-xs font-semibold text-gold group-hover:underline">Assistir agora →</span>
+                  <span className="mt-3 text-xs font-semibold text-gold group-hover:underline">Assistir agora</span>
                 </button>
 
                 <a
@@ -156,7 +156,7 @@ export function Fazenda() {
                     <h4 className="mt-2 text-sm font-semibold uppercase tracking-wide">Seja VIP</h4>
                     <p className="mt-2 text-sm leading-relaxed text-muted">O requisito principal para acessar a fazenda. Veja como logo abaixo.</p>
                   </div>
-                  <span className="mt-3 text-xs font-semibold text-gold group-hover:underline">Ver como →</span>
+                  <span className="mt-3 text-xs font-semibold text-gold group-hover:underline">Ver como</span>
                 </a>
 
                 {PLAIN_REQUIREMENTS.map((item) => (

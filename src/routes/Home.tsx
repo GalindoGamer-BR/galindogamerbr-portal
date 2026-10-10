@@ -118,7 +118,7 @@ function FazendaTeaser() {
                 <h2 className="mt-1 text-3xl text-gold">NOVO POR AQUI?</h2>
                 <p className="mt-3 text-sm leading-relaxed text-white/75">O Galindo preparou uma mensagem para apresentar o canal e receber você na comunidade.</p>
               </div>
-              <span className="relative mt-7 text-sm font-semibold uppercase text-gold transition group-hover:translate-x-1">Assistir à mensagem →</span>
+              <span className="relative mt-7 text-sm font-semibold uppercase text-gold transition group-hover:translate-x-1">Assistir à mensagem</span>
             </Link>
 
             <Link to="/fazenda" className="group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-xl border border-line bg-gradient-to-br from-panel to-panel2 p-7 transition duration-300 hover:-translate-y-1 hover:border-green/60 sm:p-8">
@@ -129,7 +129,7 @@ function FazendaTeaser() {
                 <h2 className="mt-1 text-3xl sm:text-4xl">VENHA PARA A LIDA COM A COMUNIDADE</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">Conheça o servidor, confira os requisitos e prepare tudo para participar da fazenda.</p>
               </div>
-              <span className="relative mt-7 text-sm font-semibold uppercase text-green transition group-hover:translate-x-1">Ver como participar →</span>
+              <span className="relative mt-7 text-sm font-semibold uppercase text-green transition group-hover:translate-x-1">Ver como participar</span>
             </Link>
           </div>
         </Container>
@@ -196,7 +196,7 @@ function JogosBannerCta() {
             <div className="relative flex flex-col items-start gap-2 bg-panel p-6 sm:absolute sm:inset-0 sm:justify-end sm:bg-transparent sm:p-10">
               <Eyebrow className="text-sm sm:text-lg">Todos os conteúdos do canal</Eyebrow>
               <h2 className="text-2xl sm:text-5xl">CONHEÇA OS CONTEÚDOS DO CANAL</h2>
-              <span className="text-sm font-semibold uppercase tracking-wide text-gold sm:text-base">Ver todos →</span>
+              <span className="text-sm font-semibold uppercase tracking-wide text-gold sm:text-base">Ver todos</span>
             </div>
           </Link>
         </Container>
@@ -267,7 +267,7 @@ function SobreTeaser() {
               </p>
               <p className="mt-3 text-muted">Aqui você encontra gameplay de verdade, diversão e aprendizado em cada interação!</p>
               <NavButton to="/sobre" variant="default" className="mt-6 self-start">
-                Conheça minha história →
+                Conheça minha história
               </NavButton>
             </div>
           </div>
@@ -302,7 +302,7 @@ function ParceirosTeaser() {
                 </div>
 
                 <NavButton to="/parceiros" variant="gold" className="mt-7">
-                  Criar uma parceria →
+                  Criar uma parceria
                 </NavButton>
               </div>
 

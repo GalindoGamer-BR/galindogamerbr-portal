@@ -37,7 +37,7 @@ export default function PortalMember() {
     else navigate("/login", { replace: true });
   }
   return <section className="member-page">
-    <div className="member-topline"><Link to="/">← Início</Link><span>Comunidade GalindoGamerBR</span></div>
+    <div className="member-topline"><Link to="/">Início</Link><span>Comunidade GalindoGamerBR</span></div>
     {error && <p className="member-error" role="alert">{error}</p>}
     {!member ? !error && <p role="status">Carregando seu espaço…</p> : <>
       <header className="member-hero">

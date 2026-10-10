@@ -20,7 +20,7 @@ export function AdminHeader({ title, email, onLogout, backTo }: AdminHeaderProps
           <p className="text-sm text-muted">Logado como {email}.</p>
           {backTo && (
             <Link to={backTo} className="mt-1 inline-block text-xs font-semibold uppercase text-gold hover:underline">
-              ← Voltar ao painel
+              Voltar ao painel
             </Link>
           )}
         </div>

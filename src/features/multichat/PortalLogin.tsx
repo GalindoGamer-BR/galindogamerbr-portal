@@ -106,6 +106,6 @@ export default function PortalLogin() {
     {error && <p role="alert" className="portal-account-error">{error}</p>}
     </>}
     <p className="portal-account-legal">Consulte os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.</p>
-    <Link to="/" className="portal-account-back">← Voltar ao início</Link>
+    <Link to="/" className="portal-account-back">Voltar ao início</Link>
   </section></main>;
 }
