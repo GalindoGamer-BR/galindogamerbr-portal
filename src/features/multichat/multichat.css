@@ -118,7 +118,6 @@
   overflow: auto;
   min-width: 0;
   padding: 0 22px;
-  scrollbar-width: thin;
 }
 .mc-stage-toolbar {
   display: flex;
@@ -362,8 +361,6 @@
   position: absolute;
   inset: 0;
   overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #494952 transparent;
   overflow-anchor: none;
 }
 .mc-message {
