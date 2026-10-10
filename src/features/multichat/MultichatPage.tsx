@@ -630,33 +630,7 @@ export default function MultichatPage() {
               {youtubeChannel.videos != null && <p className="mc-muted">{youtubeChannel.videos.toLocaleString("pt-BR")} vídeos no canal</p>}
             </section>
           )}
-          <section className="mc-about">
-            <h2>Juntos em todas as plataformas.</h2>
-            <p>Escolha onde assistir e acompanhe a conversa em um só lugar.</p>
-            <div className="mc-channel-links">
-              <a
-                href="https://www.twitch.tv/galindogamerbr"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Twitch
-              </a>
-              <a
-                href="https://www.youtube.com/@galindogamerbr/join"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Seja membro no YouTube
-              </a>
-              <a
-                href="https://kick.com/galindogamerbr"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Apoiar na Kick
-              </a>
-            </div>
-          </section>
+          {player === "twitch" && (
           <section className="mc-about mc-interact">
             <div className="mc-interact-head">
               <h2>Interaja na Twitch.</h2>
@@ -680,6 +654,7 @@ export default function MultichatPage() {
               ))}
             </div>
           </section>
+          )}
           <footer className="mc-footer">
             <a href="/"><HomeIcon /> Voltar ao portal</a>
             <a href="/privacidade">Privacidade</a>
