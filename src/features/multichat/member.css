@@ -17,7 +17,6 @@
 .member-dropdown>summary:hover{color:#dfbd70}
 .member-dropdown>summary:focus-visible{outline:2px solid #eacb7d;outline-offset:-2px;border-radius:12px}
 .member-dropdown .member-accounts-body{padding:0 24px 24px}
-.member-home-link{display:inline-flex;align-items:center;gap:6px}
 
 .member-dropdown{background:linear-gradient(135deg,#1a1a1d,#141416);box-shadow:0 18px 50px -34px #000;transition:border-color .15s}
 .member-dropdown[open],.member-dropdown:hover{border-color:#dfbd7040}

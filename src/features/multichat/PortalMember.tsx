@@ -3,9 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
 import { tiktokLinking } from "./flags";
 import { MemberProfileEditor } from "./MemberProfileEditor";
-import { MemberAccounts } from "./MemberAccounts";
-import { HomeIcon } from "../../components/ui/Icons";
-import "./member.css";
+import { MemberAccounts } from "./MemberAccounts";import "./member.css";
 
 type Member = { tiktokName?: string | null; name: string; avatarUrl: string | null; isAdmin?: boolean; customized?: { name: boolean; avatar: boolean }; memberSince: string; connectedAccounts: number; profileUpdatedAt: string | null; tiktokConnected: boolean };
 const date = (value: string) => new Date(value).toLocaleDateString("pt-BR");
@@ -41,7 +39,6 @@ export default function PortalMember() {
     else navigate("/login", { replace: true });
   }
   return <section className="member-page">
-    <div className="member-topline"><Link to="/" className="member-home-link"><HomeIcon /> Início</Link><span>Comunidade GalindoGamerBR</span></div>
     {error && <p className="member-error" role="alert">{error}</p>}
     {!member ? !error && <p role="status">Carregando seu espaço…</p> : <>
       <header className="member-hero">
