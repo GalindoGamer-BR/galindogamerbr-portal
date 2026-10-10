@@ -49,7 +49,7 @@ export default function PortalMember() {
           <div className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</div>
           <div><span className="member-eyebrow">Seu lugar na comunidade</span><h1>Olá, {member.name}.</h1><p>Bem-vindo à sua área de membro.</p><span className="member-badge">{member.tiktokConnected ? "TikTok vinculado" : "Perfil da comunidade"}</span>{member.isAdmin && <span className="member-badge member-badge-admin">Admin</span>}</div>
         </div>
-        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><button disabled={busy} onClick={() => setManaging(true)}>Gerenciar conta</button><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
+        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
       <details className="member-dropdown" open={accountsOpen} onToggle={event => setAccountsOpen(event.currentTarget.open)}>
@@ -62,9 +62,8 @@ export default function PortalMember() {
           <button className="member-modal-close" onClick={() => setEditing(false)} autoFocus>Fechar</button>
         </div>
       </div>}
-      {managing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Gerenciar conta" onClick={() => setManaging(false)} onKeyDown={event => { if (event.key === "Escape") setManaging(false); }}>
+      {managing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Excluir conta" onClick={() => setManaging(false)} onKeyDown={event => { if (event.key === "Escape") setManaging(false); }}>
         <div className="member-modal-card portal-account-card" onClick={event => event.stopPropagation()}>
-          <h2>Gerenciar conta</h2>
           <AccountSettings />
           <button className="member-modal-close" onClick={() => setManaging(false)} autoFocus>Fechar</button>
         </div>
@@ -75,6 +74,7 @@ export default function PortalMember() {
         <article><span className="member-card-number">02 / DESCUBRA</span><h3>Conteúdos para membros.</h3><p>Este será o espaço para encontrar os conteúdos da comunidade.</p><span className="member-coming">Conteúdos · Em breve</span></article>
         <article><span className="member-card-number">03 / ACOMPANHE</span><h3>As novidades, por aqui.</h3><p>Futuramente, avisos e novidades do canal estarão reunidos aqui.</p><span className="member-coming">Feed · Em breve</span></article>
       </div>
+      <p className="member-danger-row"><button type="button" className="member-delete-link" disabled={busy} onClick={() => setManaging(true)}>Excluir minha conta</button></p>
     </>}
   </section>;
 }

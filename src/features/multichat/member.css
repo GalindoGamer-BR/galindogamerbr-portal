@@ -38,3 +38,7 @@
 
 .member-modal-card.portal-account-card{display:grid;gap:18px;padding:28px;max-width:480px}
 .member-modal-card.portal-account-card .member-modal-close{margin:0;justify-self:end}
+
+.member-danger-row{margin:40px 0 8px;padding-top:20px;border-top:1px solid #ffffff10;text-align:center}
+.member-danger-row .member-delete-link{background:none;border:0;padding:6px 10px;font-size:12px;color:#92929c;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.member-danger-row .member-delete-link:hover:not(:disabled){color:#ffb4b4}
