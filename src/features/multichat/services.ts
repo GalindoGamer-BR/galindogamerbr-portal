@@ -9,8 +9,9 @@ export const supabase = configured
   : null;
 export class PortalSessionRequired extends Error {}
 
-// Entrar com a Twitch já conecta a conta ao chat: o Supabase entrega o token da Twitch só na sessão recém-criada, e o
-// auth-service o valida (cliente, usuário e escopo) antes de guardar criptografado. Falhas aqui não afetam o login.
+// Conta CRIADA com a Twitch (app_metadata.provider é fixado na criação) já nasce com o chat vinculado: o Supabase entrega
+// o token da Twitch só na sessão recém-criada, e o auth-service o valida (cliente, usuário e escopo) antes de guardar
+// criptografado. Contas criadas de outro jeito não passam por aqui. Falhas não afetam o login.
 if (supabase) {
   const adopted = new Set<string>();
   supabase.auth.onAuthStateChange((event, session) => {

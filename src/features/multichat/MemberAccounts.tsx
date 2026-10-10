@@ -7,7 +7,7 @@ import { tiktokLinking, linkablePlatforms } from "./flags";
 import { labels, type Accounts, type WritablePlatform } from "./types";
 
 // Uma lista só: cada plataforma mostra se é forma de entrar ("Login") e se está autorizada para enviar mensagens ao chat.
-// Twitch como login já é a conta do chat: fica vinculada e sem opção de desvincular.
+// Conta criada com a Twitch já nasce com o chat vinculado, de forma permanente (sem opção de desvincular).
 export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null }) {
   const [user, setUser] = useState<User | null>(null);
   const [chat, setChat] = useState<Accounts | null>(null);
@@ -48,7 +48,7 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
           {isLogin && <em className="member-tag">Login</em>}
           {chat && (account?.connected
             ? locked
-              ? <em className="member-tag member-tag-fixed">Chat vinculado ao login</em>
+              ? <em className="member-tag member-tag-fixed">Chat vinculado à conta</em>
               : <button disabled={!!busy} onClick={() => void unlink(platform)}>{busy === platform ? "Aguarde…" : "Desvincular"}</button>
             : <button disabled={!!busy} onClick={() => void link(platform)}>{busy === platform ? "Aguarde…" : "Conectar ao chat"}</button>)}
         </li>;
