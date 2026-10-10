@@ -137,9 +137,12 @@ export default function MultichatPage() {
   // Seus emotes (inscrições etc.) primeiro, marcados; o restante do catálogo sem repetir os ids.
   const pickerEmotes = useMemo<PickerEmote[]>(() => {
     const mine = new Set(myEmotes.emotes.map((e) => e.id));
+    // O catálogo sabe quais são do canal; a lista do usuário não, então herda a origem pelo id.
+    const sources = new Map(emotes.emotes.filter((e) => e.provider === "twitch").map((e) => [e.id, e.source]));
+    const channelFirst = [...emotes.emotes].sort((a, b) => Number(b.source === "channel") - Number(a.source === "channel"));
     return [
-      ...myEmotes.emotes.map((e) => ({ ...e, mine: true })),
-      ...emotes.emotes.filter((e) => !(e.provider === "twitch" && mine.has(e.id))),
+      ...myEmotes.emotes.map((e) => ({ ...e, source: sources.get(e.id), mine: true })),
+      ...channelFirst.filter((e) => !(e.provider === "twitch" && mine.has(e.id))),
     ];
   }, [myEmotes.emotes, emotes.emotes]);
   useEffect(() => {

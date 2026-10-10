@@ -31,10 +31,14 @@ export function EmotePicker({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
-  const [provider, setProvider] = useState("all");
+  const [chosen, setChosen] = useState<string | null>(null);
+  // Abre direto nos emotes do canal quando existem; é onde ficam os de sub, que se perdiam entre os globais.
+  const provider = chosen ?? (emotes.some((e) => e.source === "channel") ? "channel" : "all");
+  const setProvider = setChosen;
   const filtered = emotes.filter(
     (e) =>
-      (provider === "all" || (provider === "mine" ? e.mine : e.provider === provider)) &&
+      (provider === "all" ||
+        (provider === "mine" ? e.mine : provider === "channel" ? e.source === "channel" : e.provider === provider)) &&
       e.code.toLowerCase().includes(query.toLowerCase()),
   );
   return (
@@ -65,6 +69,7 @@ export function EmotePicker({
       <div className="mc-tabs">
         {[
           ["all", "Todos"],
+          ...(emotes.some((e) => e.source === "channel") ? [["channel", "Canal"]] : []),
           ...(emotes.some((e) => e.mine) ? [["mine", "Meus"]] : []),
           ["twitch", "Twitch"],
           ["bttv", "BTTV"],
