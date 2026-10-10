@@ -3,13 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
 import { tiktokLinking } from "./flags";
 import { MemberAccounts } from "./MemberAccounts";
+import { MemberProfileEditor } from "./MemberProfileEditor";
 import "./member.css";
 
 type Member = { tiktokName?: string | null; name: string; avatarUrl: string | null; isAdmin?: boolean; customized?: { name: boolean; avatar: boolean }; memberSince: string; connectedAccounts: number; profileUpdatedAt: string | null; tiktokConnected: boolean };
 const date = (value: string) => new Date(value).toLocaleDateString("pt-BR");
 export default function PortalMember() {
   const navigate = useNavigate();
-  const [member, setMember] = useState<Member | null>(null);
+  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [avatarFailed, setAvatarFailed] = useState(false);
   useEffect(() => {
     if (!supabase) { setError("O acesso à comunidade ainda não está configurado."); return; }
@@ -24,7 +25,7 @@ export default function PortalMember() {
     });
     const { data } = supabase.auth.onAuthStateChange(event => { if (active && event === "SIGNED_OUT") navigate("/login", { replace: true }); });
     return () => { active = false; data.subscription.unsubscribe(); };
-  }, [navigate]);
+  }, [navigate, reload]);
   async function reconnect() {
     setBusy(true); setError("");
     try { const { url } = await command<{ url: string }>("/oauth/tiktok/start"); window.location.assign(url); }
@@ -45,10 +46,16 @@ export default function PortalMember() {
           <div className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</div>
           <div><span className="member-eyebrow">Seu lugar na comunidade</span><h1>Olá, {member.name}.</h1><p>Bem-vindo à sua área de membro.</p><span className="member-badge">{member.tiktokConnected ? "TikTok vinculado" : "Perfil da comunidade"}</span>{member.isAdmin && <span className="member-badge member-badge-admin">Admin</span>}</div>
         </div>
-        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
+        <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
       <MemberAccounts tiktokLogin={member.tiktokName} />
+      {editing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Editar perfil" onClick={() => setEditing(false)} onKeyDown={event => { if (event.key === "Escape") setEditing(false); }}>
+        <div className="member-modal-card" onClick={event => event.stopPropagation()}>
+          <MemberProfileEditor key={member.name + (member.avatarUrl ?? "")} name={member.name} avatarUrl={member.avatarUrl} customized={member.customized ?? { name: false, avatar: false }} onChange={() => { setAvatarFailed(false); setReload(n => n + 1); }} />
+          <button className="member-modal-close" onClick={() => setEditing(false)} autoFocus>Fechar</button>
+        </div>
+      </div>}
       <div className="member-section-title"><div><span className="member-eyebrow">O que vem por aí</span><h2>Uma comunidade feita com você.</h2></div><span className="member-preview">Recursos futuros</span></div>
       <div className="member-content-grid">
         <article><span className="member-card-number">01 / PARTICIPE</span><h3>Seu voto faz parte.</h3><p>Futuramente, você poderá votar nos próximos conteúdos do canal.</p><span className="member-coming">Votações · Em breve</span></article>

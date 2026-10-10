@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { command } from "./services";
 
-type Props = { name: string; customized: { name: boolean; avatar: boolean }; onChange: () => void };
+type Props = { name: string; avatarUrl: string | null; customized: { name: boolean; avatar: boolean }; onChange: () => void };
 
 // Reduz a foto para 256x256 (recorte central) antes do envio: o servidor só valida o tipo e o tamanho.
 async function resize(file: File): Promise<Blob> {
@@ -16,7 +16,7 @@ async function resize(file: File): Promise<Blob> {
   return blob;
 }
 
-export function MemberProfileEditor({ name, customized, onChange }: Props) {
+export function MemberProfileEditor({ name, avatarUrl, customized, onChange }: Props) {
   const [value, setValue] = useState(name), [busy, setBusy] = useState(false), [error, setError] = useState(""), [ok, setOk] = useState("");
   const input = useRef<HTMLInputElement>(null);
   async function run(task: () => Promise<void>, done: string) {
@@ -45,7 +45,7 @@ export function MemberProfileEditor({ name, customized, onChange }: Props) {
       {customized.name && <button type="button" disabled={busy} onClick={() => void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: null }) }); }, "Voltou ao nome da sua conta.")}>Usar nome da conta</button>}
     </form>
     <div className="member-edit-row">
-      <span>Foto</span>
+      {avatarUrl ? <img className="member-edit-avatar" src={avatarUrl} alt="" referrerPolicy="no-referrer" /> : <span>Foto</span>}
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e => { pick(e.target.files?.[0]); e.target.value = ""; }} />
       <button disabled={busy} onClick={() => input.current?.click()}>Enviar foto</button>
       {customized.avatar && <button disabled={busy} onClick={() => void run(async () => { await command("/api/member/avatar", { method: "DELETE" }); }, "Foto removida.")}>Remover foto</button>}

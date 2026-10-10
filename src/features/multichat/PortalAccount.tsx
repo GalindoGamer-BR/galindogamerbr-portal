@@ -4,7 +4,6 @@ import type { User } from "@supabase/supabase-js";
 import { command, supabase } from "./services";
 import { TikTokConnection, type TikTokConnectionState } from "./TikTokConnection";
 import { tiktokLinking } from "./flags";
-import { MemberProfileEditor } from "./MemberProfileEditor";
 import "./account.css";
 
 export default function PortalAccount() {
@@ -12,7 +11,6 @@ export default function PortalAccount() {
   const accountDeleted = useRef(false);
   const [user, setUser] = useState<User | null>(null);
   const [tiktok, setTikTok] = useState<TikTokConnectionState>({ connected: false, canSend: false });
-  const [profile, setProfile] = useState<{ name: string; customized: { name: boolean; avatar: boolean } } | null>(null), [profileTick, setProfileTick] = useState(0);
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false), [confirmation, setConfirmation] = useState("");
   useEffect(() => {
@@ -29,13 +27,6 @@ export default function PortalAccount() {
     const { data } = supabase.auth.onAuthStateChange((event) => { if (event === "SIGNED_OUT" && active && !accountDeleted.current) navigate("/login", { replace: true }); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, [navigate]);
-  useEffect(() => {
-    let active = true;
-    void command<{ name: string; customized?: { name: boolean; avatar: boolean } }>("/api/member")
-      .then(data => { if (active) setProfile({ name: data.name, customized: data.customized ?? { name: false, avatar: false } }); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [profileTick]);
   async function logout() {
     setBusy(true); setError("");
     const { error } = await supabase!.auth.signOut();
@@ -57,7 +48,6 @@ export default function PortalAccount() {
     <span className="portal-account-eyebrow">Comunidade GalindoGamerBR</span>
     <h1>Minha conta</h1>
     {user ? <>
-      {profile && <MemberProfileEditor key={profile.name + profile.customized.avatar} name={profile.name} customized={profile.customized} onChange={() => setProfileTick(n => n + 1)} />}
       <h2>Conta vinculada</h2>
       {tiktokLinking && <TikTokConnection signedIn state={tiktok} onChange={setTikTok}/>}
       <button disabled={busy} onClick={() => void logout()}>Sair da conta</button>
