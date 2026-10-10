@@ -24,9 +24,9 @@
 | `k8s-platform` | Base do K3s, scripts de VM/tunnel, healthz, workflow de infra | YAML + bash | — | `feat/vm-bootstrap-and-healthz` | `kubeconform`, `actionlint`, `shellcheck` |
 | `fs25-monitoring-worker` | Monitor do servidor FS25 (30 s), estado no Postgres | Python | 3005 | `chore/gitignore` | `[NÃO TOCADO]` |
 | `fs25-mods-sync` | Sincronização de mods (CronJob + API + PVC) | Python | 3006 | `chore/gitignore` | `[NÃO TOCADO]` |
-| `tiktok-browser` (raiz) | **Cópia duplicada e não usada** do serviço Chromium | — | — | — | o serviço em uso é `multichat-command/tiktok-browser/` |
+| `tiktok-browser` (raiz) | Serviço Chromium do TikTok **para o K3s**: guarda as sessões no Postgres (`multichat.tiktok_browser_sessions`), tem `k8s/tiktok-browser.yaml` e imagem própria no GHCR | Node 22 | 3000 | `main` | `npm test` |
 
-Cada repositório tem um `AGENTS.md` com comandos e invariantes específicos. Este guia cobre o que atravessa repositórios.
+**Atenção:** existem duas cópias do serviço Chromium. O compose local constrói a antiga, `multichat-command/tiktok-browser/` (sessões em disco); o K3s usa a do repositório `tiktok-browser` (sessões no Postgres). Antes de ligar o TikTok em produção, alinhe o compose à versão da raiz. Cada repositório tem um `AGENTS.md` com comandos e invariantes específicos. Este guia cobre o que atravessa repositórios.
 
 ## 2. Arquitetura
 
