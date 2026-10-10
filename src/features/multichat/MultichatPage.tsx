@@ -47,6 +47,17 @@ const errors: Record<string, string> = {
   message_rejected: "Mensagem recusada pela plataforma.",
 };
 const SEND_COOLDOWN_MS = 5000;
+const StarIcon = ({ filled }: { filled?: boolean }) => (
+  <svg className="mc-btn-icon" viewBox="0 0 20 20" aria-hidden="true" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
+    <path d="M10 2.2l2.4 5 5.4.7-4 3.8 1 5.4L10 14.5l-4.8 2.6 1-5.4-4-3.8 5.4-.7z" />
+  </svg>
+);
+const GiftIcon = () => (
+  <svg className="mc-btn-icon" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+    <rect x="2.5" y="7" width="15" height="3.5" rx="1" /><path d="M3.5 10.5V17h13v-6.5M10 7v10M10 7C8 7 6.5 6 6.5 4.7 6.5 3.6 7.3 3 8.2 3 9.2 3 10 4.3 10 7zm0 0c2 0 3.5-1 3.5-2.3C13.5 3.6 12.7 3 11.8 3 10.8 3 10 4.3 10 7z" />
+  </svg>
+);
+
 // A página de inscrição da Twitch não pode ser embutida (X-Frame-Options: SAMEORIGIN), então abre numa janela
 // centralizada sobre o portal; se o navegador bloquear, o link abre em nova aba normalmente.
 const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
@@ -380,34 +391,29 @@ export default function MultichatPage() {
             <div className="mc-support">
               {subscription?.status === "subscribed" ? (
                 <a
-                  className="mc-sub mc-sub-active"
+                  className="mc-btn mc-btn-secondary"
                   href={twitchSubsUrl}
                   onClick={openSubsWindow}
                   target="_blank"
                   rel="noreferrer"
                   title={`Você é inscrito neste canal na Twitch (Tier ${Number(subscription.tier ?? "1000") / 1000}${subscription.gift ? ", presente" : ""})`}
                 >
-                  ★ Atualizar sub
+                  <StarIcon filled /> Atualizar sub
                 </a>
               ) : (
-                <a
-                  className="mc-sub"
-                  href={twitchSubsUrl}
-                  onClick={openSubsWindow}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  ☆ Inscrever-se
+                <a className="mc-btn mc-btn-primary" href={twitchSubsUrl} onClick={openSubsWindow} target="_blank" rel="noreferrer">
+                  <StarIcon /> Inscrever-se
                 </a>
               )}
               <a
+                className={"mc-btn " + (subscription?.status === "subscribed" ? "mc-btn-primary" : "mc-btn-secondary")}
                 href={twitchChannelUrl}
                 onClick={(event) => openSubsWindow(event, twitchChannelUrl)}
                 target="_blank"
                 rel="noreferrer"
                 title="Abre o canal na Twitch, onde fica o botão Dar um sub"
               >
-                ♧ Dar um sub ↗
+                <GiftIcon /> Dar um sub
               </a>
             </div>
           </section>
