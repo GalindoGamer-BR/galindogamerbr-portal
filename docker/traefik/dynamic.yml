@@ -11,7 +11,7 @@ http:
       service: reader
       priority: 300
     auth-service:
-      rule: "PathPrefix(`/oauth`) || PathPrefix(`/api/auth`) || PathPrefix(`/api/account`) || PathPrefix(`/api/member`) || PathPrefix(`/api/tiktok/connection`)"
+      rule: "PathPrefix(`/oauth`) || PathPrefix(`/api/account`) || PathPrefix(`/api/member`) || PathPrefix(`/api/tiktok/connection`)"
       service: auth-service
       priority: 200
     portal-api:

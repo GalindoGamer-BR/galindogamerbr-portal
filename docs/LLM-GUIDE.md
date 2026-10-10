@@ -40,7 +40,7 @@ Roteamento por prefixo mais longo (idêntico no gateway local `docker/traefik/dy
 
 | Caminho | Serviço |
 |---|---|
-| `/oauth/*`, `/api/auth/*`, `/api/account*`, `/api/accounts*`, `/api/member`, `/api/tiktok/connection` | `auth-service` |
+| `/oauth/*`, `/api/account*`, `/api/accounts*`, `/api/member`, `/api/tiktok/connection` | `auth-service` |
 | `/api/chat/*`, `/api/tiktok/*` (exceto `/connection`), `/api/member/activity` | `multichat-command` |
 | `/webhooks/kick` | `multichat-reader` |
 | `/healthz` | `healthz` (nginx, só no K3s) |
@@ -110,7 +110,7 @@ Como ligar: **local** — `TIKTOK_LINKING_ENABLED=true` / `YOUTUBE_LINKING_ENABL
 - **Login do membro**: `/login` → botão **Entrar com Twitch** (`supabase.auth.signInWithOAuth`, escopo `user:read:email`, `redirectTo` = `/login`). Depois: se o usuário não tem e-mail confirmado (ou é `@tiktok.identity.invalid`), mostra `MemberEmail`; senão vai a `/membro`. Com a flag do TikTok ligada há também `POST /oauth/tiktok/login` → `/login#tiktok_login=<id>` → `POST /oauth/tiktok/exchange`.
 - **Gate de e-mail**: sem e-mail confirmado, o `command` responde 403 `email_verification_required`.
 - **Vincular contas para enviar** é outro passo: `GET /oauth/<plataforma>/start` no `auth-service`, que guarda o token **criptografado**; o `command` o obtém por `POST /internal/tokens`. Hoje só Twitch e Kick aparecem.
-- **Admin**: OTP por e-mail (Supabase Auth), restrito a `ADMIN_EMAILS`; rotas `/api/admin/*` exigem JWT com `app_metadata.role = "admin"`.
+- **Admin**: login só pelo Supabase Auth (código por e-mail ou Twitch, na tela `/admin/login`). Não há cookie, allowlist nem rotas de auth próprias: o portal envia `Authorization: Bearer <access token>` e as rotas `/api/admin/*` da `galindogamerbr-api` exigem JWT com `app_metadata.role = "admin"`, concedido por SQL (`update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}' where id = ...`). Para revogar, remova a role.
 
 ## 6. Multichat: fluxo de dados
 
@@ -156,7 +156,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 
 | Serviço | Principais |
 |---|---|
-| `auth-service` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`, `TOKEN_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, `FRONTEND_URL`, `ADMIN_EMAILS`, `RESEND_API_KEY`, `TWITCH_*`, `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI`, `KICK_*`, `TIKTOK_CLIENT_KEY/SECRET/REDIRECT_URI`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED` |
+| `auth-service` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`, `TOKEN_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, `FRONTEND_URL`, `TWITCH_*`, `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI`, `KICK_*`, `TIKTOK_CLIENT_KEY/SECRET/REDIRECT_URI`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED` |
 | `command` | as de Supabase/JWT, `AUTH_SERVICE_URL`, `READER_URL`, `INTERNAL_WAKE_SECRET`, `INTERNAL_SERVICE_TOKEN`, `TOKEN_ENCRYPTION_KEY`, `LIVE_STATUS_URL`, `YOUTUBE_LIVE_CHAT_ID`, `TIKTOK_BROWSER_URL`, `TIKTOK_SEND_ENABLED`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED`, `YOUTUBE_SEND_DAILY_UNITS` |
 | `reader` | `SUPABASE_*`, `INTERNAL_WAKE_SECRET`, `AUTO_START`, `TWITCH_*`, `YOUTUBE_API_KEY`, `YOUTUBE_LIVE_STATUS_URL`, `YOUTUBE_TRANSPORT`, `YOUTUBE_POLL_*`, `YOUTUBE_STREAM_GAP_*`, `YOUTUBE_DAILY_UNITS`, `YOUTUBE_BOOST_MESSAGES`, `KICK_*`, `TIKTOK_USERNAME` |
 | `portal-api` | `DATABASE_URL`, `DATABASE_SCHEMA`, `YOUTUBE_API_KEY`, `YOUTUBE_CHANNEL_ID`, `FS25_BISECT_*`, `FS25_XML_CODE`, `RESEND_API_KEY`, `ORIGIN_AUTH_SECRET`, `DISCORD_*` |
