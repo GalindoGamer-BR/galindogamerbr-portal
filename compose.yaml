@@ -145,6 +145,7 @@ services:
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
       TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
       TWITCH_REDIRECT_URI: http://localhost:5173/oauth/twitch/callback
+      TWITCH_BROADCASTER_ID: ${TWITCH_BROADCASTER_ID:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: http://localhost:5173/oauth/youtube/callback

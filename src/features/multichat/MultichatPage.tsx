@@ -143,6 +143,18 @@ export default function MultichatPage() {
       data.subscription.unsubscribe();
     };
   }, []);
+  // Inscrição na Twitch (mesma informação que a Twitch mostra). Só consulta com a conta Twitch conectada ao chat.
+  const [subscription, setSubscription] = useState<{ status: string; tier?: string; gift?: boolean } | null>(null);
+  const twitchConnected = accounts.twitch.connected;
+  useEffect(() => {
+    setSubscription(null);
+    if (!session || !twitchConnected) return;
+    let active = true;
+    void command<{ status: string; tier?: string; gift?: boolean }>("/api/accounts/twitch/subscription")
+      .then(value => { if (active) setSubscription(value); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [session, twitchConnected]);
   useEffect(() => {
     setAccounts(emptyAccounts);
     if (session)
@@ -353,14 +365,26 @@ export default function MultichatPage() {
               </span>
             </div>
             <div className="mc-support">
-              <a
-                className="mc-sub"
-                href="https://www.twitch.tv/subs/galindogamerbr"
-                target="_blank"
-                rel="noreferrer"
-              >
-                ☆ Inscrever-se
-              </a>
+              {subscription?.status === "subscribed" ? (
+                <a
+                  className="mc-sub mc-sub-active"
+                  href="https://www.twitch.tv/subs/galindogamerbr"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Você é inscrito neste canal na Twitch"
+                >
+                  ✓ Inscrito · Tier {Number(subscription.tier ?? "1000") / 1000}{subscription.gift ? " (presente)" : ""}
+                </a>
+              ) : (
+                <a
+                  className="mc-sub"
+                  href="https://www.twitch.tv/subs/galindogamerbr"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  ☆ Inscrever-se
+                </a>
+              )}
               <a
                 href="https://www.twitch.tv/subs/galindogamerbr"
                 target="_blank"

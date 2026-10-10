@@ -218,6 +218,11 @@
   background: #9146ff;
   color: white;
 }
+.mc-support .mc-sub-active {
+  background: #1f3d2b;
+  color: #b9dfbb;
+  border: 1px solid #b9dfbb55;
+}
 .mc-muted {
   color: #adadb8;
   font-size: 11px;
