@@ -1,5 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { HelpIcon, HomeIcon } from "../../components/ui/Icons";
+import { HelpIcon, HomeIcon, SettingsIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
@@ -334,6 +334,9 @@ export default function MultichatPage() {
           >
             <HelpIcon />
           </button>
+          <button className="mc-icon-btn" onClick={() => setSettings(true)} title="Contas conectadas ao chat">
+            <SettingsIcon /> <span>Conexões</span>
+          </button>
           {session ? (
             <MultichatUserMenu member={navMember} onLogout={() => void navLogout()} />
           ) : (
@@ -633,9 +636,7 @@ export default function MultichatPage() {
               {connectedPlatforms.map((p) => (
                 <PlatformIcon key={p} platform={p} />
               ))}
-              <button type="button" onClick={() => setSettings(true)}>
-                {connectedPlatforms.length ? "Gerenciar" : "Conectar"}
-              </button>
+              {!connectedPlatforms.length && <span className="mc-muted">nenhuma (use Conexões, no topo)</span>}
             </div>
             <div className="mc-send-results" aria-live="polite">
               {results.map((r) => (
