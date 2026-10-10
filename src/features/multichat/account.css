@@ -53,3 +53,5 @@
 
 .portal-account-card .portal-twitch-login { background: #9146ff; border-color: #9146ff; color: #fff; }
 .portal-account-card .portal-twitch-login:hover:not(:disabled) { background: #772ce8; border-color: #772ce8; }
+
+.portal-account-card a svg { display: inline-block; width: 16px; min-width: 16px; max-width: 16px; height: 16px; flex: 0 0 16px; vertical-align: -2px; margin-right: 4px; }

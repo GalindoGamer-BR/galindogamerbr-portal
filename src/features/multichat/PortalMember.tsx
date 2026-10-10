@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
 import { tiktokLinking } from "./flags";
 import { MemberProfileEditor } from "./MemberProfileEditor";
+import { MemberAccounts } from "./MemberAccounts";
+import { HomeIcon } from "../../components/ui/Icons";
 import "./member.css";
 
 type Member = { tiktokName?: string | null; name: string; avatarUrl: string | null; isAdmin?: boolean; customized?: { name: boolean; avatar: boolean }; memberSince: string; connectedAccounts: number; profileUpdatedAt: string | null; tiktokConnected: boolean };
@@ -11,6 +13,8 @@ export default function PortalMember() {
   const navigate = useNavigate();
   const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [avatarFailed, setAvatarFailed] = useState(false);
+  // Abre a seção ao voltar do OAuth de vínculo (?linked / ?oauth_error), para mostrar o resultado.
+  const [accountsOpen, setAccountsOpen] = useState(() => { const query = new URLSearchParams(window.location.search); return query.has("linked") || query.has("oauth_error"); });
   useEffect(() => {
     if (!supabase) { setError("O acesso à comunidade ainda não está configurado."); return; }
     let active = true;
@@ -37,7 +41,7 @@ export default function PortalMember() {
     else navigate("/login", { replace: true });
   }
   return <section className="member-page">
-    <div className="member-topline"><Link to="/">Início</Link><span>Comunidade GalindoGamerBR</span></div>
+    <div className="member-topline"><Link to="/" className="member-home-link"><HomeIcon /> Início</Link><span>Comunidade GalindoGamerBR</span></div>
     {error && <p className="member-error" role="alert">{error}</p>}
     {!member ? !error && <p role="status">Carregando seu espaço…</p> : <>
       <header className="member-hero">
@@ -48,6 +52,10 @@ export default function PortalMember() {
         <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
+      <details className="member-dropdown" open={accountsOpen} onToggle={event => setAccountsOpen(event.currentTarget.open)}>
+        <summary><span><strong>Contas conectadas</strong><small>Contas usadas para enviar mensagens ao chat</small></span></summary>
+        <MemberAccounts tiktokLogin={member.tiktokName} />
+      </details>
       {editing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Editar perfil" onClick={() => setEditing(false)} onKeyDown={event => { if (event.key === "Escape") setEditing(false); }}>
         <div className="member-modal-card" onClick={event => event.stopPropagation()}>
           <MemberProfileEditor key={member.name + (member.avatarUrl ?? "")} name={member.name} avatarUrl={member.avatarUrl} customized={member.customized ?? { name: false, avatar: false }} onChange={() => { setAvatarFailed(false); setReload(n => n + 1); }} />

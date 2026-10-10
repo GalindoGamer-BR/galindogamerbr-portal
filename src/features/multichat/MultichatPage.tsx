@@ -1,4 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
+import { HomeIcon } from "../../components/ui/Icons";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
@@ -512,7 +513,7 @@ export default function MultichatPage() {
             </div>
           </section>
           <footer className="mc-footer">
-            <a href="/">Voltar ao portal</a>
+            <a href="/"><HomeIcon /> Voltar ao portal</a>
             <a href="/privacidade">Privacidade</a>
             <a href="/termos">Termos de uso</a>
           </footer>

@@ -28,7 +28,7 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
   }, []);
   async function link(platform: WritablePlatform) {
     setBusy(platform); setError("");
-    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start?redirect_uri=conta`); window.location.assign(url); }
+    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start?redirect_uri=membro`); window.location.assign(url); }
     catch (err) { setError((err as Error).message); setBusy(null); }
   }
   async function unlink(platform: WritablePlatform) {
@@ -37,17 +37,15 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
     catch (err) { setError((err as Error).message); }
     finally { setBusy(null); }
   }
-  return <section className="member-card" aria-label="Contas">
-    <h2>Contas</h2>
-    <p className="member-hint">Contas conectadas para enviar mensagens ao chat.</p>
+  return <section className="member-accounts-body" aria-label="Contas conectadas">
     <ul className="member-accounts">
       {linkablePlatforms.map(platform => {
         const account = chat?.[platform];
         const connected = !!account?.connected;
         const locked = !!account?.locked;
         return <li key={platform}>
-          <PlatformIcon platform={platform} />
-          <div className="member-account-info"><strong>{labels[platform]}</strong><small>{!chat ? "Carregando…" : connected ? account?.username || "Conectada" : "Não conectada"}</small></div>
+          <span className={`member-account-icon member-account-${platform}`}><PlatformIcon platform={platform} /></span>
+          <div className="member-account-info"><strong>{labels[platform]}</strong><small><i className={`member-dot${connected ? " member-dot-on" : ""}`} aria-hidden="true" />{!chat ? "Carregando…" : connected ? account?.username || "Conectada" : "Não conectada"}</small></div>
           <div className="member-account-status">
             {chat && (connected
               ? locked
@@ -58,8 +56,8 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
         </li>;
       })}
       {tiktokLogin && !tiktokLinking && <li>
-        <PlatformIcon platform="tiktok" />
-        <div className="member-account-info"><strong>TikTok</strong><small>{tiktokLogin}</small></div>
+        <span className="member-account-icon member-account-tiktok"><PlatformIcon platform="tiktok" /></span>
+        <div className="member-account-info"><strong>TikTok</strong><small><i className="member-dot member-dot-on" aria-hidden="true" />{tiktokLogin}</small></div>
         <div className="member-account-status" />
       </li>}
     </ul>

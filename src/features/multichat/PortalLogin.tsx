@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { configured, supabase, publicCommand } from "./services";
 import { PlatformIcon } from "./PlatformIcon";
 import { tiktokLinking } from "./flags";
+import { HomeIcon } from "../../components/ui/Icons";
 import { clearAttempt, proofKey, startTikTokLogin, startTwitchLogin, verifierKey } from "./loginFlows";
 import "./account.css";
 
@@ -106,6 +107,6 @@ export default function PortalLogin() {
     {error && <p role="alert" className="portal-account-error">{error}</p>}
     </>}
     <p className="portal-account-legal">Consulte os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.</p>
-    <Link to="/" className="portal-account-back">Voltar ao início</Link>
+    <Link to="/" className="portal-account-back"><HomeIcon /> Voltar ao início</Link>
   </section></main>;
 }

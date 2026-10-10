@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { command, supabase } from "./services";
-import { MemberAccounts } from "./MemberAccounts";
+import { BackIcon } from "../../components/ui/Icons";
 import "./member.css";
 import "./account.css";
 
@@ -44,9 +44,8 @@ export default function PortalAccount() {
     <span className="portal-account-eyebrow">Comunidade GalindoGamerBR</span>
     <h1>Minha conta</h1>
     {user ? <>
-      <MemberAccounts />
       <button disabled={busy} onClick={() => void logout()}>Sair da conta</button>
-      <Link to="/membro">Voltar à área do membro</Link>
+      <Link to="/membro"><BackIcon /> Voltar à área do membro</Link>
       <div className="portal-account-danger"><h2>Excluir conta</h2><p>Revoga a autorização deste aplicativo no TikTok e apaga seu cadastro e os vínculos salvos no portal. Sua conta TikTok continua existindo.</p>
       {!deleting ? <button disabled={busy} onClick={() => setDeleting(true)}>Excluir minha conta</button> :
       <form onSubmit={remove}><label htmlFor="delete-confirmation">Digite EXCLUIR para confirmar</label><input id="delete-confirmation" value={confirmation} onChange={e => setConfirmation(e.target.value)} autoComplete="off" disabled={busy}/><button disabled={busy || confirmation !== "EXCLUIR"}>{busy ? "Excluindo…" : "Excluir definitivamente"}</button><button type="button" disabled={busy} onClick={() => { setDeleting(false); setConfirmation(""); }}>Cancelar</button></form>}</div>
