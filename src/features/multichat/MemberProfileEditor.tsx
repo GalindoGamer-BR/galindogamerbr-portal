@@ -89,11 +89,13 @@ export function MemberProfileEditor({ name, avatarUrl, customized, onChange }: P
   return <section className="member-card member-edit" aria-label="Editar perfil">
     <h2>Editar perfil</h2>
     {cropping ? <AvatarCropper file={cropping} busy={busy} onCancel={() => setCropping(null)} onConfirm={blob => void upload(blob)} /> : <>
-      <form onSubmit={saveName} className="member-edit-row">
+      <form onSubmit={saveName} className="member-edit-field">
         <label htmlFor="member-name">Nome de exibição</label>
-        <input id="member-name" value={value} onChange={e => setValue(e.target.value)} minLength={2} maxLength={24} required disabled={busy} autoComplete="off" />
-        <button disabled={busy || value.trim() === name}>Salvar nome</button>
-        {customized.name && <button type="button" disabled={busy} onClick={() => void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: null }) }); }, "Voltou ao nome da sua conta.")}>Usar nome da conta</button>}
+        <div className="member-edit-inline">
+          <input id="member-name" value={value} onChange={e => setValue(e.target.value)} minLength={2} maxLength={24} required disabled={busy} autoComplete="off" />
+          <button disabled={busy || value.trim() === name}>Salvar</button>
+        </div>
+        {customized.name && <button type="button" className="member-link" disabled={busy} onClick={() => void run(async () => { await command("/api/member", { method: "PUT", body: JSON.stringify({ name: null }) }); }, "Voltou ao nome da sua conta.")}>Restaurar o nome da conta</button>}
       </form>
       <div className="member-edit-row">
         {avatarUrl ? <img className="member-edit-avatar" src={avatarUrl} alt="" referrerPolicy="no-referrer" /> : <span>Foto</span>}
