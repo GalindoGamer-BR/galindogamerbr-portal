@@ -103,17 +103,17 @@ export function Login() {
         ) : (
           <form onSubmit={handleVerifyCode} className="mt-8 flex flex-col gap-4">
             <label className="flex flex-col gap-2 text-sm">
-              Código de 6 dígitos
+              Código recebido por e-mail
               <input
                 type="text"
                 inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
+                pattern="[0-9]{6,10}"
+                maxLength={10}
                 required
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="rounded-md border border-line bg-panel px-4 py-3 tracking-[0.5em] text-white outline-none focus:border-gold"
-                placeholder="000000"
+                onChange={(e) => setCode(e.target.value.replace(/\s/g, ''))}
+                className="rounded-md border border-line bg-panel px-4 py-3 tracking-[0.3em] text-white outline-none focus:border-gold"
+                placeholder="00000000"
               />
             </label>
             <Button type="submit" variant="gold" disabled={submitting}>

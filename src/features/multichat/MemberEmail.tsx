@@ -32,7 +32,7 @@ export default function MemberEmail({ onComplete }: { onComplete: () => void }) 
     <form onSubmit={submit}>
       <label htmlFor="member-email">E-mail</label>
       <input id="member-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={busy || sent} onChange={event => setEmail(event.target.value)} />
-      {sent && <><p role="status">Enviamos um código para {email}. Ele expira em 10 minutos.</p><label htmlFor="member-email-code">Código de confirmação</label><input id="member-email-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={code} disabled={busy} onChange={event => setCode(event.target.value.replace(/[^0-9]/g, ""))} /></>}
+      {sent && <><p role="status">Enviamos um código para {email}. Ele expira em 5 minutos.</p><label htmlFor="member-email-code">Código de confirmação</label><input id="member-email-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" maxLength={10} required value={code} disabled={busy} onChange={event => setCode(event.target.value.replace(/[^0-9]/g, ""))} /></>}
       <button className="portal-account-primary" disabled={busy}>{busy ? "Aguarde…" : sent ? "Confirmar e continuar" : "Enviar código"}</button>
       {sent && <button type="button" disabled={busy} onClick={() => { setSent(false); setCode(""); setError(""); }}>Alterar e-mail ou reenviar código</button>}
     </form>
