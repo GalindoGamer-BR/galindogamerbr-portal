@@ -4,7 +4,7 @@ import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
 import { type TikTokConnectionState } from "./TikTokConnection";
-import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
@@ -20,6 +20,7 @@ import { useMultichat } from "./useMultichat";
 import { ChatVirtualList } from "./ChatVirtualList";
 import { useEmotes } from "./useEmotes";
 import { useBadges } from "./useBadges";
+import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
 import { EmotePicker } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
@@ -114,6 +115,8 @@ export default function MultichatPage() {
   const [filter, setFilter] = useState<Platform | "all">("all");
   const [theater, setTheater] = useState(false);
   const [settings, setSettings] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const closeLogin = useCallback(() => setLoginOpen(false), []);
   const [help, setHelp] = useState(false);
   const [picker, setPicker] = useState(false);
   const composer = useRef<HTMLTextAreaElement>(null);
@@ -213,7 +216,7 @@ export default function MultichatPage() {
     if (session)
       void refreshAccounts().catch((error) => setNotice(error.message));
   }, [session]);
-  const login = () => { window.location.assign("/login"); };
+  const login = () => setLoginOpen(true);
   const link = async (platform: WritablePlatform) => {
     setBusy(true);
     setNotice("Inicializando serviço de envio…");
@@ -693,6 +696,7 @@ export default function MultichatPage() {
           </form>
         </aside>
       </div>
+      {loginOpen && <LoginModal onClose={closeLogin} />}
       {settings && (
         <MultichatDialog
           title="Suas conexões"

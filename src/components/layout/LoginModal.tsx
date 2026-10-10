@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { configured } from '../../features/multichat/services'
 import { PlatformIcon } from '../../features/multichat/PlatformIcon'
@@ -28,7 +29,8 @@ export function LoginModal({ onClose }: LoginModalProps) {
     try { await start() } catch (err) { setError((err as Error).message); setBusy(false) }
   }
 
-  return (
+  // Portal no body: fora de qualquer página com estilos globais de botão (ex.: .mc-page do multichat).
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="login-modal-title" className="portal-account-card relative" style={{ display: 'grid', gap: 18, background: '#18181b', border: '1px solid #303037', borderRadius: 12 }}>
         <button type="button" onClick={onClose} aria-label="Fechar" className="absolute right-3 top-3 !min-h-0 !w-9 !border-0 !bg-transparent !p-0 text-xl text-white/70 hover:text-white">✕</button>
@@ -40,6 +42,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
         {error && <p role="alert" className="portal-account-error">{error}</p>}
         <p className="portal-account-legal">Consulte os <Link to="/termos" onClick={onClose}>Termos de Uso</Link> e a <Link to="/privacidade" onClick={onClose}>Política de Privacidade</Link>.</p>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
