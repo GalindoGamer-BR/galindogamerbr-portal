@@ -74,7 +74,10 @@ export default function PortalMember() {
         <article><span className="member-card-number">02 / DESCUBRA</span><h3>Conteúdos para membros.</h3><p>Este será o espaço para encontrar os conteúdos da comunidade.</p><span className="member-coming">Conteúdos · Em breve</span></article>
         <article><span className="member-card-number">03 / ACOMPANHE</span><h3>As novidades, por aqui.</h3><p>Futuramente, avisos e novidades do canal estarão reunidos aqui.</p><span className="member-coming">Feed · Em breve</span></article>
       </div>
-      <p className="member-danger-row"><button type="button" className="member-delete-link" disabled={busy} onClick={() => setManaging(true)}>Excluir minha conta</button></p>
+      <section className="member-danger-card" aria-label="Excluir conta">
+        <div><strong>Excluir conta</strong><p>Apaga seu cadastro e os vínculos salvos no portal. Essa ação não pode ser desfeita.</p></div>
+        <button type="button" disabled={busy} onClick={() => setManaging(true)}>Excluir conta</button>
+      </section>
     </>}
   </section>;
 }
