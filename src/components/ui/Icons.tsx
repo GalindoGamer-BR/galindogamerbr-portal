@@ -101,3 +101,12 @@ export function GlobeIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function LockIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <rect x="4.5" y="9" width="11" height="8" rx="1.8" />
+      <path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
+    </svg>
+  )
+}

@@ -288,10 +288,25 @@ export default function MultichatPage() {
     [emotes.emotes, twitchEmoteCodes],
   );
   const hasKickEmote = kickSendActive && message.split(/\s+/).some((word) => kickEmoteByCode.has(word));
-  const shownEmotes = useMemo(
-    () => (kickSendActive ? pickerEmotes : pickerEmotes.filter((e) => e.provider !== "kick")),
-    [kickSendActive, pickerEmotes],
-  );
+  // Emotes do canal que o usuário ainda não pode usar ficam visíveis, mas bloqueados, com o motivo. Com a lista real da
+  // Twitch (escopo user:read:emotes) vale ela; sem ela, deduz pelo tier de sub e por seguir o canal.
+  const mineIds = useMemo(() => new Set(myEmotes.emotes.map((e) => e.id)), [myEmotes.emotes]);
+  const subscribedTier = subscription?.status === "subscribed" ? Math.max(1, Math.round(Number(subscription.tier ?? "1000") / 1000)) : 0;
+  const shownEmotes = useMemo(() => {
+    const lockReason = (e: PickerEmote): string | undefined => {
+      if (e.mine || e.provider !== "twitch" || e.source !== "channel" || !e.kind) return undefined;
+      const reason = e.kind === "sub" ? `Só para inscritos (Tier ${e.tier ?? 1})` : e.kind === "follower" ? "Só para seguidores do canal" : "Desbloqueado com bits no canal";
+      if (myEmotes.status === "ok") return mineIds.has(e.id) ? undefined : reason;
+      if (!session) return reason;
+      if (e.kind === "sub") return subscribedTier >= (e.tier ?? 1) ? undefined : reason;
+      if (e.kind === "follower") return subscription?.following ? undefined : reason;
+      return reason;
+    };
+    const visible = kickSendActive ? pickerEmotes : pickerEmotes.filter((e) => e.provider !== "kick");
+    const withLocks = visible.map((e) => ({ ...e, locked: lockReason(e) }));
+    // Liberados primeiro; os bloqueados ao fim, na mesma ordem.
+    return [...withLocks.filter((e) => !e.locked), ...withLocks.filter((e) => e.locked)];
+  }, [kickSendActive, pickerEmotes, myEmotes.status, mineIds, session, subscribedTier, subscription?.following]);
   // Cada plataforma só renderiza os próprios emotes: com emote da Twitch a mensagem vai só para ela, com emote da Kick só
   // para a Kick; os dois na mesma mensagem não cabem em nenhuma plataforma.
   const targetPlatforms = hasTwitchEmote && hasKickEmote ? [] : hasTwitchEmote ? sendPlatforms.filter((p) => p === "twitch") : hasKickEmote ? sendPlatforms.filter((p) => p === "kick") : sendPlatforms;

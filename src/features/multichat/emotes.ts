@@ -7,6 +7,9 @@ export const emoteSchema = z.object({
   // "channel": emote do canal (sub, follower, bits, BTTV do canal); "global": globais. Ausente = desconhecido.
   source: z.enum(["channel", "global"]).optional(),
   subOnly: z.boolean().optional(),
+  // Emotes do canal na Twitch: o que desbloqueia e o tier mínimo de sub.
+  kind: z.enum(["sub", "follower", "bits"]).optional(),
+  tier: z.number().int().min(1).max(3).optional(),
   url: z
     .string()
     .url()

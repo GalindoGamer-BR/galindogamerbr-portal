@@ -910,3 +910,8 @@
 .mc-page .mc-pk-grid button:hover { background: #ffffff14; }
 .mc-pk-grid .mc-emote { height: 34px; max-width: 100%; margin: 0; }
 .mc-pk-foot { padding: 14px 0 0 !important; font-size: 11px; }
+
+.mc-page .mc-pk-grid button.mc-pk-locked { position: relative; cursor: not-allowed; }
+.mc-pk-locked .mc-emote { opacity: 0.35; filter: grayscale(1); }
+.mc-pk-locked .mc-pk-lock { position: absolute; right: 3px; bottom: 3px; width: 14px; height: 14px; padding: 2px; border-radius: 4px; background: #0e0e10cc; color: #d2ac56; }
+.mc-pk-hint { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: #2a2733; border: 1px solid #d2ac5655; font-size: 12px; color: #efeff1; }

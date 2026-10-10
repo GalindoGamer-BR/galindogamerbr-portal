@@ -1,10 +1,10 @@
 import { useRef, useState, type ReactNode } from "react";
 import { emoteKey, type Emote } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
-import { ClockIcon, GlobeIcon, SearchIcon, UserIcon } from "../../components/ui/Icons";
+import { ClockIcon, GlobeIcon, LockIcon, SearchIcon, UserIcon } from "../../components/ui/Icons";
 
 // "mine": emote que o membro pode usar na Twitch (lido com o token dele).
-export type PickerEmote = Emote & { mine?: boolean };
+export type PickerEmote = Emote & { mine?: boolean; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
 
 const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV" };
 const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv"];
@@ -48,6 +48,7 @@ export function EmotePicker({
 }) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<TabId | null>(null);
+  const [hint, setHint] = useState("");
   const body = useRef<HTMLDivElement>(null);
 
   const needle = query.trim().toLowerCase();
@@ -141,6 +142,7 @@ export function EmotePicker({
             <button type="button" onClick={notice.onAction}>{notice.action}</button>
           </p>
         )}
+        {hint && <p className="mc-pk-hint" role="status">{hint}</p>}
         {sections.map((s, index) => (
           <div key={s.id} data-tab={index === 0 || sections[index - 1].tab !== s.tab ? s.tab : undefined}>
             <p className="mc-pk-title">
@@ -152,11 +154,14 @@ export function EmotePicker({
                 <button
                   type="button"
                   key={emoteKey(e)}
-                  aria-label={`Inserir ${e.code}`}
-                  title={`${e.code} · ${providerLabels[e.provider]}${e.subOnly ? " · só inscritos" : ""}`}
-                  onClick={() => onSelect(e)}
+                  className={e.locked ? "mc-pk-locked" : undefined}
+                  aria-label={e.locked ? `${e.code} bloqueado: ${e.locked}` : `Inserir ${e.code}`}
+                  aria-disabled={e.locked ? true : undefined}
+                  title={e.locked ? `${e.code} · ${e.locked}` : `${e.code} · ${providerLabels[e.provider]}${e.subOnly ? " · só inscritos" : ""}`}
+                  onClick={() => (e.locked ? setHint(`${e.code}: ${e.locked}.`) : onSelect(e))}
                 >
                   <EmoteImage emote={e} />
+                  {e.locked && <LockIcon className="mc-pk-lock" />}
                 </button>
               ))}
             </div>
