@@ -229,7 +229,7 @@ export default function MultichatPage() {
   const login = () => setLoginOpen(true);
   const link = async (platform: WritablePlatform) => {
     setBusy(true);
-    setNotice("Inicializando serviço de envio…");
+    setNotice("Abrindo a autorização…");
     try {
       const data = await command<{ url: string }>(`/oauth/${platform}/start`);
       window.location.assign(data.url);
@@ -272,7 +272,7 @@ export default function MultichatPage() {
     const sent = message;
     setSending(true);
     setResults([]);
-    setNotice("Inicializando serviço de envio…");
+    setNotice("");
     try {
       const data = await command<{ results: SendResult[] }>(
         "/api/chat/messages",
