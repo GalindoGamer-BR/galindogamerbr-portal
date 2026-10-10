@@ -69,9 +69,20 @@ const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
 // "Dar um sub" (presente) é um modal da própria página do canal na Twitch, sem URL nem API pública: abre o canal.
 const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
 // Extensões de painel do canal. O popout da Twitch não pode ser embutido (X-Frame-Options: SAMEORIGIN): abre em janela.
+// As extensões só funcionam dentro do twitch.tv (dependem do Twitch.ext), por isso o portal só abre o painel.
 const twitchPanels = [
-  { label: "Painel 1", url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel" },
-  { label: "Painel 2", url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel" },
+  {
+    label: "SoundAlerts",
+    description: "Toque sons e alertas na live.",
+    action: "Abrir soundboard",
+    url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel",
+  },
+  {
+    label: "Stream Stickers",
+    description: "Cole stickers na tela da live.",
+    action: "Abrir stickers",
+    url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel",
+  },
 ];
 function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUrl, size = { width: 520, height: 760 }) {
   const { width, height } = size;
@@ -470,15 +481,24 @@ export default function MultichatPage() {
               >
                 Apoiar na Kick ↗
               </a>
+            </div>
+          </section>
+          <section className="mc-about mc-interact">
+            <h2>Interaja na Twitch.</h2>
+            <p>Extensões do canal que abrem numa janela da Twitch.</p>
+            <div className="mc-interact-grid">
               {twitchPanels.map((panel) => (
                 <a
                   key={panel.url}
+                  className="mc-interact-card"
                   href={panel.url}
                   onClick={(event) => openSubsWindow(event, panel.url, { width: 420, height: 720 })}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {panel.label} ↗
+                  <strong>{panel.label}</strong>
+                  <span>{panel.description}</span>
+                  <em>{panel.action} ↗</em>
                 </a>
               ))}
             </div>
