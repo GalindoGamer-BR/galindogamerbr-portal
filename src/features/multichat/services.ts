@@ -37,7 +37,7 @@ export async function command<T>(
       headers: {
         ...options.headers,
         Authorization: `Bearer ${session.access_token}`,
-        ...(options.body != null ? { "Content-Type": "application/json" } : {}),
+        ...(options.body != null && !new Headers(options.headers).has("Content-Type") ? { "Content-Type": "application/json" } : {}),
       },
       signal: AbortSignal.timeout(20_000),
     });
@@ -80,6 +80,10 @@ export async function command<T>(
       throw new Error("Limite de tentativas desta sessão atingido. Desvincule e conecte novamente.");
     if (details?.error === "tiktok_https_callback_required")
       throw new Error("O login TikTok precisa de um callback HTTPS configurado no servidor.");
+    if (details?.error === "invalid_image")
+      throw new Error("Envie uma imagem PNG, JPEG ou WebP de até 512 KB.");
+    if (details?.error === "invalid_request")
+      throw new Error("Confira os dados: o nome deve ter de 2 a 24 caracteres, sem símbolos especiais.");
     if (details?.error === "provider_not_configured")
       throw new Error("Esta plataforma ainda precisa das credenciais de conexão no servidor.");
     throw new Error(
