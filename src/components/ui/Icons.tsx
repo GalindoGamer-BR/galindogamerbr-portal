@@ -29,3 +29,30 @@ export function CameraIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function UserIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="7" r="3.2" />
+      <path d="M3.8 16.5c.6-3 3.1-4.7 6.2-4.7s5.6 1.7 6.2 4.7" />
+    </svg>
+  )
+}
+
+export function ChatIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M4.2 4h11.6c.9 0 1.7.8 1.7 1.7v6.6c0 .9-.8 1.7-1.7 1.7H9.4L5.8 17v-3H4.2c-.9 0-1.7-.8-1.7-1.7V5.7C2.5 4.8 3.3 4 4.2 4Z" />
+      <path d="M6.5 8h7M6.5 10.6h4.2" />
+    </svg>
+  )
+}
+
+export function LogoutIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M8 3.5H5.2c-.9 0-1.7.8-1.7 1.7v9.6c0 .9.8 1.7 1.7 1.7H8" />
+      <path d="M12.3 6.5 16 10l-3.7 3.5M16 10H8" />
+    </svg>
+  )
+}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { NavMember } from './useNavSession'
+import { ChatIcon, LogoutIcon, UserIcon } from '../ui/Icons'
 
 type AccountMenuProps = {
   member: NavMember | null
@@ -23,7 +24,8 @@ export function AccountMenu({ member, onLogout }: AccountMenuProps) {
   }, [open])
 
   const name = member?.name ?? 'Minha conta'
-  const itemClass = 'block w-full px-4 py-2.5 text-left text-sm text-white/85 transition hover:bg-panel2 hover:text-gold'
+  const itemClass = 'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-white/85 transition hover:bg-panel2 hover:text-gold'
+  const iconClass = 'h-[18px] w-[18px] shrink-0 text-white/60'
 
   return (
     <div ref={rootRef} className="relative">
@@ -46,9 +48,9 @@ export function AccountMenu({ member, onLogout }: AccountMenuProps) {
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-line bg-panel shadow-xl">
-          <Link role="menuitem" to="/membro" onClick={() => setOpen(false)} className={itemClass}>Área do membro</Link>
-          <Link role="menuitem" to="/live" onClick={() => setOpen(false)} className={itemClass}>Multichat</Link>
-          <button role="menuitem" type="button" onClick={() => { setOpen(false); onLogout() }} className={`${itemClass} border-t border-line`}>Sair</button>
+          <Link role="menuitem" to="/membro" onClick={() => setOpen(false)} className={itemClass}><UserIcon className={iconClass} />Área do membro</Link>
+          <Link role="menuitem" to="/live" onClick={() => setOpen(false)} className={itemClass}><ChatIcon className={iconClass} />Multichat</Link>
+          <button role="menuitem" type="button" onClick={() => { setOpen(false); onLogout() }} className={`${itemClass} border-t border-line`}><LogoutIcon className={iconClass} />Sair</button>
         </div>
       )}
     </div>
