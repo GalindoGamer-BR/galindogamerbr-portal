@@ -26,3 +26,22 @@ export async function startTikTokLogin() {
   const { url } = await publicCommand<{ url: string }>("/oauth/tiktok/login", { challenge });
   window.location.assign(url);
 }
+
+// Página de origem do login (modal): o OAuth volta por /login, que leva o usuário de volta para ela.
+// Só caminhos internos, com validade curta, para uma tentativa abandonada não afetar um login posterior.
+const returnKey = "portal:login:return";
+const returnTtl = 10 * 60 * 1000;
+export function rememberReturnTo(path = window.location.pathname + window.location.search) {
+  try { sessionStorage.setItem(returnKey, JSON.stringify({ path, at: Date.now() })); } catch { /* sem armazenamento: cai em /membro */ }
+}
+export function clearReturnTo() { try { sessionStorage.removeItem(returnKey); } catch { /* ignorado */ } }
+export function takeReturnTo(fallback = "/membro"): string {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(returnKey) ?? "null") as { path?: unknown; at?: unknown } | null;
+    clearReturnTo();
+    const path = stored?.path;
+    if (typeof path === "string" && typeof stored?.at === "number" && Date.now() - stored.at < returnTtl
+      && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/login")) return path;
+  } catch { /* usa o padrão */ }
+  return fallback;
+}

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { configured } from '../../features/multichat/services'
 import { PlatformIcon } from '../../features/multichat/PlatformIcon'
 import { tiktokLinking } from '../../features/multichat/flags'
-import { startTikTokLogin, startTwitchLogin } from '../../features/multichat/loginFlows'
+import { rememberReturnTo, startTikTokLogin, startTwitchLogin } from '../../features/multichat/loginFlows'
 import '../../features/multichat/account.css'
 
 type LoginModalProps = { onClose: () => void }
@@ -26,6 +26,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
 
   async function run(start: () => Promise<void>) {
     setBusy(true); setError('')
+    rememberReturnTo()
     try { await start() } catch (err) { setError((err as Error).message); setBusy(false) }
   }
 

@@ -6,7 +6,7 @@ import { configured, supabase, publicCommand } from "./services";
 import { PlatformIcon } from "./PlatformIcon";
 import { tiktokLinking } from "./flags";
 import { HomeIcon } from "../../components/ui/Icons";
-import { clearAttempt, proofKey, startTikTokLogin, startTwitchLogin, verifierKey } from "./loginFlows";
+import { clearAttempt, clearReturnTo, proofKey, startTikTokLogin, startTwitchLogin, takeReturnTo, verifierKey } from "./loginFlows";
 import "./account.css";
 
 async function waitForAuth<T>(request: Promise<T>): Promise<T> {
@@ -25,7 +25,7 @@ export default function PortalLogin() {
   const [busy, setBusy] = useState(false);
   function continueWith(user: User) {
     if (!user.email || !user.email_confirmed_at || user.app_metadata?.email_is_internal === true || user.email.endsWith("@tiktok.identity.invalid")) setRequiresEmail(true);
-    else navigate("/membro", { replace: true });
+    else navigate(takeReturnTo(), { replace: true });
   }
   const [error, setError] = useState("");
   useEffect(() => {
@@ -87,18 +87,18 @@ export default function PortalLogin() {
   async function loginTwitch() {
     if (!supabase) return;
     setBusy(true); setError("");
-    try { await startTwitchLogin(); }
+    try { clearReturnTo(); await startTwitchLogin(); }
     catch (err) { setError((err as Error).message); setBusy(false); }
   }
   async function login() {
     setBusy(true); setError("");
-    try { await startTikTokLogin(); }
+    try { clearReturnTo(); await startTikTokLogin(); }
     catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   }
   return <main className="portal-account"><section className="portal-account-card">
     <span className="portal-account-eyebrow">Comunidade GalindoGamerBR</span>
-    {requiresEmail ? <MemberEmail onComplete={() => navigate("/membro", { replace: true })} /> : <>
+    {requiresEmail ? <MemberEmail onComplete={() => navigate(takeReturnTo(), { replace: true })} /> : <>
     <h1>Entre na comunidade</h1>
     {route.state?.accountDeleted === true && <p role="status">Conta excluída com sucesso.</p>}
     <p>{tiktokLinking ? "Use sua conta Twitch ou TikTok para criar ou acessar seu perfil na comunidade." : "Use sua conta Twitch para criar ou acessar seu perfil na comunidade."}</p>
