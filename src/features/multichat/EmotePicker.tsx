@@ -26,7 +26,7 @@ export function EmoteImage({ emote }: { emote: Emote }) {
 }
 
 type TabId = "recent" | "mine" | "channel" | "global";
-type Section = { id: string; tab: TabId; title: string; provider?: Emote["provider"]; emotes: PickerEmote[] };
+type Section = { id: string; tab: TabId; group?: string; title: string; provider?: Emote["provider"]; emotes: PickerEmote[] };
 
 // Seletor no estilo da Kick: busca no topo, abas de ícones e uma lista única rolável com seções
 // (utilizados com frequência, meus, canal e globais, cada um separado por plataforma).
@@ -56,28 +56,30 @@ export function EmotePicker({
   const byKey = new Map(emotes.map((e) => [emoteKey(e), e]));
   const recentEmotes = recent.map((key) => byKey.get(key)).filter((e): e is PickerEmote => !!e && matches(e));
 
-  const sections: Section[] = [];
-  if (recentEmotes.length) sections.push({ id: "recent", tab: "recent", title: "Utilizado com frequência", emotes: recentEmotes });
-  // "Meus emotes" são só os de outros canais (inscrições em outros streamers etc.). Os globais e os do canal que o
-  // usuário também tem ficam nas suas seções, para cada emote aparecer uma vez só.
-  const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
-  if (mine.length) sections.push({ id: "mine", tab: "mine", title: "Meus emotes · outros canais", provider: "twitch", emotes: mine });
-  for (const [tab, label] of [["channel", "Canal"], ["global", "Global"]] as const) {
-    for (const provider of providerOrder) {
-      const list = emotes.filter(
-        (e) => e.provider === provider && matches(e) && (tab === "channel" ? e.source === "channel" : e.source === "global" || (!e.source && !e.mine)),
-      );
-      // A Twitch lista alguns globais duas vezes (ids diferentes, mesmo nome): mostra cada nome uma vez.
+  // Um bloco por plataforma dentro do grupo (canal ou global). A Twitch lista alguns globais duas vezes (ids diferentes,
+  // mesmo nome): cada nome aparece uma vez.
+  const groupSections = (tab: "channel" | "global", group: string): Section[] =>
+    providerOrder.flatMap((provider) => {
       const seen = new Set<string>();
-      const unique = list.filter((e) => (seen.has(e.code) ? false : (seen.add(e.code), true)));
-      if (unique.length) sections.push({ id: `${tab}-${provider}`, tab, title: `${label} · ${providerLabels[provider]}`, provider, emotes: unique });
-    }
-  }
+      const list = emotes
+        .filter((e) => e.provider === provider && matches(e) && (tab === "channel" ? e.source === "channel" : e.source === "global" || (!e.source && !e.mine)))
+        .filter((e) => (seen.has(e.code) ? false : (seen.add(e.code), true)));
+      return list.length ? [{ id: `${tab}-${provider}`, tab, group, title: providerLabels[provider], provider, emotes: list }] : [];
+    });
+  // Ordem: emotes do Galindo no topo, depois os usados com frequência, os meus (de outros canais) e os globais.
+  // "Meus emotes" são só os de outros canais; os globais e os do canal que o usuário também tem ficam nas suas seções.
+  const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
+  const sections: Section[] = [
+    ...groupSections("channel", "Emotes do Galindo"),
+    ...(recentEmotes.length ? [{ id: "recent", tab: "recent" as const, title: "Utilizado com frequência", emotes: recentEmotes }] : []),
+    ...(mine.length ? [{ id: "mine", tab: "mine" as const, title: "Meus emotes · outros canais", provider: "twitch" as const, emotes: mine }] : []),
+    ...groupSections("global", "Emotes globais"),
+  ];
 
   const tabs: { id: TabId; label: string; icon: ReactNode }[] = [
+    { id: "channel", label: "Emotes do Galindo", icon: <img src="/assets/logos/galindogamerbr.webp" alt="" className="mc-pk-logo" /> },
     { id: "recent", label: "Utilizados com frequência", icon: <ClockIcon /> },
     { id: "mine", label: "Meus emotes", icon: <UserIcon /> },
-    { id: "channel", label: "Emotes do canal", icon: <img src="/assets/logos/galindogamerbr.webp" alt="" className="mc-pk-logo" /> },
     { id: "global", label: "Emotes globais", icon: <GlobeIcon /> },
   ];
   const visibleTabs = tabs.filter((t) => sections.some((s) => s.tab === t.id));
@@ -150,6 +152,7 @@ export function EmotePicker({
         {hint && <p className="mc-pk-hint" role="status">{hint}</p>}
         {sections.map((s, index) => (
           <div key={s.id} data-tab={index === 0 || sections[index - 1].tab !== s.tab ? s.tab : undefined}>
+            {s.group && sections[index - 1]?.group !== s.group && <h3 className="mc-pk-group">{s.group}</h3>}
             <p className="mc-pk-title">
               {s.provider && <PlatformIcon platform={s.provider === "bttv" ? "twitch" : s.provider} />}
               {s.title}
