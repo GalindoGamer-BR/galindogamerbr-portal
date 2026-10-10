@@ -19,6 +19,7 @@ import {
 import { useMultichat } from "./useMultichat";
 import { ChatVirtualList } from "./ChatVirtualList";
 import { useEmotes } from "./useEmotes";
+import { useBadges } from "./useBadges";
 import { EmotePicker } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
 import { MultichatDialog } from "./MultichatDialog";
@@ -117,6 +118,7 @@ export default function MultichatPage() {
   const composer = useRef<HTMLTextAreaElement>(null);
   const emoteButton = useRef<HTMLButtonElement>(null);
   const emotes = useEmotes();
+  const badges = useBadges();
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setTheater(false);
@@ -236,6 +238,19 @@ export default function MultichatPage() {
   };
   const tikTokLinked = tiktok.connected && tiktok.canSend;
   const connectedPlatforms: Platform[] = [...linkablePlatforms.filter((p)=>accounts[p].connected), ...(tikTokLinked ? ["tiktok" as const] : [])];
+  // Plataformas desligadas pelo usuário para o envio (lista de exclusão: contas recém-conectadas já entram ligadas).
+  const [sendOff, setSendOff] = useState<Platform[]>(() => {
+    try { const stored = JSON.parse(localStorage.getItem("mc:send-off") ?? "[]"); return Array.isArray(stored) ? stored.filter((p): p is Platform => typeof p === "string") : []; }
+    catch { return []; }
+  });
+  const sendPlatforms = connectedPlatforms.filter((p) => !sendOff.includes(p));
+  const toggleSendPlatform = (platform: Platform) => {
+    setSendOff((current) => {
+      const next = current.includes(platform) ? current.filter((p) => p !== platform) : [...current, platform];
+      try { localStorage.setItem("mc:send-off", JSON.stringify(next)); } catch { /* sem armazenamento: vale só nesta sessão */ }
+      return next;
+    });
+  };
   const send = async (event: FormEvent) => {
     event.preventDefault();
     if (!canSend) return;
@@ -251,7 +266,7 @@ export default function MultichatPage() {
           body: JSON.stringify({
             message,
             id: crypto.randomUUID(),
-            platforms: connectedPlatforms,
+            platforms: sendPlatforms,
           }),
         },
       );
@@ -273,7 +288,7 @@ export default function MultichatPage() {
     !!session &&
     message.trim().length > 0 &&
     Array.from(message.trim()).length <= limit &&
-    connectedPlatforms.length > 0 &&
+    sendPlatforms.length > 0 &&
     !sending &&
     cooldown === 0 &&
     !busy;
@@ -556,7 +571,7 @@ export default function MultichatPage() {
           {!configured && (
             <div className="mc-notice">O Multichat está sendo preparado.</div>
           )}
-          <ChatVirtualList messages={visible} catalog={emotes.catalog} />
+          <ChatVirtualList messages={visible} catalog={emotes.catalog} badges={badges} />
           {notice && (
             <div className="mc-notice" role="status">
               {notice}
@@ -632,10 +647,23 @@ export default function MultichatPage() {
               )}
             </div>
             <div className="mc-connected">
-              <span>Contas conectadas</span>
-              {connectedPlatforms.map((p) => (
-                <PlatformIcon key={p} platform={p} />
-              ))}
+              <span>Enviar para</span>
+              {connectedPlatforms.map((p) => {
+                const on = sendPlatforms.includes(p);
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    className={"mc-send-target" + (on ? " mc-send-target-on" : "")}
+                    aria-pressed={on}
+                    title={on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
+                    onClick={() => toggleSendPlatform(p)}
+                  >
+                    <PlatformIcon platform={p} />
+                    <span>{labels[p]}</span>
+                  </button>
+                );
+              })}
               {!connectedPlatforms.length && <span className="mc-muted">nenhuma (use Conexões, no topo)</span>}
             </div>
             <div className="mc-send-results" aria-live="polite">

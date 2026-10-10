@@ -870,3 +870,10 @@
 .mc-user-menu svg { width: 18px; height: 18px; flex: 0 0 18px; color: #8f8f9a; }
 .mc-page .mc-user-menu button { margin-top: 4px; border-top: 1px solid #ffffff12; border-radius: 0 0 6px 6px; }
 @media (max-width: 760px) { .mc-user-name, .mc-user-caret { display: none; } .mc-page .mc-user-trigger { padding: 4px; } .mc-icon-btn span { display: none; } }
+
+.mc-message .mc-badge { width: 18px; height: 18px; vertical-align: -4px; margin-right: 3px; border-radius: 3px; }
+
+.mc-connected { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mc-page .mc-send-target { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 20px; background: transparent; border: 1px solid #34343b; color: #8f8f9a; font-size: 12px; opacity: 0.7; }
+.mc-page .mc-send-target-on { background: #2a2733; border-color: #d2ac56aa; color: #efeff1; opacity: 1; }
+.mc-send-target:not(.mc-send-target-on) .mc-platform-icon { filter: grayscale(1); }

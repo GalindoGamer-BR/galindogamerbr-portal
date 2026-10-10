@@ -4,12 +4,15 @@ import { type ChatMessage } from "./types";
 import { messageParts, type Emote } from "./emotes";
 import { EmoteImage } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
+import type { Badge } from "./useBadges";
 export function ChatVirtualList({
   messages,
   catalog,
+  badges,
 }: {
   messages: ChatMessage[];
   catalog: Map<string, Emote>;
+  badges?: Map<string, Badge>;
 }) {
   const parent = useRef<HTMLDivElement>(null);
   const following = useRef(true);
@@ -76,6 +79,10 @@ export function ChatVirtualList({
                   {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                 </time>
                 <PlatformIcon platform={message.platform} />
+                {message.platform === "twitch" && message.metadata?.badges?.map((id) => {
+                  const badge = badges?.get(id);
+                  return badge ? <img key={id} className="mc-badge" src={badge.url} alt={badge.title} title={badge.title} loading="lazy" /> : null;
+                })}
                 <strong
                   className="mc-message-user"
                   style={{
