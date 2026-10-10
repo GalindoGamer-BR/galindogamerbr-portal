@@ -5,10 +5,11 @@ type MobileMenuProps = {
   open: boolean
   onClose: () => void
   signedIn: boolean
+  onLogin: () => void
   onLogout: () => void
 }
 
-export function MobileMenu({ open, onClose, signedIn, onLogout }: MobileMenuProps) {
+export function MobileMenu({ open, onClose, signedIn, onLogin, onLogout }: MobileMenuProps) {
   if (!open) return null
 
   return (
@@ -28,7 +29,11 @@ export function MobileMenu({ open, onClose, signedIn, onLogout }: MobileMenuProp
             {item.label}
           </NavLink>
         ))}
-        <NavLink to={signedIn ? '/membro' : '/login'} onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">{signedIn ? 'Área do membro' : 'Entrar'}</NavLink>
+        {signedIn ? (
+          <NavLink to="/membro" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Área do membro</NavLink>
+        ) : (
+          <button type="button" onClick={() => { onClose(); onLogin() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">Área do membro</button>
+        )}
         {signedIn && (
           <NavLink to="/live" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Multichat</NavLink>
         )}

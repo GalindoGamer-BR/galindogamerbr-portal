@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from './navItems'
 import { MobileMenu } from './MobileMenu'
 import { Logo } from '../ui/Logo'
 import { AccountMenu } from './AccountMenu'
+import { LoginModal } from './LoginModal'
 import { useNavSession } from './useNavSession'
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
+  const closeLogin = useCallback(() => setLoginOpen(false), [])
   const { signedIn, member, logout } = useNavSession()
 
   return (
@@ -55,7 +58,9 @@ export function Header() {
           {signedIn ? (
             <AccountMenu member={member} onLogout={() => void logout()} />
           ) : (
-            <Link to="/login" className="text-sm font-semibold hover:text-gold">Entrar</Link>
+            <button type="button" onClick={() => setLoginOpen(true)} className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-gold hover:text-gold">
+              Área do membro
+            </button>
           )}
         </div>
 
@@ -70,7 +75,8 @@ export function Header() {
         </button>
       </div>
 
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signedIn={signedIn} onLogout={() => void logout()} />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signedIn={signedIn} onLogin={() => setLoginOpen(true)} onLogout={() => void logout()} />
+      {loginOpen && <LoginModal onClose={closeLogin} />}
     </header>
   )
 }

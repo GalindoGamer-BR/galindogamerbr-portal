@@ -1,4 +1,3 @@
-import { CommunityJoinBanner } from '../components/shared/CommunityJoinBanner'
 import { Link } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { Eyebrow } from '../components/ui/Eyebrow'
@@ -10,6 +9,7 @@ import { HubLink } from '../components/shared/HubLink'
 import { ScheduleTabs } from '../components/shared/ScheduleTabs'
 import { PublicScheduleExportButton } from '../components/shared/PublicScheduleExportButton'
 import { LiveBanner } from '../components/shared/LiveBanner'
+import { LifetimeVisitsBanner } from '../components/shared/LifetimeVisitsBanner'
 import { useParallax } from '../hooks/useParallax'
 
 const HUB_TEASER = [
@@ -33,7 +33,6 @@ export function Home() {
   return (
     <>
       <Hero />
-      <CommunityJoinBanner />
       <FazendaTeaser />
       <TransmissoesTeaser />
       <JogosBannerCta />
@@ -95,6 +94,7 @@ function Hero() {
             <img src="/assets/icons/tiktok.svg" alt="" className="h-4 w-4" /> TikTok
           </LinkButton>
         </div>
+        <LifetimeVisitsBanner />
       </Container>
       <div className="relative z-10 mx-auto h-72 w-full lg:hidden">
         <img src="/assets/galindo.webp" alt="Galindo, criador do GalindoGamerBR" className="absolute bottom-0 left-1/2 h-full max-w-none -translate-x-1/2 object-contain object-bottom" />

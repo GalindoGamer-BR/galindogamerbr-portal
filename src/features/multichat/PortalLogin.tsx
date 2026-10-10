@@ -5,12 +5,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { configured, supabase, publicCommand } from "./services";
 import { PlatformIcon } from "./PlatformIcon";
 import { tiktokLinking } from "./flags";
+import { clearAttempt, proofKey, startTikTokLogin, startTwitchLogin, verifierKey } from "./loginFlows";
 import "./account.css";
 
-const proofKey = "portal:tiktok:proof";
-const verifierKey = "portal:tiktok:verifier";
-const hex = (bytes: Uint8Array) => Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
-function clearAttempt() { sessionStorage.removeItem(proofKey); sessionStorage.removeItem(verifierKey); }
 async function waitForAuth<T>(request: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -88,25 +85,14 @@ export default function PortalLogin() {
   }, [navigate]);
   async function loginTwitch() {
     if (!supabase) return;
-    setBusy(true); setError(""); clearAttempt();
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "twitch",
-        options: { scopes: "user:read:email user:write:chat user:read:subscriptions user:read:follows", redirectTo: window.location.origin + "/login" }
-      });
-      if (error) throw error;
-    } catch (err) { setError((err as Error).message); setBusy(false); }
+    setBusy(true); setError("");
+    try { await startTwitchLogin(); }
+    catch (err) { setError((err as Error).message); setBusy(false); }
   }
   async function login() {
     setBusy(true); setError("");
-    try {
-      clearAttempt();
-      const verifier = hex(crypto.getRandomValues(new Uint8Array(32)));
-      sessionStorage.setItem(verifierKey, verifier);
-      const challenge = hex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))));
-      const { url } = await publicCommand<{ url: string }>("/oauth/tiktok/login", { challenge });
-      window.location.assign(url);
-    } catch (err) { setError((err as Error).message); }
+    try { await startTikTokLogin(); }
+    catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   }
   return <main className="portal-account"><section className="portal-account-card">
