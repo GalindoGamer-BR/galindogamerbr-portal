@@ -30,6 +30,9 @@ export function MobileMenu({ open, onClose, signedIn, onLogout }: MobileMenuProp
         ))}
         <NavLink to={signedIn ? '/membro' : '/login'} onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">{signedIn ? 'Área do membro' : 'Entrar'}</NavLink>
         {signedIn && (
+          <NavLink to="/live" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Multichat</NavLink>
+        )}
+        {signedIn && (
           <button type="button" onClick={() => { onClose(); onLogout() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">
             Sair
           </button>
