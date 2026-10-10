@@ -20,6 +20,7 @@ import { useMultichat } from "./useMultichat";
 import { ChatVirtualList } from "./ChatVirtualList";
 import { useEmotes } from "./useEmotes";
 import { useBadges } from "./useBadges";
+import { useTwitchChannel } from "./useTwitchChannel";
 import { EmotePicker } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
 import { MultichatDialog } from "./MultichatDialog";
@@ -119,6 +120,7 @@ export default function MultichatPage() {
   const emoteButton = useRef<HTMLButtonElement>(null);
   const emotes = useEmotes();
   const badges = useBadges();
+  const twitchChannel = useTwitchChannel();
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setTheater(false);
@@ -418,8 +420,11 @@ export default function MultichatPage() {
               <p>
                 {player === "youtube" && liveStatus?.isLive
                   ? liveStatus.title
-                  : "A live é uma só. A comunidade está em todo lugar."}
+                  : player === "twitch" && twitchChannel?.title
+                    ? twitchChannel.title
+                    : "A live é uma só. A comunidade está em todo lugar."}
               </p>
+              {player === "twitch" && twitchChannel?.game && <span className="mc-channel-game">{twitchChannel.game}</span>}
               <span className="mc-muted">
                 Português ·{" "}
                 {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"}{" "}
@@ -480,6 +485,12 @@ export default function MultichatPage() {
                 Assistir direto na Twitch
               </a>
             </p>
+          )}
+          {twitchChannel?.description && (
+            <section className="mc-about mc-twitch-about">
+              <h2>Sobre {twitchChannel.name}</h2>
+              <p>{twitchChannel.description}</p>
+            </section>
           )}
           <section className="mc-about">
             <h2>Juntos em todas as plataformas.</h2>

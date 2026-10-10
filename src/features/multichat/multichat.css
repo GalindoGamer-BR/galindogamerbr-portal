@@ -879,3 +879,6 @@
 .mc-page .mc-send-target-on { opacity: 0.9; filter: none; }
 .mc-page .mc-send-target-on:hover { opacity: 1; }
 .mc-send-target .mc-platform-icon { width: 15px; height: 15px; }
+
+.mc-channel-game { display: block; margin-top: 2px; font-size: 13px; font-weight: 600; color: #bf94ff; }
+.mc-twitch-about p { white-space: pre-line; margin-bottom: 0; line-height: 1.6; color: #dcdce2; }
