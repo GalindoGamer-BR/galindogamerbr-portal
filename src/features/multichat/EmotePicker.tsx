@@ -4,10 +4,19 @@ import { PlatformIcon } from "./PlatformIcon";
 import { ClockIcon, GlobeIcon, LockIcon, SearchIcon, UserIcon } from "../../components/ui/Icons";
 
 // "mine": emote que o membro pode usar na Twitch (lido com o token dele).
-export type PickerEmote = Emote & { mine?: boolean; /** id do canal dono do emote (só nos meus emotes). */ owner?: string; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
+export type PickerEmote = Emote & { mine?: boolean; /** id do canal dono do emote e tipo da coleção na Twitch (só nos meus emotes). */ owner?: string; type?: string; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
 
 const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV", ffz: "FFZ" };
 const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv", "ffz"];
+// Título das coleções da Twitch que não pertencem a um canal (a Twitch não informa o nome delas).
+const collectionTitles: Record<string, string> = {
+  prime: "Twitch Prime",
+  hypetrain: "Hype Train",
+  rewards: "Recompensas",
+  limitedtime: "Tempo limitado",
+  twofactor: "Autenticação em 2 fatores",
+  turbo: "Twitch Turbo",
+};
 
 export function EmoteImage({ emote }: { emote: Emote }) {
   const [failed, setFailed] = useState(false);
@@ -76,10 +85,17 @@ export function EmotePicker({
   // "Meus emotes" são só os de outros canais; os globais e os do canal que o usuário também tem ficam nas suas seções.
   const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
   // Os de outros canais são agrupados pelo canal dono (como no seletor da Twitch), em ordem alfabética.
-  const mineByOwner = new Map<string, PickerEmote[]>();
-  for (const e of mine) mineByOwner.set(e.owner ?? "", [...(mineByOwner.get(e.owner ?? "") ?? []), e]);
-  const mineSections: Section[] = [...mineByOwner.entries()]
-    .map(([owner, list]) => ({ id: `mine-${owner || "outros"}`, tab: "mine" as const, group: "Meus emotes", title: owners[owner]?.name ?? "Outros emotes da Twitch", avatar: owners[owner]?.avatar || undefined, provider: "twitch" as const, emotes: list }))
+  const mineGroups = new Map<string, { title: string; avatar?: string; emotes: PickerEmote[] }>();
+  for (const e of mine) {
+    const owner = e.owner ? owners[e.owner] : undefined;
+    // Com o canal dono conhecido, o título é o nome dele; senão, o tipo da coleção (Prime, Hype Train, 2FA...).
+    const key = owner ? `owner:${e.owner}` : `type:${e.type ?? ""}`;
+    const group = mineGroups.get(key) ?? { title: owner?.name ?? collectionTitles[e.type ?? ""] ?? "Outros emotes da Twitch", avatar: owner?.avatar || undefined, emotes: [] };
+    group.emotes.push(e);
+    mineGroups.set(key, group);
+  }
+  const mineSections: Section[] = [...mineGroups.entries()]
+    .map(([key, group]) => ({ id: `mine-${key}`, tab: "mine" as const, group: "Meus emotes", title: group.title, avatar: group.avatar, provider: "twitch" as const, emotes: group.emotes }))
     .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
   const sections: Section[] = [
     ...(recentEmotes.length ? [{ id: "recent", tab: "recent" as const, title: "Utilizado com frequência", emotes: recentEmotes }] : []),

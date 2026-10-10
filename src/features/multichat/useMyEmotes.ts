@@ -5,11 +5,11 @@ import { emoteSchema, type Emote } from "./emotes";
 
 export type MyEmotesStatus = "idle" | "ok" | "needs_reauth" | "unavailable";
 export type EmoteOwner = { name: string; avatar: string };
-export type MyEmote = Emote & { owner?: string };
+export type MyEmote = Emote & { owner?: string; /** Tipo da coleção na Twitch (prime, hypetrain, limitedtime, rewards, twofactor...). */ type?: string };
 type State = { status: MyEmotesStatus; emotes: MyEmote[]; owners: Record<string, EmoteOwner> };
 const idle: State = { status: "idle", emotes: [], owners: {} };
 
-const myEmoteSchema = emoteSchema.extend({ owner: z.string().optional() });
+const myEmoteSchema = emoteSchema.extend({ owner: z.string().optional(), type: z.string().optional() });
 const ownersSchema = z.record(z.string(), z.object({ name: z.string(), avatar: z.string() }));
 
 // Emotes que o membro pode usar na Twitch (inscrições, follower, bits, globais), lidos com o token dele; "owners" traz o
