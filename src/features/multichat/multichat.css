@@ -282,6 +282,18 @@
 .mc-channel-links a {
   color: #d2ac56;
 }
+.mc-sub-notice {
+  margin: 8px 0;
+  padding: 10px 14px;
+  background: #18181b;
+  border: 1px solid #29292f;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #adadb8;
+}
+.mc-sub-notice a {
+  color: #d2ac56;
+}
 .mc-interact {
   margin-top: 0;
 }

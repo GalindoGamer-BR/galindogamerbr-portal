@@ -456,6 +456,14 @@ export default function MultichatPage() {
               </a>
             </div>
           </section>
+          {player === "twitch" && subscription?.status === "subscribed" && (
+            <p className="mc-sub-notice">
+              Você é sub: sem anúncios na Twitch. Se ainda aparecerem aqui, o navegador está bloqueando a sua sessão da Twitch no player.{" "}
+              <a href={twitchChannelUrl} onClick={(event) => openSubsWindow(event, twitchChannelUrl)} target="_blank" rel="noreferrer">
+                Assistir direto na Twitch ↗
+              </a>
+            </p>
+          )}
           <section className="mc-about">
             <h2>Juntos em todas as plataformas.</h2>
             <p>Escolha onde assistir e acompanhe a conversa em um só lugar.</p>
