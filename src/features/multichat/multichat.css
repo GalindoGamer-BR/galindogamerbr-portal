@@ -975,3 +975,7 @@
 .mc-btn.mc-btn-kick { background: #53fc18; border-color: #53fc18; color: #0b0e0f; }
 .mc-btn.mc-btn-kick:hover { background: #46d915; border-color: #46d915; }
 .mc-support[hidden] { display: none; }
+
+.mc-twitch-about p a { color: #bf94ff; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.mc-twitch-about p a:hover { color: #d9c2ff; }
+.mc-twitch-about p strong { color: #fff; font-weight: 750; }

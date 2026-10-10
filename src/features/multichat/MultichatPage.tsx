@@ -26,6 +26,7 @@ import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
 import { useYoutubeChannel } from "./useYoutubeChannel";
 import { useYoutubeLastLive } from "./useYoutubeLastLive";
+import { RichText } from "./RichText";
 import { EmotePicker, type PickerEmote } from "./EmotePicker";
 import { emoteKey } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
@@ -620,13 +621,13 @@ export default function MultichatPage() {
           {player === "twitch" && twitchChannel?.description && (
             <section className="mc-about mc-twitch-about">
               <h2>Sobre {twitchChannel.name}</h2>
-              <p>{twitchChannel.description}</p>
+              <p><RichText text={twitchChannel.description} /></p>
             </section>
           )}
           {player === "youtube" && youtubeChannel?.description && (
             <section className="mc-about mc-twitch-about">
               <h2>Sobre {youtubeChannel.name}</h2>
-              <p>{youtubeChannel.description}</p>
+              <p><RichText text={youtubeChannel.description} /></p>
               {youtubeChannel.videos != null && <p className="mc-muted">{youtubeChannel.videos.toLocaleString("pt-BR")} vídeos no canal</p>}
             </section>
           )}
