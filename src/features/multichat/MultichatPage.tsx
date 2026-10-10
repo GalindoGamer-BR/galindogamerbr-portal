@@ -1,5 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, SpeakerIcon, StickerIcon, WindowIcon } from "../../components/ui/Icons";
+import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
@@ -89,14 +89,14 @@ const kickChannelUrl = "https://kick.com/galindogamerbr";
 const twitchPanels = [
   {
     label: "SoundAlerts",
-    icon: SpeakerIcon,
+    logo: "/assets/icons/soundalerts.svg",
     description: "Toque sons e alertas na live, direto do soundboard do canal.",
     action: "Abrir soundboard",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel",
   },
   {
     label: "Stream Stickers",
-    icon: StickerIcon,
+    logo: "/assets/icons/streamstickers.png",
     description: "Cole stickers na tela da live e apareça junto com a galera.",
     action: "Abrir stickers",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel",
@@ -647,7 +647,7 @@ export default function MultichatPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <span className="mc-interact-icon" aria-hidden="true"><panel.icon /></span>
+                  <span className="mc-interact-icon" aria-hidden="true"><img src={panel.logo} alt="" /></span>
                   <strong>{panel.label} <span className="mc-interact-tag">Extensão</span></strong>
                   <span>{panel.description}</span>
                   <em><WindowIcon />{panel.action}</em>

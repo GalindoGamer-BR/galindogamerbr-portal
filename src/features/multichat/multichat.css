@@ -985,3 +985,5 @@
 .mc-interact-card > .mc-interact-icon { grid-area: icon; grid-row: 1 / span 2; align-self: start; }
 .mc-interact-card > strong { align-self: center; }
 .mc-interact-card > .mc-interact-icon { color: #bf94ff; font-size: inherit; line-height: 1; }
+.mc-interact-card > .mc-interact-icon { padding: 0; overflow: hidden; background: #0e0e10; border: 1px solid #ffffff1f; }
+.mc-interact-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
