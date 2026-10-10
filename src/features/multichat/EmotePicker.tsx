@@ -155,7 +155,7 @@ export function EmotePicker({
               {s.title}
             </p>
             <div className="mc-pk-grid">
-              {s.emotes.slice(0, 300).map((e) => (
+              {s.emotes.slice(0, 500).map((e) => (
                 <button
                   type="button"
                   key={emoteKey(e)}
