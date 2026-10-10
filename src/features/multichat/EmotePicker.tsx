@@ -6,8 +6,8 @@ import { ClockIcon, GlobeIcon, LockIcon, SearchIcon, UserIcon } from "../../comp
 // "mine": emote que o membro pode usar na Twitch (lido com o token dele).
 export type PickerEmote = Emote & { mine?: boolean; /** id do canal dono do emote (só nos meus emotes). */ owner?: string; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
 
-const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV" };
-const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv"];
+const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV", ffz: "FFZ" };
+const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv", "ffz"];
 
 export function EmoteImage({ emote }: { emote: Emote }) {
   const [failed, setFailed] = useState(false);
@@ -69,7 +69,7 @@ export function EmotePicker({
         .filter((e) => (seen.has(e.code) ? false : (seen.add(e.code), true)));
       return list.length ? [{ id: `${tab}-${provider}`, tab, group, title: providerLabels[provider], provider, emotes: list }] : [];
     });
-  // Ordem: emotes do Galindo no topo, depois os usados com frequência, os meus (de outros canais) e os globais.
+  // Ordem: usados com frequência no topo, depois os emotes do Galindo, os meus (de outros canais) e os globais.
   // "Meus emotes" são só os de outros canais; os globais e os do canal que o usuário também tem ficam nas suas seções.
   const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
   // Os de outros canais são agrupados pelo canal dono (como no seletor da Twitch), em ordem alfabética.
@@ -79,15 +79,15 @@ export function EmotePicker({
     .map(([owner, list]) => ({ id: `mine-${owner || "outros"}`, tab: "mine" as const, group: "Meus emotes", title: owners[owner]?.name ?? "Outros emotes da Twitch", avatar: owners[owner]?.avatar || undefined, provider: "twitch" as const, emotes: list }))
     .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
   const sections: Section[] = [
-    ...groupSections("channel", "Emotes do Galindo"),
     ...(recentEmotes.length ? [{ id: "recent", tab: "recent" as const, title: "Utilizado com frequência", emotes: recentEmotes }] : []),
+    ...groupSections("channel", "Emotes do Galindo"),
     ...mineSections,
     ...groupSections("global", "Emotes globais"),
   ];
 
   const tabs: { id: TabId; label: string; icon: ReactNode }[] = [
-    { id: "channel", label: "Emotes do Galindo", icon: <img src="/assets/logos/galindogamerbr.webp" alt="" className="mc-pk-logo" /> },
     { id: "recent", label: "Utilizados com frequência", icon: <ClockIcon /> },
+    { id: "channel", label: "Emotes do Galindo", icon: <img src="/assets/logos/galindogamerbr.webp" alt="" className="mc-pk-logo" /> },
     { id: "mine", label: "Meus emotes", icon: <UserIcon /> },
     { id: "global", label: "Emotes globais", icon: <GlobeIcon /> },
   ];
@@ -163,7 +163,7 @@ export function EmotePicker({
           <div key={s.id} data-tab={index === 0 || sections[index - 1].tab !== s.tab ? s.tab : undefined}>
             {s.group && sections[index - 1]?.group !== s.group && <h3 className="mc-pk-group">{s.group}</h3>}
             <p className="mc-pk-title">
-              {s.avatar ? <img className="mc-pk-avatar" src={s.avatar} alt="" referrerPolicy="no-referrer" loading="lazy" /> : s.provider && <PlatformIcon platform={s.provider === "bttv" ? "twitch" : s.provider} />}
+              {s.avatar ? <img className="mc-pk-avatar" src={s.avatar} alt="" referrerPolicy="no-referrer" loading="lazy" /> : s.provider && <PlatformIcon platform={s.provider === "bttv" || s.provider === "ffz" ? "twitch" : s.provider} />}
               {s.title}
             </p>
             <div className="mc-pk-grid">
