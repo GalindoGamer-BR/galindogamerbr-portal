@@ -3,9 +3,11 @@ import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from './navItems'
 import { MobileMenu } from './MobileMenu'
 import { Logo } from '../ui/Logo'
+import { useNavSession } from './useNavSession'
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { signedIn, logout } = useNavSession()
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur">
@@ -49,7 +51,14 @@ export function Header() {
         </nav>
 
         <div className="hidden xl:block">
-          <div className="flex items-center gap-4"><Link to="/membro" className="text-sm font-semibold hover:text-gold">Área do membro</Link></div>
+          <div className="flex items-center gap-4">
+            <Link to={signedIn ? '/membro' : '/login'} className="text-sm font-semibold hover:text-gold">{signedIn ? 'Área do membro' : 'Entrar'}</Link>
+            {signedIn && (
+              <button type="button" onClick={() => void logout()} className="rounded-md border border-line px-3 py-1.5 text-sm font-semibold text-white/80 transition hover:border-gold hover:text-gold">
+                Sair
+              </button>
+            )}
+          </div>
         </div>
 
         <button
@@ -63,7 +72,7 @@ export function Header() {
         </button>
       </div>
 
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signedIn={signedIn} onLogout={() => void logout()} />
     </header>
   )
 }

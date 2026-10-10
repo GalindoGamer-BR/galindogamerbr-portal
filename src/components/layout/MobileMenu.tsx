@@ -4,9 +4,11 @@ import { NAV_ITEMS } from './navItems'
 type MobileMenuProps = {
   open: boolean
   onClose: () => void
+  signedIn: boolean
+  onLogout: () => void
 }
 
-export function MobileMenu({ open, onClose }: MobileMenuProps) {
+export function MobileMenu({ open, onClose, signedIn, onLogout }: MobileMenuProps) {
   if (!open) return null
 
   return (
@@ -26,7 +28,12 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
             {item.label}
           </NavLink>
         ))}
-        <NavLink to="/membro" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Área do membro</NavLink>
+        <NavLink to={signedIn ? '/membro' : '/login'} onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">{signedIn ? 'Área do membro' : 'Entrar'}</NavLink>
+        {signedIn && (
+          <button type="button" onClick={() => { onClose(); onLogout() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">
+            Sair
+          </button>
+        )}
       </nav>
     </div>
   )
