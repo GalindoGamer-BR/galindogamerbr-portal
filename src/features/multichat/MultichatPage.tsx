@@ -276,7 +276,7 @@ export default function MultichatPage() {
           </button>
           {session ? (
             <button
-              onClick={() => window.location.assign("/conta")}
+              onClick={() => window.location.assign("/membro")}
             >
               Minha conta
             </button>
