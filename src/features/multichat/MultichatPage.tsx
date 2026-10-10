@@ -88,18 +88,18 @@ const kickChannelUrl = "https://kick.com/galindogamerbr";
 // As extensões só funcionam dentro do twitch.tv (dependem do Twitch.ext), por isso o portal só abre o painel.
 const twitchPanels = [
   {
-    label: "SoundAlerts",
-    logo: "/assets/icons/soundalerts.svg",
-    description: "Toque sons e alertas na live, direto do soundboard do canal.",
-    action: "Abrir soundboard",
-    url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel",
-  },
-  {
     label: "Stream Stickers",
     logo: "/assets/icons/streamstickers.png",
     description: "Cole stickers na tela da live e apareça junto com a galera.",
     action: "Abrir stickers",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel",
+  },
+  {
+    label: "SoundAlerts",
+    logo: "/assets/icons/soundalerts.svg",
+    description: "Toque sons e alertas na live, direto do soundboard do canal.",
+    action: "Abrir soundboard",
+    url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel",
   },
 ];
 function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUrl, size = { width: 520, height: 760 }) {
