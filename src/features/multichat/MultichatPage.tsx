@@ -397,12 +397,21 @@ export default function MultichatPage() {
     const suffix = message.slice(end);
     const insert = (prefix && !/\s$/.test(prefix) ? " " : "") + code + " ";
     setMessage(prefix + insert + suffix);
-    setPicker(false);
+    // O seletor continua aberto (fecha ao clicar fora ou com Esc); o cursor avança sem tirar o foco do seletor.
     requestAnimationFrame(() => {
-      input.focus();
       input.setSelectionRange(start + insert.length, start + insert.length);
     });
   };
+  useEffect(() => {
+    if (!picker) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (document.getElementById("mc-emote-picker")?.contains(target) || emoteButton.current?.contains(target)) return;
+      setPicker(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [picker]);
   return (
     <div className={`mc-page ${theater ? "mc-theater" : ""}`}>
       <header className="mc-topbar">
