@@ -36,12 +36,6 @@ export default function PortalMember() {
     try { const { url } = await command<{ url: string }>("/oauth/tiktok/start"); window.location.assign(url); }
     catch (err) { setError((err as Error).message); setBusy(false); }
   }
-  async function logout() {
-    setBusy(true);
-    const result = await supabase!.auth.signOut();
-    if (result.error) { setError("Não foi possível sair. Tente novamente."); setBusy(false); }
-    else navigate("/login", { replace: true });
-  }
   const actionsRef = useRef<HTMLDivElement>(null);
   const photoMenuRef = useRef<HTMLDivElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -105,7 +99,6 @@ export default function PortalMember() {
               <button role="menuitem" type="button" className="member-menu-danger" onClick={() => { setActionsOpen(false); setManaging(true); }}>Excluir conta</button>
             </div>}
           </div>
-          <button disabled={busy} onClick={() => void logout()}>Sair</button>
         </div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
