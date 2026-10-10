@@ -31,29 +31,41 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
     finally { setBusy(null); }
   }
   const loginProviders = new Set((user?.identities ?? []).map(identity => identity.provider));
+  const [editing, setEditing] = useState(false);
   return <section className="member-card" aria-label="Contas">
-    <h2>Contas</h2>
-    <p className="member-hint">Como você entra no portal e quais contas podem enviar mensagens ao chat.</p>
+    <div className="member-card-head">
+      <div><h2>Contas</h2><p className="member-hint">Como você entra no portal e quais contas enviam mensagens ao chat.</p></div>
+      <button className="member-edit-toggle" aria-pressed={editing} onClick={() => setEditing(value => !value)}>{editing ? "Concluir" : "Editar"}</button>
+    </div>
     <ul className="member-accounts">
       {user?.email && loginProviders.has("email") && <li>
-        <strong>E-mail</strong><span>{user.email}</span><em className="member-tag">Login</em>
+        <span className="member-account-icon" aria-hidden="true">@</span>
+        <div className="member-account-info"><strong>E-mail</strong><small>{user.email}</small></div>
+        <div className="member-account-status"><em className="member-tag">Login</em></div>
       </li>}
       {linkablePlatforms.map(platform => {
         const account = chat?.[platform];
-        const isLogin = loginProviders.has(platform);
+        const connected = !!account?.connected;
         const locked = !!account?.locked;
         return <li key={platform}>
-          <PlatformIcon platform={platform} /><strong>{labels[platform]}</strong>
-          <span>{!chat ? "Carregando…" : account?.connected ? account.username || "Conectada ao chat" : "Não conectada ao chat"}</span>
-          {isLogin && <em className="member-tag">Login</em>}
-          {chat && (account?.connected
-            ? locked
-              ? <em className="member-tag member-tag-fixed">Chat vinculado à conta</em>
-              : <button disabled={!!busy} onClick={() => void unlink(platform)}>{busy === platform ? "Aguarde…" : "Desvincular"}</button>
-            : <button disabled={!!busy} onClick={() => void link(platform)}>{busy === platform ? "Aguarde…" : "Conectar ao chat"}</button>)}
+          <PlatformIcon platform={platform} />
+          <div className="member-account-info"><strong>{labels[platform]}</strong><small>{!chat ? "Carregando…" : connected ? account?.username || "Conectada" : "Não conectada ao chat"}</small></div>
+          <div className="member-account-status">
+            {loginProviders.has(platform) && <em className="member-tag">Login</em>}
+            {chat && <em className={"member-tag " + (connected ? "member-tag-on" : "member-tag-off")}>{connected ? "Chat conectado" : "Chat desconectado"}</em>}
+            {editing && chat && (connected
+              ? locked
+                ? <em className="member-tag member-tag-fixed">Vinculada à conta</em>
+                : <button disabled={!!busy} onClick={() => void unlink(platform)}>{busy === platform ? "Aguarde…" : "Desvincular"}</button>
+              : <button disabled={!!busy} onClick={() => void link(platform)}>{busy === platform ? "Aguarde…" : "Conectar"}</button>)}
+          </div>
         </li>;
       })}
-      {tiktokLogin && !tiktokLinking && <li><PlatformIcon platform="tiktok" /><strong>TikTok</strong><span>{tiktokLogin}</span><em className="member-tag">Login</em></li>}
+      {tiktokLogin && !tiktokLinking && <li>
+        <PlatformIcon platform="tiktok" />
+        <div className="member-account-info"><strong>TikTok</strong><small>{tiktokLogin}</small></div>
+        <div className="member-account-status"><em className="member-tag">Login</em></div>
+      </li>}
     </ul>
     {tiktokLinking && <TikTokConnection signedIn state={tiktok} onChange={setTikTok} />}
     {error && <p role="alert" className="member-error">{error}</p>}
