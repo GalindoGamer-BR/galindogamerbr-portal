@@ -95,6 +95,10 @@ export async function command<T>(
       throw new Error("Limite de tentativas desta sessão atingido. Desvincule e conecte novamente.");
     if (details?.error === "tiktok_https_callback_required")
       throw new Error("O login TikTok precisa de um callback HTTPS configurado no servidor.");
+    if (details?.error === "revoke_failed")
+      throw new Error("Não foi possível revogar o acesso na plataforma agora. A conta continua conectada; tente novamente em instantes.");
+    if (details?.error === "login_account_locked")
+      throw new Error("Esta conta faz parte do seu login e não pode ser desvinculada.");
     if (details?.error === "invalid_image")
       throw new Error("Envie uma imagem PNG, JPEG ou WebP de até 2 MB.");
     if (details?.error === "invalid_request")
