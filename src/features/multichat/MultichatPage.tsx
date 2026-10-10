@@ -98,6 +98,9 @@ function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUr
   if (popup) { event.preventDefault(); popup.focus(); }
 }
 
+const helpSeenKey = "mc:help-seen";
+const helpSeen = () => { try { return localStorage.getItem(helpSeenKey) === "1"; } catch { return true; } };
+
 export default function MultichatPage() {
   const { member: navMember, logout: navLogout } = useNavSession();
   const [session, setSession] = useState<Session | null>(null);
@@ -118,6 +121,10 @@ export default function MultichatPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const closeLogin = useCallback(() => setLoginOpen(false), []);
   const [help, setHelp] = useState(false);
+  const closeHelp = useCallback(() => {
+    setHelp(false);
+    try { localStorage.setItem(helpSeenKey, "1"); } catch { /* sem armazenamento: aparece de novo na próxima visita */ }
+  }, []);
   const [picker, setPicker] = useState(false);
   const composer = useRef<HTMLTextAreaElement>(null);
   const emoteButton = useRef<HTMLButtonElement>(null);
@@ -164,7 +171,10 @@ export default function MultichatPage() {
       .getSession()
       .then(({ data, error }) => {
         if (error) throw error;
-        if (active) setSession(data.session);
+        if (!active) return;
+        setSession(data.session);
+        // Visitante deslogado que ainda não viu a explicação: abre o "Como funciona" uma vez.
+        if (!data.session && !helpSeen()) setHelp(true);
       })
       .catch(() => {
         if (active) setNotice("Não foi possível recuperar a sessão.");
@@ -754,7 +764,7 @@ export default function MultichatPage() {
       {help && (
         <MultichatDialog
           title="Uma mensagem. Várias plataformas."
-          onClose={() => setHelp(false)}
+          onClose={closeHelp}
         >
           <div className="mc-dialog-body">
             <ol className="mc-help-list">
@@ -788,7 +798,7 @@ export default function MultichatPage() {
                 </p>
               </li>
             </ol>
-            <button className="mc-primary" onClick={() => setHelp(false)}>
+            <button className="mc-primary" onClick={closeHelp}>
               Entendi
             </button>
           </div>
