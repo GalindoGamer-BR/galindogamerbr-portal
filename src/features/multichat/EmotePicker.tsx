@@ -4,7 +4,7 @@ import { PlatformIcon } from "./PlatformIcon";
 import { ClockIcon, GlobeIcon, LockIcon, SearchIcon, UserIcon } from "../../components/ui/Icons";
 
 // "mine": emote que o membro pode usar na Twitch (lido com o token dele).
-export type PickerEmote = Emote & { mine?: boolean; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
+export type PickerEmote = Emote & { mine?: boolean; /** id do canal dono do emote (só nos meus emotes). */ owner?: string; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
 
 const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV" };
 const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv"];
@@ -26,13 +26,14 @@ export function EmoteImage({ emote }: { emote: Emote }) {
 }
 
 type TabId = "recent" | "mine" | "channel" | "global";
-type Section = { id: string; tab: TabId; group?: string; title: string; provider?: Emote["provider"]; emotes: PickerEmote[] };
+type Section = { id: string; tab: TabId; group?: string; avatar?: string; title: string; provider?: Emote["provider"]; emotes: PickerEmote[] };
 
 // Seletor no estilo da Kick: busca no topo, abas de ícones e uma lista única rolável com seções
 // (utilizados com frequência, meus, canal e globais, cada um separado por plataforma).
 export function EmotePicker({
   emotes,
   recent,
+  owners,
   state,
   notice,
   onSelect,
@@ -41,6 +42,8 @@ export function EmotePicker({
   emotes: PickerEmote[];
   /** Chaves (provider:id) dos últimos emotes usados, do mais recente ao mais antigo. */
   recent: string[];
+  /** Nome e foto dos canais donos dos meus emotes, por id. */
+  owners: Record<string, { name: string; avatar: string }>;
   state: string;
   notice?: { text: string; action: string; onAction: () => void };
   onSelect: (emote: PickerEmote) => void;
@@ -69,10 +72,16 @@ export function EmotePicker({
   // Ordem: emotes do Galindo no topo, depois os usados com frequência, os meus (de outros canais) e os globais.
   // "Meus emotes" são só os de outros canais; os globais e os do canal que o usuário também tem ficam nas suas seções.
   const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
+  // Os de outros canais são agrupados pelo canal dono (como no seletor da Twitch), em ordem alfabética.
+  const mineByOwner = new Map<string, PickerEmote[]>();
+  for (const e of mine) mineByOwner.set(e.owner ?? "", [...(mineByOwner.get(e.owner ?? "") ?? []), e]);
+  const mineSections: Section[] = [...mineByOwner.entries()]
+    .map(([owner, list]) => ({ id: `mine-${owner || "outros"}`, tab: "mine" as const, group: "Meus emotes", title: owners[owner]?.name ?? "Outros emotes da Twitch", avatar: owners[owner]?.avatar || undefined, provider: "twitch" as const, emotes: list }))
+    .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
   const sections: Section[] = [
     ...groupSections("channel", "Emotes do Galindo"),
     ...(recentEmotes.length ? [{ id: "recent", tab: "recent" as const, title: "Utilizado com frequência", emotes: recentEmotes }] : []),
-    ...(mine.length ? [{ id: "mine", tab: "mine" as const, title: "Meus emotes · outros canais", provider: "twitch" as const, emotes: mine }] : []),
+    ...mineSections,
     ...groupSections("global", "Emotes globais"),
   ];
 
@@ -154,7 +163,7 @@ export function EmotePicker({
           <div key={s.id} data-tab={index === 0 || sections[index - 1].tab !== s.tab ? s.tab : undefined}>
             {s.group && sections[index - 1]?.group !== s.group && <h3 className="mc-pk-group">{s.group}</h3>}
             <p className="mc-pk-title">
-              {s.provider && <PlatformIcon platform={s.provider === "bttv" ? "twitch" : s.provider} />}
+              {s.avatar ? <img className="mc-pk-avatar" src={s.avatar} alt="" referrerPolicy="no-referrer" loading="lazy" /> : s.provider && <PlatformIcon platform={s.provider === "bttv" ? "twitch" : s.provider} />}
               {s.title}
             </p>
             <div className="mc-pk-grid">

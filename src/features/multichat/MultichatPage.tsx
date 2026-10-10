@@ -685,6 +685,7 @@ export default function MultichatPage() {
               <EmotePicker
                 emotes={shownEmotes}
                 recent={recentEmotes}
+                owners={myEmotes.owners}
                 state={emotes.state}
                 notice={myEmotes.status === "needs_reauth" ? {
                   text: "Para usar seus emotes de inscrito, entre de novo com a Twitch e autorize o acesso aos emotes.",
