@@ -876,7 +876,7 @@
 .mc-page .mc-user-menu button { margin-top: 4px; border-top: 1px solid #ffffff12; border-radius: 0 0 6px 6px; }
 @media (max-width: 760px) { .mc-user-name, .mc-user-caret { display: none; } .mc-page .mc-user-trigger { padding: 4px; } .mc-icon-btn span { display: none; } }
 
-.mc-message .mc-badge { width: 18px; height: 18px; vertical-align: -4px; margin-right: 3px; border-radius: 3px; }
+.mc-message .mc-badge { display: inline-block; width: 18px; height: 18px; max-width: none; vertical-align: -4px; margin-right: 3px; border-radius: 3px; }
 
 
 .mc-page .mc-send-target { display: inline-flex; align-items: center; justify-content: center; padding: 3px; border: 0; border-radius: 6px; background: transparent; opacity: 0.35; filter: grayscale(1); transition: opacity 0.15s, filter 0.15s; }
