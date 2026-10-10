@@ -68,8 +68,13 @@ const GiftIcon = () => (
 const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
 // "Dar um sub" (presente) é um modal da própria página do canal na Twitch, sem URL nem API pública: abre o canal.
 const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
-function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUrl) {
-  const width = 520, height = 760;
+// Extensões de painel do canal. O popout da Twitch não pode ser embutido (X-Frame-Options: SAMEORIGIN): abre em janela.
+const twitchPanels = [
+  { label: "Painel 1", url: "https://www.twitch.tv/popout/galindogamerbr/extensions/bttsqjy6dnv05acplp5vy0mflgrh3z/panel" },
+  { label: "Painel 2", url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel" },
+];
+function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUrl, size = { width: 520, height: 760 }) {
+  const { width, height } = size;
   const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
   const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
   const popup = window.open(url, "twitch-subs", `popup=yes,width=${width},height=${height},left=${left},top=${top}`);
@@ -465,6 +470,17 @@ export default function MultichatPage() {
               >
                 Apoiar na Kick ↗
               </a>
+              {twitchPanels.map((panel) => (
+                <a
+                  key={panel.url}
+                  href={panel.url}
+                  onClick={(event) => openSubsWindow(event, panel.url, { width: 420, height: 720 })}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {panel.label} ↗
+                </a>
+              ))}
             </div>
           </section>
           <footer className="mc-footer">
