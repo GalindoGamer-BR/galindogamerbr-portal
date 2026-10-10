@@ -25,6 +25,7 @@ import { rememberReturnTo, startTwitchLogin } from "./loginFlows";
 import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
 import { useYoutubeChannel } from "./useYoutubeChannel";
+import { useYoutubeLastLive } from "./useYoutubeLastLive";
 import { EmotePicker, type PickerEmote } from "./EmotePicker";
 import { emoteKey } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
@@ -183,6 +184,8 @@ export default function MultichatPage() {
   const [player, setPlayer] = useState<WritablePlatform>("twitch");
   const chat = useMultichat(session);
   const liveStatus = useLiveStatus();
+  // Sem live no YouTube, o player mostra o arquivo da última live encerrada.
+  const youtubeLastLive = useYoutubeLastLive(player === "youtube" && !liveStatus?.isLive);
   const refreshAccounts = async () => {
     const data = await command<Accounts>("/api/accounts");
     setAccounts(data);
@@ -394,7 +397,9 @@ export default function MultichatPage() {
         ? "https://player.kick.com/galindogamerbr?autoplay=false"
         : liveStatus?.isLive && liveStatus.videoId
           ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveStatus.videoId)}?autoplay=0`
-          : null;
+          : youtubeLastLive
+            ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(youtubeLastLive.videoId)}?autoplay=0`
+            : null;
   const insertEmote = (emote: PickerEmote) => {
     const code = emote.code;
     const input = composer.current;
@@ -522,7 +527,9 @@ export default function MultichatPage() {
                 {player === "youtube"
                   ? liveStatus?.isLive
                     ? liveStatus.title
-                    : "Nenhuma live no YouTube no momento."
+                    : youtubeLastLive
+                      ? `Última live: ${youtubeLastLive.title}`
+                      : "Nenhuma live no YouTube no momento."
                   : player === "twitch" && twitchChannel?.title
                     ? twitchChannel.title
                     : "A live é uma só. A comunidade está em todo lugar."}
@@ -530,7 +537,7 @@ export default function MultichatPage() {
               {player === "twitch" && twitchChannel?.game && <span className="mc-channel-game">{twitchChannel.game}</span>}
               <span className="mc-muted">
                 {player === "youtube" && !liveStatus?.isLive
-                  ? "Offline"
+                  ? `Offline${youtubeLastLive?.endedAt ? ` · terminou em ${new Date(youtubeLastLive.endedAt).toLocaleDateString("pt-BR")}` : ""}`
                   : <>Português · {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"} assistindo</>}
                 {player === "youtube" && youtubeChannel?.subscribers != null && <> · {youtubeChannel.subscribers.toLocaleString("pt-BR")} inscritos</>}
               </span>
