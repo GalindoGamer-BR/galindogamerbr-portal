@@ -382,7 +382,7 @@ export default function MultichatPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Abrir canal ↗
+                  Abrir canal
                 </a>
               </div>
             )}
@@ -460,7 +460,7 @@ export default function MultichatPage() {
             <p className="mc-sub-notice">
               Você é sub: sem anúncios na Twitch. Se ainda aparecerem aqui, o navegador está bloqueando a sua sessão da Twitch no player.{" "}
               <a href={twitchChannelUrl} onClick={(event) => openSubsWindow(event, twitchChannelUrl)} target="_blank" rel="noreferrer">
-                Assistir direto na Twitch ↗
+                Assistir direto na Twitch
               </a>
             </p>
           )}
@@ -473,21 +473,21 @@ export default function MultichatPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Twitch ↗
+                Twitch
               </a>
               <a
                 href="https://www.youtube.com/@galindogamerbr/join"
                 target="_blank"
                 rel="noreferrer"
               >
-                Seja membro no YouTube ↗
+                Seja membro no YouTube
               </a>
               <a
                 href="https://kick.com/galindogamerbr"
                 target="_blank"
                 rel="noreferrer"
               >
-                Apoiar na Kick ↗
+                Apoiar na Kick
               </a>
             </div>
           </section>
@@ -506,7 +506,7 @@ export default function MultichatPage() {
                 >
                   <strong>{panel.label}</strong>
                   <span>{panel.description}</span>
-                  <em>{panel.action} ↗</em>
+                  <em>{panel.action}</em>
                 </a>
               ))}
             </div>
