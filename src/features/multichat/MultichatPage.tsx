@@ -371,9 +371,9 @@ export default function MultichatPage() {
                   href="https://www.twitch.tv/subs/galindogamerbr"
                   target="_blank"
                   rel="noreferrer"
-                  title="Você é inscrito neste canal na Twitch"
+                  title={`Você é inscrito neste canal na Twitch (Tier ${Number(subscription.tier ?? "1000") / 1000}${subscription.gift ? ", presente" : ""})`}
                 >
-                  ✓ Inscrito · Tier {Number(subscription.tier ?? "1000") / 1000}{subscription.gift ? " (presente)" : ""}
+                  ★ Atualizar sub
                 </a>
               ) : (
                 <a
