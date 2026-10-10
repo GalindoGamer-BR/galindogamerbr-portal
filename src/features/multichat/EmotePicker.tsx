@@ -52,10 +52,13 @@ export function EmotePicker({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<TabId | null>(null);
   const [hint, setHint] = useState("");
+  // Filtro por plataforma (chips no topo): vale para todas as seções, inclusive os recentes.
+  const [only, setOnly] = useState<Emote["provider"] | null>(null);
   const body = useRef<HTMLDivElement>(null);
 
   const needle = query.trim().toLowerCase();
-  const matches = (e: Emote) => !needle || e.code.toLowerCase().includes(needle);
+  const matches = (e: Emote) => (!only || e.provider === only) && (!needle || e.code.toLowerCase().includes(needle));
+  const presentProviders = providerOrder.filter((p) => emotes.some((e) => e.provider === p));
   const byKey = new Map(emotes.map((e) => [emoteKey(e), e]));
   const recentEmotes = recent.map((key) => byKey.get(key)).filter((e): e is PickerEmote => !!e && matches(e));
 
@@ -134,6 +137,15 @@ export function EmotePicker({
           ✕
         </button>
       </div>
+      {presentProviders.length > 1 && (
+        <div className="mc-pk-filters" role="group" aria-label="Filtrar por plataforma">
+          {([null, ...presentProviders] as (Emote["provider"] | null)[]).map((p) => (
+            <button type="button" key={p ?? "all"} className="mc-pk-chip" aria-pressed={only === p} onClick={() => setOnly(p)}>
+              {p ? providerLabels[p] : "Todos"}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="mc-pk-tabs" role="tablist" aria-label="Categorias de emotes">
         {visibleTabs.map((t) => (
           <button

@@ -920,3 +920,8 @@
 .mc-pk-group + .mc-pk-title { margin-top: 6px; }
 
 .mc-pk-title .mc-pk-avatar { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; flex: 0 0 20px; }
+
+.mc-pk-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 10px 8px; }
+.mc-page .mc-pk-chip { padding: 3px 11px; border: 1px solid #494952; border-radius: 14px; background: transparent; color: #adadb8; font-size: 12px; font-weight: 600; }
+.mc-page .mc-pk-chip:hover { background: #ffffff0d; color: #efeff1; }
+.mc-page .mc-pk-chip[aria-pressed="true"] { background: #d2ac56; border-color: #d2ac56; color: #111; }
