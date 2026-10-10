@@ -979,3 +979,9 @@
 .mc-twitch-about p a { color: #bf94ff; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
 .mc-twitch-about p a:hover { color: #d9c2ff; }
 .mc-twitch-about p strong { color: #fff; font-weight: 750; }
+
+/* Correção: o span do ícone caía na área do texto. */
+.mc-interact-card > span:not(.mc-interact-icon) { grid-area: text; }
+.mc-interact-card > .mc-interact-icon { grid-area: icon; grid-row: 1 / span 2; align-self: start; }
+.mc-interact-card > strong { align-self: center; }
+.mc-interact-card > .mc-interact-icon { color: #bf94ff; font-size: inherit; line-height: 1; }
