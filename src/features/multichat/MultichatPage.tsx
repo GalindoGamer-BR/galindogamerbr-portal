@@ -50,11 +50,13 @@ const SEND_COOLDOWN_MS = 5000;
 // A página de inscrição da Twitch não pode ser embutida (X-Frame-Options: SAMEORIGIN), então abre numa janela
 // centralizada sobre o portal; se o navegador bloquear, o link abre em nova aba normalmente.
 const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
-function openSubsWindow(event: MouseEvent<HTMLAnchorElement>) {
+// "Dar um sub" (presente) é um modal da própria página do canal na Twitch, sem URL nem API pública: abre o canal.
+const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
+function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUrl) {
   const width = 520, height = 760;
   const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
   const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
-  const popup = window.open(twitchSubsUrl, "twitch-subs", `popup=yes,width=${width},height=${height},left=${left},top=${top}`);
+  const popup = window.open(url, "twitch-subs", `popup=yes,width=${width},height=${height},left=${left},top=${top}`);
   if (popup) { event.preventDefault(); popup.focus(); }
 }
 
@@ -399,10 +401,11 @@ export default function MultichatPage() {
                 </a>
               )}
               <a
-                href={twitchSubsUrl}
-                  onClick={openSubsWindow}
+                href={twitchChannelUrl}
+                onClick={(event) => openSubsWindow(event, twitchChannelUrl)}
                 target="_blank"
                 rel="noreferrer"
+                title="Abre o canal na Twitch, onde fica o botão Dar um sub"
               >
                 ♧ Dar um sub ↗
               </a>
