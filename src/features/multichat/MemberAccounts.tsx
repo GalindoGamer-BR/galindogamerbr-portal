@@ -14,10 +14,21 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
     setChat(await command<Accounts>("/api/accounts"));
     if (tiktokLinking) setTikTok(await command<TikTokConnectionState>("/api/tiktok/connection"));
   }, []);
+  const [notice, setNotice] = useState("");
   useEffect(() => { void load().catch(() => setError("Não foi possível carregar suas contas.")); }, [load]);
+  // Retorno do OAuth (?linked=<plataforma> ou ?oauth_error=<código>): mostra o resultado e limpa a URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const platform = params.get("platform") ?? params.get("linked");
+    const name = platform && platform in labels ? labels[platform as WritablePlatform] : "A conta";
+    if (params.has("linked")) setNotice(`${name} conectada ao chat.`);
+    else if (params.has("oauth_error")) setError(params.get("oauth_error") === "access_denied" ? "A autorização foi negada ou cancelada na plataforma." : "Não foi possível conectar a conta. Tente novamente.");
+    else return;
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
   async function link(platform: WritablePlatform) {
     setBusy(platform); setError("");
-    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start`); window.location.assign(url); }
+    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start?return=/conta`); window.location.assign(url); }
     catch (err) { setError((err as Error).message); setBusy(null); }
   }
   async function unlink(platform: WritablePlatform) {
@@ -53,6 +64,7 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
       </li>}
     </ul>
     {tiktokLinking && <TikTokConnection signedIn state={tiktok} onChange={setTikTok} />}
+    {notice && <p role="status" className="member-ok">{notice}</p>}
     {error && <p role="alert" className="member-error">{error}</p>}
   </section>;
 }
