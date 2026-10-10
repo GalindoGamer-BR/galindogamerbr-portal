@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { command, supabase, PortalSessionRequired } from "./services";
 import { tiktokLinking } from "./flags";
-import { MemberAccounts } from "./MemberAccounts";
 import { MemberProfileEditor } from "./MemberProfileEditor";
 import "./member.css";
 
@@ -49,7 +48,6 @@ export default function PortalMember() {
         <div className="member-actions">{tiktokLinking && <button disabled={busy} onClick={() => void reconnect()}>Atualizar foto e nome</button>}<button disabled={busy} onClick={() => setEditing(true)}>Editar</button><Link to="/conta" className="member-button">Gerenciar conta</Link><button disabled={busy} onClick={() => void logout()}>Sair</button></div>
       </header>
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
-      <MemberAccounts tiktokLogin={member.tiktokName} />
       {editing && <div className="member-modal" role="dialog" aria-modal="true" aria-label="Editar perfil" onClick={() => setEditing(false)} onKeyDown={event => { if (event.key === "Escape") setEditing(false); }}>
         <div className="member-modal-card" onClick={event => event.stopPropagation()}>
           <MemberProfileEditor key={member.name + (member.avatarUrl ?? "")} name={member.name} avatarUrl={member.avatarUrl} customized={member.customized ?? { name: false, avatar: false }} onChange={() => { setAvatarFailed(false); setReload(n => n + 1); }} />
