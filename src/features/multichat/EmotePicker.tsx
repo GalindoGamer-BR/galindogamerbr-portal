@@ -216,8 +216,8 @@ export function EmotePicker({
           <p className="mc-muted">{needle ? "Nenhum emote encontrado." : "Carregando emotes…"}</p>
         )}
         <p className="mc-muted mc-pk-foot">
-          Emote da Twitch só vai para a Twitch, e emote da Kick só para a Kick. Os de sub exigem a inscrição na
-          plataforma. BTTV vai como texto nas demais.
+          Emotes da Twitch, BTTV e FFZ só vão para a Twitch, e emote da Kick só para a Kick. Os de sub exigem a
+          inscrição na plataforma.
         </p>
       </div>
     </section>

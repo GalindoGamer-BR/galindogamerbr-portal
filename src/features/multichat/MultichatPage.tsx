@@ -274,10 +274,11 @@ export default function MultichatPage() {
     catch { return []; }
   });
   const sendPlatforms = connectedPlatforms.filter((p) => !sendOff.includes(p));
-  // Emote da Twitch só funciona na Twitch: a mensagem com um deles vai apenas para ela (outras plataformas mostrariam
-  // o código como texto). Ignora os "emoticons" com símbolos (:) B)), que apareceriam em mensagens comuns.
+  // Emote da Twitch, do BTTV e do FFZ só funciona na Twitch (BTTV e FFZ são extensões do navegador para a Twitch; Kick e
+  // YouTube mostrariam só o código): a mensagem com um deles vai apenas para a Twitch. Ignora os "emoticons" com símbolos
+  // (:) B)), que apareceriam em mensagens comuns.
   const twitchEmoteCodes = useMemo(
-    () => new Set(pickerEmotes.filter((e) => e.provider === "twitch" && /^[A-Za-z0-9_]{3,}$/.test(e.code)).map((e) => e.code)),
+    () => new Set(pickerEmotes.filter((e) => (e.provider === "twitch" || e.provider === "bttv" || e.provider === "ffz") && /^[A-Za-z0-9_]{3,}$/.test(e.code)).map((e) => e.code)),
     [pickerEmotes],
   );
   const hasTwitchEmote = message.split(/\s+/).some((word) => twitchEmoteCodes.has(word));
@@ -783,8 +784,8 @@ export default function MultichatPage() {
                   ? "Emotes da Twitch e da Kick não cabem na mesma mensagem. Envie separadamente."
                   : hasTwitchEmote
                     ? sendPlatforms.includes("twitch")
-                      ? "Emote da Twitch: esta mensagem vai só para a Twitch."
-                      : "Emote da Twitch só pode ser enviado à Twitch. Ligue a Twitch em Contas conectadas."
+                      ? "Emote da Twitch, BTTV ou FFZ: esta mensagem vai só para a Twitch."
+                      : "Emotes da Twitch, BTTV e FFZ só podem ser enviados à Twitch. Ligue a Twitch em Contas conectadas."
                     : "Emote da Kick: esta mensagem vai só para a Kick."}
               </p>
             )}
