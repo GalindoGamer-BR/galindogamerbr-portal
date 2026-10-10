@@ -270,6 +270,14 @@ export default function MultichatPage() {
     catch { return []; }
   });
   const sendPlatforms = connectedPlatforms.filter((p) => !sendOff.includes(p));
+  // Emote da Twitch só funciona na Twitch: a mensagem com um deles vai apenas para ela (outras plataformas mostrariam
+  // o código como texto). Ignora os "emoticons" com símbolos (:) B)), que apareceriam em mensagens comuns.
+  const twitchEmoteCodes = useMemo(
+    () => new Set(pickerEmotes.filter((e) => e.provider === "twitch" && /^[A-Za-z0-9_]{3,}$/.test(e.code)).map((e) => e.code)),
+    [pickerEmotes],
+  );
+  const hasTwitchEmote = message.split(/\s+/).some((word) => twitchEmoteCodes.has(word));
+  const targetPlatforms = hasTwitchEmote ? sendPlatforms.filter((p) => p === "twitch") : sendPlatforms;
   const toggleSendPlatform = (platform: Platform) => {
     setSendOff((current) => {
       const next = current.includes(platform) ? current.filter((p) => p !== platform) : [...current, platform];
@@ -292,7 +300,7 @@ export default function MultichatPage() {
           body: JSON.stringify({
             message,
             id: crypto.randomUUID(),
-            platforms: sendPlatforms,
+            platforms: targetPlatforms,
           }),
         },
       );
@@ -314,7 +322,7 @@ export default function MultichatPage() {
     !!session &&
     message.trim().length > 0 &&
     Array.from(message.trim()).length <= limit &&
-    sendPlatforms.length > 0 &&
+    targetPlatforms.length > 0 &&
     !sending &&
     cooldown === 0 &&
     !busy;
@@ -689,14 +697,15 @@ export default function MultichatPage() {
             <div className="mc-connected">
               <span>Contas conectadas</span>
               {connectedPlatforms.map((p) => {
-                const on = sendPlatforms.includes(p);
+                const on = targetPlatforms.includes(p);
+                const blockedByEmote = hasTwitchEmote && p !== "twitch";
                 return (
                   <button
                     key={p}
                     type="button"
                     className={"mc-send-target" + (on ? " mc-send-target-on" : "")}
                     aria-pressed={on}
-                    title={on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
+                    title={blockedByEmote ? `Emote da Twitch: esta mensagem não vai para ${labels[p]}.` : on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
                     aria-label={`Enviar para ${labels[p]}`}
                     onClick={() => toggleSendPlatform(p)}
                   >
@@ -706,6 +715,13 @@ export default function MultichatPage() {
               })}
               {!connectedPlatforms.length && <span className="mc-muted">nenhuma (use Conexões, no topo)</span>}
             </div>
+            {hasTwitchEmote && (
+              <p className="mc-muted" role="status">
+                {sendPlatforms.includes("twitch")
+                  ? "Emote da Twitch: esta mensagem vai só para a Twitch."
+                  : "Emote da Twitch só pode ser enviado à Twitch. Ligue a Twitch em Contas conectadas."}
+              </p>
+            )}
             <div className="mc-send-results" aria-live="polite">
               {results.map((r) => (
                 <span
