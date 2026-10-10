@@ -8,6 +8,20 @@ export const supabase = configured
   ? createClient(url, key, { auth: { flowType: "pkce" } })
   : null;
 export class PortalSessionRequired extends Error {}
+
+// Entrar com a Twitch já conecta a conta ao chat: o Supabase entrega o token da Twitch só na sessão recém-criada, e o
+// auth-service o valida (cliente, usuário e escopo) antes de guardar criptografado. Falhas aqui não afetam o login.
+if (supabase) {
+  const adopted = new Set<string>();
+  supabase.auth.onAuthStateChange((event, session) => {
+    const token = session?.provider_token;
+    if (event !== "SIGNED_IN" || !token || session.user.app_metadata?.provider !== "twitch" || adopted.has(token)) return;
+    adopted.add(token);
+    const body = JSON.stringify({ accessToken: token, ...(session.provider_refresh_token ? { refreshToken: session.provider_refresh_token } : {}) });
+    // Fora do callback: chamar métodos do Supabase de dentro dele pode travar a fila de eventos de autenticação.
+    setTimeout(() => void command("/api/accounts/twitch/adopt", { method: "POST", body }).catch(() => undefined), 0);
+  });
+}
 async function portalSession() {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {

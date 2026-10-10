@@ -70,7 +70,7 @@ export const statusSchema = z.object({
 export type ProviderStatus = z.infer<typeof statusSchema>;
 export type Accounts = Record<
   WritablePlatform,
-  { connected: boolean; username?: string }
+  { connected: boolean; username?: string; locked?: boolean }
 >;
 export type SendResult = {
   platform: Platform;
