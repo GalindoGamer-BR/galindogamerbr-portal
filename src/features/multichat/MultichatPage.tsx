@@ -647,7 +647,7 @@ export default function MultichatPage() {
               )}
             </div>
             <div className="mc-connected">
-              <span>Enviar para</span>
+              <span>Contas conectadas</span>
               {connectedPlatforms.map((p) => {
                 const on = sendPlatforms.includes(p);
                 return (
@@ -657,10 +657,10 @@ export default function MultichatPage() {
                     className={"mc-send-target" + (on ? " mc-send-target-on" : "")}
                     aria-pressed={on}
                     title={on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
+                    aria-label={`Enviar para ${labels[p]}`}
                     onClick={() => toggleSendPlatform(p)}
                   >
                     <PlatformIcon platform={p} />
-                    <span>{labels[p]}</span>
                   </button>
                 );
               })}

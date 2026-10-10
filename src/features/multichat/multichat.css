@@ -873,7 +873,9 @@
 
 .mc-message .mc-badge { width: 18px; height: 18px; vertical-align: -4px; margin-right: 3px; border-radius: 3px; }
 
-.mc-connected { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.mc-page .mc-send-target { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 20px; background: transparent; border: 1px solid #34343b; color: #8f8f9a; font-size: 12px; opacity: 0.7; }
-.mc-page .mc-send-target-on { background: #2a2733; border-color: #d2ac56aa; color: #efeff1; opacity: 1; }
-.mc-send-target:not(.mc-send-target-on) .mc-platform-icon { filter: grayscale(1); }
+
+.mc-page .mc-send-target { display: inline-flex; align-items: center; justify-content: center; padding: 3px; border: 0; border-radius: 6px; background: transparent; opacity: 0.35; filter: grayscale(1); transition: opacity 0.15s, filter 0.15s; }
+.mc-page .mc-send-target:hover { background: #ffffff0d; opacity: 0.7; }
+.mc-page .mc-send-target-on { opacity: 0.9; filter: none; }
+.mc-page .mc-send-target-on:hover { opacity: 1; }
+.mc-send-target .mc-platform-icon { width: 15px; height: 15px; }
