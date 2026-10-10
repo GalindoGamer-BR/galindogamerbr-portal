@@ -13,7 +13,7 @@ type Member = { tiktokName?: string | null; name: string; avatarUrl: string | nu
 const date = (value: string) => new Date(value).toLocaleDateString("pt-BR");
 export default function PortalMember() {
   const navigate = useNavigate();
-  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false), [actionsOpen, setActionsOpen] = useState(false), [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false), [actionsOpen, setActionsOpen] = useState(false), [photoMenuOpen, setPhotoMenuOpen] = useState(false), [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [avatarFailed, setAvatarFailed] = useState(false);
   // Abre a seção ao voltar do OAuth de vínculo (?linked / ?oauth_error), para mostrar o resultado.
   const [accountsOpen, setAccountsOpen] = useState(() => { const query = new URLSearchParams(window.location.search); return query.has("linked") || query.has("oauth_error"); });
@@ -43,7 +43,16 @@ export default function PortalMember() {
     else navigate("/login", { replace: true });
   }
   const actionsRef = useRef<HTMLDivElement>(null);
+  const photoMenuRef = useRef<HTMLDivElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!photoMenuOpen) return;
+    const onPointerDown = (event: PointerEvent) => { if (!photoMenuRef.current?.contains(event.target as Node)) setPhotoMenuOpen(false); };
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setPhotoMenuOpen(false); };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("pointerdown", onPointerDown); document.removeEventListener("keydown", onKeyDown); };
+  }, [photoMenuOpen]);
   useEffect(() => {
     if (!actionsOpen) return;
     const onPointerDown = (event: PointerEvent) => { if (!actionsRef.current?.contains(event.target as Node)) setActionsOpen(false); };
@@ -75,10 +84,15 @@ export default function PortalMember() {
     {!member ? !error && <p role="status">Carregando seu espaço…</p> : <>
       <header className="member-hero">
         <div className="member-identity">
-          <button type="button" className="member-avatar-edit" disabled={busy} onClick={() => photoInput.current?.click()} aria-label="Trocar foto" title="Trocar foto">
+          <div ref={photoMenuRef} className="member-photo"><button type="button" className="member-avatar-edit" disabled={busy} aria-haspopup="menu" aria-expanded={photoMenuOpen} onClick={() => setPhotoMenuOpen(open => !open)} aria-label="Opções da foto" title="Opções da foto">
             <span className="member-avatar">{member.avatarUrl && !avatarFailed ? <img src={member.avatarUrl} alt={`Foto de ${member.name}`} referrerPolicy="no-referrer" onError={() => setAvatarFailed(true)} /> : <span aria-label="Foto indisponível">{member.name.slice(0, 1).toUpperCase()}</span>}</span>
             <span className="member-avatar-overlay" aria-hidden="true"><CameraIcon className="member-camera" /></span>
           </button>
+          {photoMenuOpen && <div role="menu" className="member-menu-list member-photo-menu">
+            <button role="menuitem" type="button" onClick={() => { setPhotoMenuOpen(false); photoInput.current?.click(); }}>Enviar foto</button>
+            {member.customized?.avatar && <button role="menuitem" type="button" className="member-menu-danger" onClick={() => { setPhotoMenuOpen(false); void removePhoto(); }}>Remover foto</button>}
+          </div>}
+          </div>
           <input ref={photoInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => { pickPhoto(event.target.files?.[0]); event.target.value = ""; }} />
           <div><span className="member-eyebrow">Seu lugar na comunidade</span><h1>Olá, {member.name}.</h1><p>Bem-vindo à sua área de membro.</p><span className="member-badge">{member.tiktokConnected ? "TikTok vinculado" : "Perfil da comunidade"}</span>{member.isAdmin && <span className="member-badge member-badge-admin">Admin</span>}</div>
         </div>
@@ -88,7 +102,6 @@ export default function PortalMember() {
             <button type="button" disabled={busy} aria-haspopup="menu" aria-expanded={actionsOpen} onClick={() => setActionsOpen(open => !open)}>Ações <span aria-hidden="true" className="member-menu-caret">▾</span></button>
             {actionsOpen && <div role="menu" className="member-menu-list">
               <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); setEditing(true); }}>Mudar nome de exibição</button>
-              {member.customized?.avatar && <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); void removePhoto(); }}>Remover foto personalizada</button>}
               <button role="menuitem" type="button" className="member-menu-danger" onClick={() => { setActionsOpen(false); setManaging(true); }}>Excluir conta</button>
             </div>}
           </div>
