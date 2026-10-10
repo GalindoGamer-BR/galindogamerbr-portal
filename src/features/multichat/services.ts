@@ -96,7 +96,7 @@ export async function command<T>(
     if (details?.error === "tiktok_https_callback_required")
       throw new Error("O login TikTok precisa de um callback HTTPS configurado no servidor.");
     if (details?.error === "invalid_image")
-      throw new Error("Envie uma imagem PNG, JPEG ou WebP de até 512 KB.");
+      throw new Error("Envie uma imagem PNG, JPEG ou WebP de até 2 MB.");
     if (details?.error === "invalid_request")
       throw new Error("Confira os dados: o nome deve ter de 2 a 24 caracteres, sem símbolos especiais.");
     if (details?.error === "provider_not_configured")
