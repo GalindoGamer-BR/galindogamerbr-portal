@@ -3,9 +3,10 @@ import type { ChatMessage } from "./types";
 export const emoteSchema = z.object({
   id: z.string(),
   code: z.string(),
-  provider: z.enum(["twitch", "bttv"]),
+  provider: z.enum(["twitch", "bttv", "kick"]),
   // "channel": emote do canal (sub, follower, bits, BTTV do canal); "global": globais. Ausente = desconhecido.
   source: z.enum(["channel", "global"]).optional(),
+  subOnly: z.boolean().optional(),
   url: z
     .string()
     .url()
@@ -13,7 +14,7 @@ export const emoteSchema = z.object({
       const u = new URL(value);
       return (
         u.protocol === "https:" &&
-        ["static-cdn.jtvnw.net", "cdn.betterttv.net"].includes(u.hostname)
+        ["static-cdn.jtvnw.net", "cdn.betterttv.net", "files.kick.com"].includes(u.hostname)
       );
     }),
 });
@@ -36,8 +37,10 @@ export function messageParts(
               emote: {
                 id: f.emoteId,
                 code: f.text,
-                provider: "twitch" as const,
-                url: `https://static-cdn.jtvnw.net/emoticons/v2/${encodeURIComponent(f.emoteId)}/default/dark/2.0`,
+                provider: f.emoteProvider === "kick" ? ("kick" as const) : ("twitch" as const),
+                url: f.emoteProvider === "kick"
+                  ? `https://files.kick.com/emotes/${encodeURIComponent(f.emoteId)}/fullsize`
+                  : `https://static-cdn.jtvnw.net/emoticons/v2/${encodeURIComponent(f.emoteId)}/default/dark/2.0`,
               },
             },
           ]
@@ -52,3 +55,6 @@ function tokenize(text: string, catalog: Map<string, Emote>): MessagePart[] {
     .filter(Boolean)
     .map((text) => ({ text, emote: catalog.get(text) }));
 }
+
+// Chave estável de um emote (plataforma + id), usada nos recentes e para evitar repetição.
+export const emoteKey = (e: Pick<Emote, "provider" | "id">) => `${e.provider}:${e.id}`;

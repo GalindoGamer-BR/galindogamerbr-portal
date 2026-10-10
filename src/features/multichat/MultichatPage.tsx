@@ -25,6 +25,7 @@ import { rememberReturnTo, startTwitchLogin } from "./loginFlows";
 import { LoginModal } from "../../components/layout/LoginModal";
 import { useTwitchChannel } from "./useTwitchChannel";
 import { EmotePicker, type PickerEmote } from "./EmotePicker";
+import { emoteKey } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
 import { MultichatDialog } from "./MultichatDialog";
 import "./multichat.css";
@@ -280,7 +281,36 @@ export default function MultichatPage() {
     [pickerEmotes],
   );
   const hasTwitchEmote = message.split(/\s+/).some((word) => twitchEmoteCodes.has(word));
-  const targetPlatforms = hasTwitchEmote ? sendPlatforms.filter((p) => p === "twitch") : sendPlatforms;
+  // Emotes da Kick só aparecem (e só valem) com a Kick conectada e o envio para ela ligado.
+  const kickSendActive = sendPlatforms.includes("kick");
+  const kickEmoteByCode = useMemo(
+    () => new Map(emotes.emotes.filter((e) => e.provider === "kick" && /^[A-Za-z0-9_]{3,}$/.test(e.code) && !twitchEmoteCodes.has(e.code)).map((e) => [e.code, e])),
+    [emotes.emotes, twitchEmoteCodes],
+  );
+  const hasKickEmote = kickSendActive && message.split(/\s+/).some((word) => kickEmoteByCode.has(word));
+  const shownEmotes = useMemo(
+    () => (kickSendActive ? pickerEmotes : pickerEmotes.filter((e) => e.provider !== "kick")),
+    [kickSendActive, pickerEmotes],
+  );
+  // Cada plataforma só renderiza os próprios emotes: com emote da Twitch a mensagem vai só para ela, com emote da Kick só
+  // para a Kick; os dois na mesma mensagem não cabem em nenhuma plataforma.
+  const targetPlatforms = hasTwitchEmote && hasKickEmote ? [] : hasTwitchEmote ? sendPlatforms.filter((p) => p === "twitch") : hasKickEmote ? sendPlatforms.filter((p) => p === "kick") : sendPlatforms;
+  // Na Kick o emote é escrito como [emote:<id>:<nome>].
+  const kickText = hasKickEmote
+    ? message.split(/(\s+)/).map((word) => { const emote = kickEmoteByCode.get(word); return emote ? `[emote:${emote.id}:${word}]` : word; }).join("")
+    : undefined;
+  // Últimos emotes usados (chaves provider:id), guardados no navegador.
+  const [recentEmotes, setRecentEmotes] = useState<string[]>(() => {
+    try { const stored = JSON.parse(localStorage.getItem("mc:recent-emotes") ?? "[]"); return Array.isArray(stored) ? stored.filter((k): k is string => typeof k === "string").slice(0, 30) : []; }
+    catch { return []; }
+  });
+  const rememberEmote = (emote: PickerEmote) => {
+    setRecentEmotes((current) => {
+      const next = [emoteKey(emote), ...current.filter((k) => k !== emoteKey(emote))].slice(0, 30);
+      try { localStorage.setItem("mc:recent-emotes", JSON.stringify(next)); } catch { /* vale só nesta sessão */ }
+      return next;
+    });
+  };
   const toggleSendPlatform = (platform: Platform) => {
     setSendOff((current) => {
       const next = current.includes(platform) ? current.filter((p) => p !== platform) : [...current, platform];
@@ -304,6 +334,7 @@ export default function MultichatPage() {
             message,
             id: crypto.randomUUID(),
             platforms: targetPlatforms,
+            ...(kickText ? { overrides: { kick: kickText } } : {}),
           }),
         },
       );
@@ -340,9 +371,11 @@ export default function MultichatPage() {
         : liveStatus?.isLive && liveStatus.videoId
           ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveStatus.videoId)}?autoplay=0`
           : null;
-  const insertEmote = (code: string) => {
+  const insertEmote = (emote: PickerEmote) => {
+    const code = emote.code;
     const input = composer.current;
     if (!session || !input) return;
+    rememberEmote(emote);
     const start = input.selectionStart;
     const end = input.selectionEnd;
     const prefix = message.slice(0, start);
@@ -626,7 +659,8 @@ export default function MultichatPage() {
           <form className="mc-composer" onSubmit={send}>
             {picker && (
               <EmotePicker
-                emotes={pickerEmotes}
+                emotes={shownEmotes}
+                recent={recentEmotes}
                 state={emotes.state}
                 notice={myEmotes.status === "needs_reauth" ? {
                   text: "Para usar seus emotes de inscrito, entre de novo com a Twitch e autorize o acesso aos emotes.",
@@ -701,14 +735,14 @@ export default function MultichatPage() {
               <span>Contas conectadas</span>
               {connectedPlatforms.map((p) => {
                 const on = targetPlatforms.includes(p);
-                const blockedByEmote = hasTwitchEmote && p !== "twitch";
+                const blockedByEmote = (hasTwitchEmote || hasKickEmote) && sendPlatforms.includes(p) && !on;
                 return (
                   <button
                     key={p}
                     type="button"
                     className={"mc-send-target" + (on ? " mc-send-target-on" : "")}
                     aria-pressed={on}
-                    title={blockedByEmote ? `Emote da Twitch: esta mensagem não vai para ${labels[p]}.` : on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
+                    title={blockedByEmote ? `Por causa dos emotes, esta mensagem não vai para ${labels[p]}.` : on ? `Enviando para ${labels[p]}. Clique para desligar.` : `Não enviar para ${labels[p]}. Clique para ligar.`}
                     aria-label={`Enviar para ${labels[p]}`}
                     onClick={() => toggleSendPlatform(p)}
                   >
@@ -718,11 +752,15 @@ export default function MultichatPage() {
               })}
               {!connectedPlatforms.length && <span className="mc-muted">nenhuma (use Conexões, no topo)</span>}
             </div>
-            {hasTwitchEmote && (
+            {(hasTwitchEmote || hasKickEmote) && (
               <p className="mc-muted" role="status">
-                {sendPlatforms.includes("twitch")
-                  ? "Emote da Twitch: esta mensagem vai só para a Twitch."
-                  : "Emote da Twitch só pode ser enviado à Twitch. Ligue a Twitch em Contas conectadas."}
+                {hasTwitchEmote && hasKickEmote
+                  ? "Emotes da Twitch e da Kick não cabem na mesma mensagem. Envie separadamente."
+                  : hasTwitchEmote
+                    ? sendPlatforms.includes("twitch")
+                      ? "Emote da Twitch: esta mensagem vai só para a Twitch."
+                      : "Emote da Twitch só pode ser enviado à Twitch. Ligue a Twitch em Contas conectadas."
+                    : "Emote da Kick: esta mensagem vai só para a Kick."}
               </p>
             )}
             <div className="mc-send-results" aria-live="polite">

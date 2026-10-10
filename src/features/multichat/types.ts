@@ -24,7 +24,7 @@ export const messageSchema = z.object({
   metadata: z
     .object({
       fragments: z
-        .array(z.object({ text: z.string(), emoteId: z.string().optional() }))
+        .array(z.object({ text: z.string(), emoteId: z.string().optional(), emoteProvider: z.enum(["twitch", "kick"]).optional() }))
         .max(1000)
         .optional(),
       badges: z.array(z.string()).optional(),

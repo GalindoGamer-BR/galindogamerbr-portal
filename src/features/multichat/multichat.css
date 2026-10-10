@@ -887,3 +887,26 @@
 
 .mc-channel-game { display: block; margin-top: 2px; font-size: 13px; font-weight: 600; color: #bf94ff; }
 .mc-twitch-about p { white-space: pre-line; margin-bottom: 0; line-height: 1.6; color: #dcdce2; }
+
+.mc-emote-group { margin: 10px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #adadb8; }
+
+/* Seletor de emotes no estilo da Kick: busca no topo, abas de ícones e lista única com seções. */
+.mc-emote-picker.mc-pk { display: flex; flex-direction: column; overflow: hidden; height: min(460px, 70dvh); max-height: none; padding: 0; }
+.mc-pk-search { display: flex; align-items: center; gap: 10px; margin: 10px 10px 4px; padding: 0 6px 0 12px; border: 1px solid #494952; border-radius: 10px; background: #0e0e10; color: #adadb8; }
+.mc-pk-search svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.mc-emote-picker .mc-pk-search input { margin: 0; width: 100%; padding: 11px 0; border: 0; background: transparent; font-size: 14px; outline: none; }
+.mc-page .mc-pk-search button { border: 0; background: transparent; padding: 6px 8px; font-size: 14px; color: #adadb8; }
+.mc-pk-tabs { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid #303037; }
+.mc-page .mc-pk-tab { display: grid; place-items: center; width: 44px; height: 40px; padding: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #adadb8; }
+.mc-page .mc-pk-tab:hover { background: #ffffff0d; }
+.mc-page .mc-pk-tab[aria-selected="true"] { color: #fff; border-bottom-color: #d2ac56; }
+.mc-pk-tab svg { width: 22px; height: 22px; }
+.mc-pk-logo { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.mc-pk-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 10px 10px; }
+.mc-pk-title { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; font-size: 13px; font-weight: 650; color: #adadb8; }
+.mc-pk-title .mc-platform-icon { width: 14px; height: 14px; }
+.mc-pk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 2px; }
+.mc-page .mc-pk-grid button { display: grid; place-items: center; min-height: 44px; padding: 4px; border: 0; border-radius: 6px; background: transparent; }
+.mc-page .mc-pk-grid button:hover { background: #ffffff14; }
+.mc-pk-grid .mc-emote { height: 34px; max-width: 100%; margin: 0; }
+.mc-pk-foot { padding: 14px 0 0 !important; font-size: 11px; }

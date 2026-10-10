@@ -74,3 +74,30 @@ export function SettingsIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="8.8" cy="8.8" r="5.3" />
+      <path d="m12.8 12.8 4 4" />
+    </svg>
+  )
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M10 5.6V10l3 1.8" />
+    </svg>
+  )
+}
+
+export function GlobeIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M2.8 10h14.4M10 2.8c2 2 3 4.4 3 7.2s-1 5.2-3 7.2c-2-2-3-4.4-3-7.2s1-5.2 3-7.2Z" />
+    </svg>
+  )
+}
