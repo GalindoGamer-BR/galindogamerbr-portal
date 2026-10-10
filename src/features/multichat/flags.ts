@@ -8,5 +8,5 @@ export const youtubeLinking = import.meta.env.VITE_YOUTUBE_LINKING_ENABLED === "
 // Plataformas que a pessoa pode vincular e usar para enviar mensagens (o player e a leitura nao mudam).
 export const linkablePlatforms = writablePlatforms.filter((platform) => platform !== "youtube" || youtubeLinking);
 
-// Abas de filtro do chat: sem o YouTube enquanto a flag do YouTube estiver desligada.
-export const chatFilterPlatforms = platforms.filter((platform) => platform !== "youtube" || youtubeLinking);
+// Abas de filtro do chat: leitura, independente das flags de vinculação (o YouTube aparece sempre).
+export const chatFilterPlatforms = platforms;

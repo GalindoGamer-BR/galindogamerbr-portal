@@ -7,12 +7,12 @@ const load = async () => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("linking feature flags", () => {
-  it("are off by default: YouTube cannot be linked, Twitch and Kick can", async () => {
+  it("are off by default: YouTube cannot be linked, Twitch and Kick can; the YouTube chat filter is always shown", async () => {
     const flags = await load();
     expect(flags.tiktokLinking).toBe(false);
     expect(flags.youtubeLinking).toBe(false);
     expect([...flags.linkablePlatforms]).toEqual(["twitch", "kick"]);
-    expect([...flags.chatFilterPlatforms]).toEqual(["twitch", "kick", "tiktok"]);
+    expect([...flags.chatFilterPlatforms]).toEqual(["twitch", "youtube", "kick", "tiktok"]);
   });
   it("turn on only with the exact value 'true'", async () => {
     vi.stubEnv("VITE_YOUTUBE_LINKING_ENABLED", "true");
