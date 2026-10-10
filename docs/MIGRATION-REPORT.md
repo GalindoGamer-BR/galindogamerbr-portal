@@ -1,6 +1,6 @@
 # Relatório da migração — Cloudflare Pages + Oracle K3s + Supabase
 
-Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu repositório.
+Estado em 2026-10-10 (a seção "Atualização 2026-10-10" abaixo traz o que mudou desde 2026-10-08). Tudo em commits **locais** (sem push), cada projeto em seu repositório.
 
 ## Repositórios e branches
 | Repo | Branch | Resultado |
@@ -27,6 +27,17 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 - YAML de compose, Traefik e todos os manifests K8s parseiam; dependências do compose consistentes; variáveis exigidas existem no `.env.docker`.
 - Geração de SEO por rota (`scripts/seo-prerender.mjs`) conferida em diretório temporário.
 
+## Atualização 2026-10-10
+**Feito e validado localmente (Docker):**
+- Stack sem `HOSTED_SUPABASE_*`: login e Realtime locais; chat ao vivo conferido (assinatura anônima ao canal `live:galindogamerbr` recebeu os `provider_status` do reader). No Supabase **hospedado** o canal negava a leitura por falta da política `multichat_receive` (ver `LLM-GUIDE` invariante 15).
+- D1 → Postgres local (`galindogamerbr-api/scripts/import-d1-to-compose.ps1`): 13 tabelas, agenda real publicada, visitas, estatísticas e tokens de Instagram/TikTok.
+- Banco: removida a migration antiga que recriava `public.tiktok_sessions` a cada subida (duplicata); em produção só existe `multichat.tiktok_sessions`.
+- Rotas novas do `portal-api`: `/api/multichat-badges`, `/api/twitch-channel`, `/api/youtube-channel`, `/api/youtube-last-live`; `/api/multichat-emotes` ganhou Kick (snapshot), FFZ, `source`, `kind` e `tier`. `auth-service`: `GET /api/accounts/twitch/emotes` (escopo `user:read:emotes`). `command`: `overrides.kick`. `reader`: Twitch sem filtro de live e emotes da Kick como `fragments`.
+- Varredura de segredos nos 9 repositórios (arquivos versionados e todo o histórico): nenhum achado (só um valor de exemplo em `.dev.vars.example`).
+- Testes: `auth-service` 28, `command` 28, `reader` 38, `portal-api` 65, `fs25-mods-sync` 17, `portal` 19.
+
+**Ainda não validado / pendente:** política do Realtime no Supabase hospedado; virada do manifest dos mods (Azure parado; plano em `fs25-mods-sync/README.md`); versão nova do app ModSync com `FS25_MANIFEST_URL` do Oracle; métricas de ociosidade da VM Oracle; ajuste do `.dev.vars.example` legado do portal.
+
 ## NÃO validado (depende de infraestrutura ou credenciais)
 - `kubectl apply` em um cluster real (só `kubeconform` foi executado) e execução das imagens em arm64 de verdade.
 - Paridade fina de respostas da `galindogamerbr-api` com as Pages Functions antigas (rotas testadas contra Postgres real, mas não comparadas lado a lado com o D1 de produção).
@@ -38,7 +49,7 @@ Estado em 2026-10-08. Tudo em commits **locais** (sem push), cada projeto em seu
 
 ## Pontos de atenção
 1. **Ordem de deploy dos dados**: aplicar migrations (auth-service → multichat-command → galindogamerbr-api → fs25) em staging antes; as migrations *movem* tabelas de `public` para schemas próprios (`ALTER TABLE … SET SCHEMA`). O command/auth-service antigos leem `public.*`: fazer a troca de serviços e das tabelas no mesmo passo (ou criar views temporárias em `public`).
-2. **Importar o D1**: `npm run import:d1 -- --from-d1` (dry run) e depois `--apply`, no repo `galindogamerbr-api` — somente leitura no D1, uma transação, idempotente; imprime o `ADMIN_EMAILS`. Validado contra o Postgres local com dados de exemplo (ids, sequências, blocos da programação). Ainda não executado contra o D1 real.
+2. **Importar o D1**: `npm run import:d1 -- --from-d1` (dry run) e depois `--apply`, no repo `galindogamerbr-api` — somente leitura no D1, uma transação, idempotente; imprime o `ADMIN_EMAILS`. Validado contra o Postgres local com dados de exemplo (ids, sequências, blocos da programação). Simulação conferida contra o D1 real (13 tabelas) e import aplicado no Postgres local com `scripts/import-d1-to-compose.ps1`.
 3. **Admin**: não há mais cookie `ggb_session` nem rotas `/api/auth/*`. O portal usa a sessão do Supabase e envia o Bearer; a `galindogamerbr-api` valida o JWT e a role `admin` (SQL). Sessões antigas deixam de valer. O `admin_allowlist` do D1 só indica quem deve receber a role.
 4. **PostgREST**: os schemas `auth_service` e `multichat` precisam estar em *Exposed schemas* (acesso só para `service_role`) porque auth-service e command usam `supabase-js`.
 5. **Segredos compartilhados** (iguais entre serviços): `TOKEN_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, `INTERNAL_WAKE_SECRET`, `SUPABASE_JWT_*`, `ORIGIN_AUTH_SECRET` — ver `k8s-platform/README.md`.

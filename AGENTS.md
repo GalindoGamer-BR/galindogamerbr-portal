@@ -16,6 +16,8 @@ Sempre use `--env-file .env.docker`. Portal: `http://127.0.0.1:5173`; gateway: `
 
 ## Estrutura relevante
 - `src/features/multichat/` — chat (`MultichatPage.tsx`, `useMultichat.ts`, `ChatVirtualList.tsx`, `types.ts`), login/conta (`PortalLogin`, `PortalAccount`, `PortalMember`), **`flags.ts`** (feature flags), `services.ts` (`command`, `publicGet`, `publicCommand`).
+- `src/components/layout/` — navbar (`Header`, `AccountMenu`, `MobileMenu`), `LoginModal` e `useNavSession` (sessão, nome e foto; logout fica na página, exceto `/admin`, `/membro` e `/conta`). Ícones em `src/components/ui/Icons.tsx`.
+- `src/features/multichat/` (além do acima) — `EmotePicker.tsx` (seletor estilo Kick), `useEmotes`/`useMyEmotes`/`useBadges`/`useTwitchChannel`/`useYoutubeChannel`/`useYoutubeLastLive` (dados públicos e do membro), `loginFlows.ts` (início do OAuth e retorno à página de origem), `RichText.tsx`/`parseRich.ts` (negrito e links das descrições), `chatColors.ts` (contraste dos nomes), `MemberAccounts`/`AccountSettings`/`MemberProfileEditor` (área do membro).
 - `src/App.tsx` — rotas (`/live` é o multichat; `/multichat` redireciona 301 em `public/_redirects`).
 - `functions/[[path]].ts` — única Pages Function: proxy para o backend (`ALLOWED`: `/api/`, `/oauth/`, `/webhooks/`, `/discord`).
 - `compose.yaml`, `docker/` — stack local (Supabase, serviços, Traefik, mods).
@@ -27,3 +29,7 @@ Sempre use `--env-file .env.docker`. Portal: `http://127.0.0.1:5173`; gateway: `
 - Mensagens do chat sempre passam por `messageSchema`/`parseHistory` e `appendMessages` (ordena por timestamp, deduplica, limite 1000).
 - O Vite roda com polling (`VITE_USE_POLLING`) por causa do volume do Docker no Windows; se o código servido estiver antigo, recrie o `portal`.
 - Textos de UI em português.
+- **Emote só na plataforma que o desenha:** código Twitch, BTTV ou FFZ → mensagem só para a Twitch; Kick → só para a Kick (texto da Kick em `overrides.kick`). Ver `docs/LLM-GUIDE.md` seção 6.1.
+- Emotes que o usuário não pode usar ficam visíveis, com cadeado e motivo, e não são inseridos. Ao mudar o formato de `/api/multichat-emotes`, aumente o `?v=N` em `useEmotes.ts` (a resposta tem cache de 1 h no navegador).
+- Um hook que usa `player` ou `liveStatus` em `MultichatPage.tsx` vem **depois** da declaração deles; o teste `MultichatPage.render.test.ts` pega o erro que o `tsc` não pega.
+- Não use `↗`, `→` nem `←` em textos: há ícones (`BackIcon`, `HomeIcon`...) em `components/ui/Icons.tsx`.
