@@ -75,3 +75,11 @@ test-results/
 # Dados locais do compose
 .env.docker
 tunnel.env
+
+# Segredos e credenciais: nunca versionar (modelos ficam em *.example)
+*.env
+id_rsa*
+kubeconfig*
+secrets.*.json
+
+!*.example
