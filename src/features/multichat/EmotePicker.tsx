@@ -58,14 +58,19 @@ export function EmotePicker({
 
   const sections: Section[] = [];
   if (recentEmotes.length) sections.push({ id: "recent", tab: "recent", title: "Utilizado com frequência", emotes: recentEmotes });
-  const mine = emotes.filter((e) => e.mine && matches(e));
-  if (mine.length) sections.push({ id: "mine", tab: "mine", title: "Meus emotes · Twitch", provider: "twitch", emotes: mine });
+  // "Meus emotes" são só os de outros canais (inscrições em outros streamers etc.). Os globais e os do canal que o
+  // usuário também tem ficam nas suas seções, para cada emote aparecer uma vez só.
+  const mine = emotes.filter((e) => e.mine && !e.source && matches(e));
+  if (mine.length) sections.push({ id: "mine", tab: "mine", title: "Meus emotes · outros canais", provider: "twitch", emotes: mine });
   for (const [tab, label] of [["channel", "Canal"], ["global", "Global"]] as const) {
     for (const provider of providerOrder) {
       const list = emotes.filter(
-        (e) => e.provider === provider && matches(e) && (tab === "channel" ? e.source === "channel" : e.source !== "channel"),
+        (e) => e.provider === provider && matches(e) && (tab === "channel" ? e.source === "channel" : e.source === "global" || (!e.source && !e.mine)),
       );
-      if (list.length) sections.push({ id: `${tab}-${provider}`, tab, title: `${label} · ${providerLabels[provider]}`, provider, emotes: list });
+      // A Twitch lista alguns globais duas vezes (ids diferentes, mesmo nome): mostra cada nome uma vez.
+      const seen = new Set<string>();
+      const unique = list.filter((e) => (seen.has(e.code) ? false : (seen.add(e.code), true)));
+      if (unique.length) sections.push({ id: `${tab}-${provider}`, tab, title: `${label} · ${providerLabels[provider]}`, provider, emotes: unique });
     }
   }
 
