@@ -28,7 +28,7 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
   }, []);
   async function link(platform: WritablePlatform) {
     setBusy(platform); setError("");
-    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start?return=/conta`); window.location.assign(url); }
+    try { const { url } = await command<{ url: string }>(`/oauth/${platform}/start?redirect_uri=conta`); window.location.assign(url); }
     catch (err) { setError((err as Error).message); setBusy(null); }
   }
   async function unlink(platform: WritablePlatform) {
