@@ -92,7 +92,7 @@ export default function PortalLogin() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "twitch",
-        options: { scopes: "user:read:email user:write:chat user:read:subscriptions", redirectTo: window.location.origin + "/login" }
+        options: { scopes: "user:read:email user:write:chat user:read:subscriptions user:read:follows", redirectTo: window.location.origin + "/login" }
       });
       if (error) throw error;
     } catch (err) { setError((err as Error).message); setBusy(false); }

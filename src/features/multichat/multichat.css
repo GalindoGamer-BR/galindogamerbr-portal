@@ -228,6 +228,11 @@
   outline: 2px solid #bf94ff;
   outline-offset: 2px;
 }
+.mc-btn-icon-only {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
 .mc-btn-icon {
   width: 16px;
   height: 16px;

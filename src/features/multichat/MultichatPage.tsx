@@ -52,6 +52,11 @@ const StarIcon = ({ filled }: { filled?: boolean }) => (
     <path d="M10 2.2l2.4 5 5.4.7-4 3.8 1 5.4L10 14.5l-4.8 2.6 1-5.4-4-3.8 5.4-.7z" />
   </svg>
 );
+const HeartIcon = ({ filled }: { filled?: boolean }) => (
+  <svg className="mc-btn-icon" viewBox="0 0 20 20" aria-hidden="true" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
+    <path d="M10 17.3S2.8 13 2.8 7.8C2.8 5.5 4.5 3.9 6.5 3.9c1.4 0 2.8.8 3.5 2.1.7-1.3 2.1-2.1 3.5-2.1 2 0 3.7 1.6 3.7 3.9 0 5.2-7.2 9.5-7.2 9.5z" />
+  </svg>
+);
 const GiftIcon = () => (
   <svg className="mc-btn-icon" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
     <rect x="2.5" y="7" width="15" height="3.5" rx="1" /><path d="M3.5 10.5V17h13v-6.5M10 7v10M10 7C8 7 6.5 6 6.5 4.7 6.5 3.6 7.3 3 8.2 3 9.2 3 10 4.3 10 7zm0 0c2 0 3.5-1 3.5-2.3C13.5 3.6 12.7 3 11.8 3 10.8 3 10 4.3 10 7z" />
@@ -168,13 +173,13 @@ export default function MultichatPage() {
     };
   }, []);
   // Inscrição na Twitch (mesma informação que a Twitch mostra). Só consulta com a conta Twitch conectada ao chat.
-  const [subscription, setSubscription] = useState<{ status: string; tier?: string; gift?: boolean } | null>(null);
+  const [subscription, setSubscription] = useState<{ status: string; tier?: string; gift?: boolean; following?: boolean | null } | null>(null);
   const twitchConnected = accounts.twitch.connected;
   useEffect(() => {
     setSubscription(null);
     if (!session || !twitchConnected) return;
     let active = true;
-    void command<{ status: string; tier?: string; gift?: boolean }>("/api/accounts/twitch/subscription")
+    void command<{ status: string; tier?: string; gift?: boolean; following?: boolean | null }>("/api/accounts/twitch/subscription")
       .then(value => { if (active) setSubscription(value); })
       .catch(() => undefined);
     return () => { active = false; };
@@ -389,16 +394,34 @@ export default function MultichatPage() {
               </span>
             </div>
             <div className="mc-support">
+              {subscription?.following ? (
+                <span className="mc-btn mc-btn-icon-only mc-btn-secondary" title="Você segue este canal na Twitch" role="img" aria-label="Você segue este canal na Twitch">
+                  <HeartIcon filled />
+                </span>
+              ) : (
+                <a
+                  className="mc-btn mc-btn-icon-only mc-btn-secondary"
+                  href={twitchChannelUrl}
+                  onClick={(event) => openSubsWindow(event, twitchChannelUrl)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Seguir na Twitch (abre o canal)"
+                  aria-label="Seguir na Twitch"
+                >
+                  <HeartIcon />
+                </a>
+              )}
               {subscription?.status === "subscribed" ? (
                 <a
-                  className="mc-btn mc-btn-secondary"
+                  className="mc-btn mc-btn-icon-only mc-btn-secondary"
                   href={twitchSubsUrl}
                   onClick={openSubsWindow}
                   target="_blank"
                   rel="noreferrer"
-                  title={`Você é inscrito neste canal na Twitch (Tier ${Number(subscription.tier ?? "1000") / 1000}${subscription.gift ? ", presente" : ""})`}
+                  title={`Você é inscrito neste canal na Twitch (Tier ${Number(subscription.tier ?? "1000") / 1000}${subscription.gift ? ", presente" : ""}). Clique para atualizar.`}
+                  aria-label="Você é inscrito. Atualizar sub."
                 >
-                  <StarIcon filled /> Atualizar sub
+                  <StarIcon filled />
                 </a>
               ) : (
                 <a className="mc-btn mc-btn-primary" href={twitchSubsUrl} onClick={openSubsWindow} target="_blank" rel="noreferrer">
