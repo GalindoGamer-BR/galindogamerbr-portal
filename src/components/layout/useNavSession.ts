@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { command, supabase } from '../../features/multichat/services'
 
 export type NavMember = { name: string; avatarUrl: string | null }
@@ -7,6 +7,7 @@ export type NavMember = { name: string; avatarUrl: string | null }
 // Estado de login para a navbar: sessão, nome/foto do membro e logout.
 export function useNavSession() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [signedIn, setSignedIn] = useState(false)
   const [member, setMember] = useState<NavMember | null>(null)
 
@@ -33,7 +34,8 @@ export function useNavSession() {
   async function logout() {
     if (!supabase) return
     const { error } = await supabase.auth.signOut()
-    if (!error) navigate('/', { replace: true })
+    // Fica na mesma página; só sai de áreas que exigem login (admin e área do membro).
+    if (!error && /^\/(admin|membro|conta)(\/|$)/.test(pathname)) navigate('/', { replace: true })
   }
 
   return { signedIn, member, logout }
