@@ -1,5 +1,5 @@
 import { TikTokChatConnection } from "./TikTokChatConnection";
-import { HelpIcon, HomeIcon, SettingsIcon } from "../../components/ui/Icons";
+import { HelpIcon, HomeIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
@@ -334,9 +334,6 @@ export default function MultichatPage() {
           >
             <HelpIcon />
           </button>
-          <button className="mc-icon-btn" onClick={() => setSettings(true)} title="Contas conectadas ao chat">
-            <SettingsIcon /> <span>Conexões</span>
-          </button>
           {session ? (
             <MultichatUserMenu member={navMember} onLogout={() => void navLogout()} />
           ) : (
@@ -525,12 +522,6 @@ export default function MultichatPage() {
               <h2>Chat da comunidade</h2>
               <span className="mc-muted">{chat.connection}</span>
             </div>
-            <button
-              onClick={() => setSettings(true)}
-              aria-label="Configurações de conexões"
-            >
-              ⚙
-            </button>
           </div>
           <nav className="mc-chat-tabs" aria-label="Filtrar mensagens">
             {(["all", ...chatFilterPlatforms] as const).map((p) => (
