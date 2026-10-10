@@ -142,7 +142,6 @@ export default function MultichatPage() {
   const emotes = useEmotes();
   const badges = useBadges();
   const twitchChannel = useTwitchChannel();
-  const youtubeChannel = useYoutubeChannel(player === "youtube");
   const myEmotes = useMyEmotes(!!session);
   // Seus emotes (inscrições etc.) primeiro, marcados; o restante do catálogo sem repetir os ids.
   const pickerEmotes = useMemo<PickerEmote[]>(() => {
@@ -186,6 +185,7 @@ export default function MultichatPage() {
   const liveStatus = useLiveStatus();
   // Sem live no YouTube, o player mostra o arquivo da última live encerrada.
   const youtubeLastLive = useYoutubeLastLive(player === "youtube" && !liveStatus?.isLive);
+  const youtubeChannel = useYoutubeChannel(player === "youtube");
   const refreshAccounts = async () => {
     const data = await command<Accounts>("/api/accounts");
     setAccounts(data);
