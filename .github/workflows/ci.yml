@@ -43,6 +43,11 @@ jobs:
         run: npx vite build && node scripts/seo-prerender.mjs dist
         env:
           # Mesmo interruptor do deploy: o dist/ gerado aqui e o que o deploy.yml publica.
+          # Config publica do front (login/chat): a chave publishable e publica por definicao. Sem elas o
+          # login nao funciona, porque o cliente do Supabase nao e criado (services.ts).
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_MULTICHAT_COMMAND_URL: ${{ vars.VITE_MULTICHAT_COMMAND_URL }}
           VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
           VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
 
