@@ -2,21 +2,12 @@ name = "galindogamerbr-portal"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-05-01"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "galindogamerbr_hub"
-database_id = "00000000-0000-0000-0000-000000000000" # placeholder — id real só no working tree local, nunca commitado (skip-worktree ativo)
-migrations_dir = "migrations"
-
-[[kv_namespaces]]
-binding = "PUBLIC_CACHE"
-id = "PENDING_KV_NAMESPACE_ID" # placeholder — id real injetado no deploy via secret CLOUDFLARE_KV_NAMESPACE_ID (ver deploy.yml)
-preview_id = "f5c7ed1056a243bc9df10f0661762f91"
-
+# Sem bindings D1/KV: o Pages e so frontend + o proxy functions/[[path]].ts (nao usa banco nem KV).
+# O proxy envia as chamadas /api, /oauth, /webhooks e /discord para a VM (Cloudflare Tunnel) com o header x-origin-auth.
+# ORIGIN_AUTH_SECRET e SECRET do Pages (nao fica aqui): scripts/setup-pages.sh do deploy-platform.
 [vars]
-SESSION_COOKIE_NAME = "ggb_session"
-OTP_EXPIRY_MINUTES = "10"
 ENVIRONMENT = "production"
+API_ORIGIN = "https://origin.galindogamerbr.com.br"
 
 # Workers Logs da Cloudflare — persiste console.log/warn/error de cada
 # invocação (consultável em Workers & Pages → galindogamerbr-portal →
