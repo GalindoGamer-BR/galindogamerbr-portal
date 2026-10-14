@@ -3,8 +3,10 @@ import { useTilt } from '../../hooks/useTilt'
 
 // A arte é exibida inteira (object-contain sobre fundo escuro) — igual ao
 // site atual, que corrigiu explicitamente um bug de "cover" cortando as artes.
-export function GameCard({ game }: { game: Game }) {
+// `fallbackImage`: usada enquanto o jogo não tem arte própria (game.image vazio), ex.: a miniatura do vídeo mais recente.
+export function GameCard({ game, fallbackImage }: { game: Game; fallbackImage?: string }) {
   const tiltRef = useTilt<HTMLAnchorElement>()
+  const image = game.image || fallbackImage
 
   return (
     <a
@@ -15,7 +17,11 @@ export function GameCard({ game }: { game: Game }) {
       className="group flex flex-col overflow-hidden rounded-lg border border-gold/30 bg-panel shadow-[0_0_0_4px_#070b10] transition-colors hover:border-gold/60"
     >
       <div className="flex min-h-[190px] items-center justify-center bg-[#070b10] p-3">
-        <img src={game.image} alt={game.title} width={1672} height={941} loading="lazy" className="w-full object-contain" />
+        {image ? (
+          <img src={image} alt={game.title} width={1672} height={941} loading="lazy" className="w-full object-contain" />
+        ) : (
+          <div className="aspect-video w-full" aria-hidden="true" />
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
         <div className="flex items-center gap-2">
