@@ -1,0 +1,159 @@
+type IconProps = { className?: string }
+
+const base = { viewBox: '0 0 20 20', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const
+const size = (className?: string) => className ?? 'inline-block h-4 w-4 shrink-0 align-[-2px]'
+
+// Ícone de voltar (chevron para a esquerda) e de início (casinha), em currentColor.
+export function BackIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M12.5 4.5 7 10l5.5 5.5" />
+    </svg>
+  )
+}
+
+export function HomeIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M3 9.2 10 3l7 6.2" />
+      <path d="M4.8 8.4V16h3.7v-4.3h3V16h3.7V8.4" />
+    </svg>
+  )
+}
+
+export function CameraIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M2.5 7.2c0-.9.7-1.7 1.7-1.7h1.4l1.1-1.6c.2-.3.5-.4.9-.4h4.8c.3 0 .6.1.8.4l1.1 1.6h1.5c.9 0 1.7.7 1.7 1.7v7c0 .9-.7 1.6-1.7 1.6H4.2c-.9 0-1.7-.7-1.7-1.6v-7Z" />
+      <circle cx="10" cy="10.6" r="2.9" />
+    </svg>
+  )
+}
+
+export function UserIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="7" r="3.2" />
+      <path d="M3.8 16.5c.6-3 3.1-4.7 6.2-4.7s5.6 1.7 6.2 4.7" />
+    </svg>
+  )
+}
+
+export function ChatIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M4.2 4h11.6c.9 0 1.7.8 1.7 1.7v6.6c0 .9-.8 1.7-1.7 1.7H9.4L5.8 17v-3H4.2c-.9 0-1.7-.8-1.7-1.7V5.7C2.5 4.8 3.3 4 4.2 4Z" />
+      <path d="M6.5 8h7M6.5 10.6h4.2" />
+    </svg>
+  )
+}
+
+export function LogoutIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M8 3.5H5.2c-.9 0-1.7.8-1.7 1.7v9.6c0 .9.8 1.7 1.7 1.7H8" />
+      <path d="M12.3 6.5 16 10l-3.7 3.5M16 10H8" />
+    </svg>
+  )
+}
+
+export function HelpIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M7.9 7.9a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.8M10 14v.01" />
+    </svg>
+  )
+}
+
+export function SettingsIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="2.6" />
+      <path d="M10 2.8v1.9M10 15.3v1.9M2.8 10h1.9M15.3 10h1.9M4.9 4.9l1.3 1.3M13.8 13.8l1.3 1.3M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3" />
+    </svg>
+  )
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="8.8" cy="8.8" r="5.3" />
+      <path d="m12.8 12.8 4 4" />
+    </svg>
+  )
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M10 5.6V10l3 1.8" />
+    </svg>
+  )
+}
+
+export function GlobeIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="10" cy="10" r="7.2" />
+      <path d="M2.8 10h14.4M10 2.8c2 2 3 4.4 3 7.2s-1 5.2-3 7.2c-2-2-3-4.4-3-7.2s1-5.2 3-7.2Z" />
+    </svg>
+  )
+}
+
+export function LockIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <rect x="4.5" y="9" width="11" height="8" rx="1.8" />
+      <path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
+    </svg>
+  )
+}
+
+export function SpeakerIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M3.5 8v4h2.8L10 15V5L6.3 8H3.5Z" />
+      <path d="M12.6 7.4a3.6 3.6 0 0 1 0 5.2M14.8 5.2a6.6 6.6 0 0 1 0 9.6" />
+    </svg>
+  )
+}
+
+export function StickerIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M4.2 3.5h11.6c.9 0 1.7.8 1.7 1.7v6.3L11.5 17.5H4.2c-.9 0-1.7-.8-1.7-1.7V5.2c0-.9.8-1.7 1.7-1.7Z" />
+      <path d="M17.5 11.5h-4.3c-.9 0-1.7.8-1.7 1.7v4.3" />
+      <circle cx="7.4" cy="8.2" r=".6" />
+      <circle cx="12.2" cy="8.2" r=".6" />
+      <path d="M7 11.6c1.6 1.4 3.2 1.4 4.6 0" />
+    </svg>
+  )
+}
+
+export function WindowIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <rect x="3" y="4.5" width="14" height="11" rx="1.8" />
+      <path d="M3 8h14" />
+    </svg>
+  )
+}
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M5.5 8.2a4.5 4.5 0 0 1 9 0c0 3.6 1.5 4.8 1.5 4.8H4s1.5-1.2 1.5-4.8Z" />
+      <path d="M8.4 15.6a1.8 1.8 0 0 0 3.2 0" />
+    </svg>
+  )
+}
+
+export function CrownIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <path d="M3 6.5 6.5 10 10 4.5 13.5 10 17 6.5 15.8 15H4.2L3 6.5Z" />
+    </svg>
+  )
+}

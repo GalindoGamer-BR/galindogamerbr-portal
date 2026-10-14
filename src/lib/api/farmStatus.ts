@@ -13,6 +13,6 @@ export type FarmStatus = {
 export type FarmStatusResponse = { ok: boolean; status: FarmStatus | null }
 
 export async function getFarmStatus(): Promise<FarmStatusResponse> {
-  const res = await fetch('/api/farm-status')
+  const res = await fetch('/api/farm-status', { cache: 'no-store' })
   return res.json() as Promise<FarmStatusResponse>
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Eyebrow } from '../ui/Eyebrow'
+import { BackIcon } from '../ui/Icons'
 
 type AdminHeaderProps = {
   title: string
@@ -19,8 +20,8 @@ export function AdminHeader({ title, email, onLogout, backTo }: AdminHeaderProps
         <div>
           <p className="text-sm text-muted">Logado como {email}.</p>
           {backTo && (
-            <Link to={backTo} className="mt-1 inline-block text-xs font-semibold uppercase text-gold hover:underline">
-              ← Voltar ao painel
+            <Link to={backTo} className="mt-1 inline-flex items-center gap-1 text-xs font-semibold uppercase text-gold hover:underline">
+              <BackIcon /> Voltar ao painel
             </Link>
           )}
         </div>

@@ -1,13 +1,15 @@
 import { NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from './navItems'
-import { SocialLinks } from './SocialLinks'
 
 type MobileMenuProps = {
   open: boolean
   onClose: () => void
+  signedIn: boolean
+  onLogin: () => void
+  onLogout: () => void
 }
 
-export function MobileMenu({ open, onClose }: MobileMenuProps) {
+export function MobileMenu({ open, onClose, signedIn, onLogin, onLogout }: MobileMenuProps) {
   if (!open) return null
 
   return (
@@ -27,7 +29,19 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
             {item.label}
           </NavLink>
         ))}
-        <SocialLinks className="mt-3 px-3" />
+        {signedIn ? (
+          <NavLink to="/membro" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Área do membro</NavLink>
+        ) : (
+          <button type="button" onClick={() => { onClose(); onLogin() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">Área do membro</button>
+        )}
+        {signedIn && (
+          <NavLink to="/live" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Multichat</NavLink>
+        )}
+        {signedIn && (
+          <button type="button" onClick={() => { onClose(); onLogout() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">
+            Sair
+          </button>
+        )}
       </nav>
     </div>
   )

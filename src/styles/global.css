@@ -21,6 +21,41 @@ body {
      um zoom gigante tentando cobrir a altura inteira da página). */
 }
 
+/* Barras de rolagem no tema do portal: trilho escuro (panel), polegar azul-acinzentado (line) que ganha o dourado da
+   marca ao passar o mouse. scrollbar-* cobre Firefox/Chromium atuais; ::-webkit-scrollbar, o Safari e Chromium antigos. */
+:root {
+  --scroll-track: #08111a;
+  --scroll-thumb: #243443;
+  --scroll-thumb-hover: #d9b14f;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+html {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
 h1,
 h2,
 h3 {

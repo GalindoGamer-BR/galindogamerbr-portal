@@ -17,6 +17,8 @@ dist-ssr
 .wrangler
 .dev.vars
 .env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +30,56 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Segredos e credenciais fora do .env
+*.pem
+*.key
+*.p12
+*.pfx
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+*.secret.yaml
+*.secret.yml
+tunnel.env
+.dev.vars.*
+!.dev.vars.example
+
+# Editor e sistema operacional
+*.swp
+*.swo
+Thumbs.db
+desktop.ini
+
+# Temporarios
+tmp/
+.tmp/
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Build, cobertura e caches (Node)
+coverage/
+.nyc_output/
+.vite/
+.cache/
+.eslintcache
+.turbo/
+*.tgz
+
+# Testes e relatorios
+playwright-report/
+test-results/
+
+# Dados locais do compose
+.env.docker
+tunnel.env
+
+# Segredos e credenciais: nunca versionar (modelos ficam em *.example)
+*.env
+id_rsa*
+kubeconfig*
+secrets.*.json
+
+!*.example

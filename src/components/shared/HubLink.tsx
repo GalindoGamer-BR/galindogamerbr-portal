@@ -17,7 +17,7 @@ function HubLinkContent({ icon, eyebrow, title, description }: Omit<HubLinkProps
       <span className="mt-5 text-xs font-semibold uppercase tracking-widest text-gold">{eyebrow}</span>
       <h3 className="mt-1 text-lg">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{description}</p>
-      <span className="mt-6 text-sm font-semibold text-white/70 transition group-hover:translate-x-1 group-hover:text-gold">Acessar →</span>
+      <span className="mt-6 text-sm font-semibold text-white/70 transition group-hover:translate-x-1 group-hover:text-gold">Acessar</span>
     </>
   )
 }

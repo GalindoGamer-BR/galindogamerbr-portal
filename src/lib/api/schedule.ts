@@ -1,3 +1,4 @@
+import { adminFetch } from './auth'
 export type PublicScheduleBlock = { dayOfWeek: number; startTime: string; endTime: string; note: string | null }
 export type PublicScheduleWeek = { cycleIndex: number; blocks: PublicScheduleBlock[] }
 export type PublicSchedule = { label: string | null; cycleLength: number; weeks: PublicScheduleWeek[] }
@@ -27,8 +28,7 @@ export type ScheduleVersionDetail = {
 }
 
 async function adminJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
-    credentials: 'include',
+  const res = await adminFetch(path, {
     headers: { 'content-type': 'application/json' },
     ...init,
   })

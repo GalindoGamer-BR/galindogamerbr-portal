@@ -16,7 +16,7 @@ const LINK_CARDS = [
     icon: '🚜',
     title: 'Fazenda Nova Aliança',
     text: 'Conheça o servidor, assista às regras e veja o que é necessário para participar da fazenda.',
-    cta: 'Conhecer a fazenda →',
+    cta: 'Conhecer a fazenda',
   },
   {
     step: '02',
@@ -24,7 +24,7 @@ const LINK_CARDS = [
     icon: '🤝',
     title: 'Comunidade',
     text: 'Encontre o Discord, WhatsApp, grupo VIP e todos os espaços oficiais da comunidade.',
-    cta: 'Ver comunidade →',
+    cta: 'Ver comunidade',
   },
   {
     step: '03',
@@ -32,7 +32,7 @@ const LINK_CARDS = [
     icon: '🎮',
     title: 'Conteúdos do canal',
     text: 'Fazenda Nova Aliança, Fúria Reborn, ETS2, SnowRunner e muito mais.',
-    cta: 'Conhecer os conteúdos →',
+    cta: 'Conhecer os conteúdos',
   },
 ] as const
 

@@ -34,7 +34,7 @@ export function LiveBanner() {
             rel="noopener noreferrer"
             className="shrink-0"
           >
-            Ver no YouTube ↗
+            Ver no YouTube
           </LinkButton>
         </div>
       </div>
@@ -50,7 +50,7 @@ export function LiveBanner() {
         <h3 className="text-2xl">Não está ao vivo agora</h3>
         <div>
           <LinkButton variant="red" href="https://www.youtube.com/@galindogamerbr" target="_blank" rel="noopener noreferrer">
-            Ver no YouTube ↗
+            Ver no YouTube
           </LinkButton>
         </div>
       </div>
@@ -91,7 +91,7 @@ export function LiveBanner() {
             rel="noopener noreferrer"
             className="shrink-0"
           >
-            Ver no YouTube ↗
+            Ver no YouTube
           </LinkButton>
         )}
       </div>

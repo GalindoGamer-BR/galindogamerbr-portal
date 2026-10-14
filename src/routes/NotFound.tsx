@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
+import { HomeIcon } from '../components/ui/Icons'
 
 export function NotFound() {
   return (
@@ -11,7 +12,7 @@ export function NotFound() {
           to="/"
           className="mt-8 inline-flex items-center gap-2 rounded-md bg-gold px-5 py-3 text-sm font-semibold uppercase tracking-wide text-bg transition hover:-translate-y-0.5 hover:brightness-110"
         >
-          Voltar ao início
+          <HomeIcon /> Voltar ao início
         </Link>
       </Container>
     </section>

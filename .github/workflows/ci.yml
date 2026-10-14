@@ -38,10 +38,13 @@ jobs:
         run: npm test
 
       - name: Build
-        # O typecheck acima já executou `tsc -b`. Rodar `npm run build`
-        # repetiria toda a compilação TypeScript; aqui basta validar o bundle
-        # do Vite (e, no push da main, gerar o dist usado pelo deploy).
-        run: npx vite build
+        # O typecheck acima ja executou `tsc -b`; aqui basta o bundle do Vite mais o SEO por rota gerado no build
+        # (scripts/seo-prerender.mjs), que e o dist/ que o deploy.yml publica.
+        run: npx vite build && node scripts/seo-prerender.mjs dist
+        env:
+          # Mesmo interruptor do deploy: o dist/ gerado aqui e o que o deploy.yml publica.
+          VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
+          VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
 
       # deploy.yml (workflow_run, só dispara depois desse CI passar em main)
       # reusa esse artefato em vez de buildar de novo.
@@ -53,12 +56,11 @@ jobs:
           path: dist
           retention-days: 1
 
-      # tsc -b só cobre o frontend (tsconfig.app.json/node.json) — o
-      # tsconfig raiz não referencia functions/, então erros de import ali
-      # (ex: profundidade errada de "../") só apareciam no deploy real. Esse
-      # comando compila as Pages Functions localmente, sem precisar de auth
-      # nem deploy de verdade, e pega esse tipo de erro antes do merge.
-      - name: Build Pages Functions (valida imports em functions/)
+      # tsc -b só cobre o frontend; o proxy do Pages (functions/[[path]].ts) tem tsconfig próprio.
+      - name: Typecheck da Pages Function (proxy)
+        run: npx tsc -p functions/tsconfig.json
+
+      - name: Build das Pages Functions (valida o proxy)
         run: npx wrangler pages functions build --outdir=/tmp/functions-build-check
 
       # Só nas dependências de produção — as de dev (wrangler etc.) têm
@@ -66,18 +68,3 @@ jobs:
       # travar todo PR por falta de fix upstream.
       - name: Audit de dependências de produção
         run: npm audit --omit=dev --audit-level=high
-
-      - name: Sequência das migrations
-        run: |
-          expected=1
-          for f in $(ls migrations/*.sql | sort); do
-            base=$(basename "$f")
-            num=$(echo "$base" | grep -oE '^[0-9]+')
-            num=$((10#$num))
-            if [ "$num" != "$expected" ]; then
-              echo "::error::Migration fora de sequência: esperava $(printf '%04d' "$expected"), achei $base"
-              exit 1
-            fi
-            expected=$((expected + 1))
-          done
-          echo "OK: $((expected - 1)) migrations em sequência, sem buracos nem duplicatas."

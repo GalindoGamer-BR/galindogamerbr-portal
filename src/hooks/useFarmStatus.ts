@@ -13,10 +13,7 @@ function readCache(): FarmStatusResponse | null {
   }
 }
 
-// Sem polling de propósito (ao contrário de useLiveStatus/useCommunityStats)
-// — o bot do Discord já fica atualizando a cada 30s por lá, aqui é só uma
-// consulta ao entrar em /fazenda. Hidrata do localStorage pra evitar o
-// flash "carregando" em quem já visitou antes.
+// Consulta o servidor ao montar o componente; o Worker busca os dados na hora.
 export function useFarmStatus(): { data: FarmStatusResponse | null; loading: boolean } {
   const [data, setData] = useState<FarmStatusResponse | null>(() => readCache())
   const [loading, setLoading] = useState(true)
@@ -25,7 +22,12 @@ export function useFarmStatus(): { data: FarmStatusResponse | null; loading: boo
     let active = true
     getFarmStatus()
       .then((response) => {
-        if (!active || !response.ok || !response.status) return
+        if (!active) return
+        if (!response.ok || !response.status) {
+          setData(null)
+          try { localStorage.removeItem(CACHE_KEY) } catch { /* Armazenamento indisponível. */ }
+          return
+        }
         setData(response)
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(response))
@@ -34,8 +36,8 @@ export function useFarmStatus(): { data: FarmStatusResponse | null; loading: boo
         }
       })
       .catch(() => {
-        // Mantém o último status válido. Sem cache, o card mostra o estado
-        // indisponível ao final da tentativa em vez de desaparecer da página.
+        if (active) setData(null)
+        try { localStorage.removeItem(CACHE_KEY) } catch { /* Armazenamento indisponível. */ }
       })
       .finally(() => {
         if (active) setLoading(false)
