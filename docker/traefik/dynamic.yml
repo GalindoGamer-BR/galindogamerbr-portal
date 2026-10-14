@@ -1,4 +1,4 @@
-# Mirrors k8s-platform/base/platform.yaml (Ingress) for local development.
+# Mirrors deploy-platform/Caddyfile (production routing) for local development.
 # /internal/* has no route on purpose: it only exists between containers.
 http:
   routers:

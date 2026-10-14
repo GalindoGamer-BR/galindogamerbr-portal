@@ -13,7 +13,7 @@ Estado em 2026-10-10 (a seção "Atualização 2026-10-10" abaixo traz o que mud
 | fs25-monitoring-worker (novo, cópia) | `main` | processo persistente de 30 s, estado no Postgres |
 | fs25-mods-sync (novo, cópia) | `main` | CronJob + API + PVC |
 | k8s-platform (novo) | `main` | namespace, cloudflared, Traefik Ingress, guia de instalação |
-`fs25-portal-proxy` não foi tocado (permanece Cloudflare Worker). Os projetos originais do GitLab/Azure e o D1/KV/Worker de produção estão intactos.
+`fs25-portal-proxy` foi removido do repositório em 2026-10-13 (o Worker já publicado na Cloudflare não foi apagado). Os projetos originais do GitLab/Azure e o D1/KV/Worker de produção estão intactos.
 
 ## Validado com Docker (2026-10-08)
 - `docker compose --env-file .env.docker up`: 11 serviços saudáveis (GoTrue, Realtime, auth-service, command, reader, portal-api, gateway Traefik, Vite, monitor FS25, mods-sync, nginx de mods); migrations dos 4 repos aplicadas em Postgres real (tabelas de `public` movidas para `auth_service`/`multichat`, dados preservados).
@@ -56,3 +56,6 @@ Estado em 2026-10-10 (a seção "Atualização 2026-10-10" abaixo traz o que mud
 6. **Legado a remover somente após validar**: `functions/` e `workers/social-stats-cron` (já removidos *apenas* na branch `refactor/pages-frontend-only`; a `feat/multichat` mantém tudo), D1/KV, Azure Functions. `compose.tiktok-tunnel.yaml` (o `compose.preview.yaml` e o proxy do preview foram removidos depois, em 2026-10-09) e `deploy-preview.yml` foram adaptados; `compose.tiktok-pilot.yaml` e `start-tiktok-pilot.ps1` foram removidos (o piloto dependia do `tiktok-worker`, já removido do command). O CI agora checa o proxy do Pages e o audit (`source-map-js` atualizado de 1.2.1 para 1.2.2).
 7. **Segredos locais**: `.env.docker` e `.dev.vars` contêm credenciais reais do painel FS25 (ignorados pelo git) — rotacionar após a migração.
 8. **Pendências conhecidas do plano**: `NetworkPolicy` para `/internal` só existe para o auth-service; limite do Supabase Free (500 MB) para o banco; `wrangler.toml` local (skip-worktree) ainda lista D1/KV.
+
+## Atualização 2026-10-13 — K3s abandonado
+A VM Oracle tem 1 GB de RAM: o K3s foi substituído por Docker Compose + deploy por SSH no repositório `deploy-platform` (Caddy único no lugar de Traefik+nginx; `k8s-platform` arquivado; `tiktok-browser` não é deployado). Teste de produção simulado (docker-in-docker de 880 MiB, Supabase fora): containers ~290 MiB sob ~1.700 req/s, sem OOM. Os `k8s/` de cada repo e o `image.yml` com `kubectl` ficaram obsoletos (o `image.yml` agora faz `ssh deploy@VM <servico> <sha>`). Não validado: VM Ubuntu real, arm64, `read_only` em todos os serviços, SSH do GitHub, Tunnel.

@@ -5,7 +5,7 @@
 > Estado descrito: 2026-10-10. Os repositórios são independentes (cada um com seu `.git`) e ficam lado a lado em `F:\Projects\GalindoGamer-BR\`.
 
 ## 0. TL;DR
-- Site de uma comunidade de games: **frontend estático** (Cloudflare Pages) + **backend em Node** (K3s na Oracle, ainda não implantado) + **Supabase** (Postgres/Auth/Realtime).
+- Site de uma comunidade de games: **frontend estático** (Cloudflare Pages) + **backend em Node** (VM Oracle de 1 GB com Docker Compose, ainda não implantado) + **Supabase** (Postgres/Auth/Realtime).
 - Funcionalidade principal nova: **multichat** em `/live` — junta os chats de Twitch, YouTube, Kick e TikTok numa linha do tempo e permite enviar mensagens a várias plataformas.
 - A página `/live` também traz **informações do canal** (título, categoria e descrição da Twitch; nome, inscritos e descrição do YouTube; a última live arquivada quando não há transmissão), **emotes** (Twitch, Kick, BTTV e FFZ, com bloqueio visível dos que o usuário não pode usar) e **badges** da Twitch. Ver seção 6.1.
 - Vinculação de contas (entrar com TikTok, sessão de envio ao TikTok, vincular YouTube) está **desligada por feature flag** por padrão. A **leitura** do chat não depende dessas flags.
@@ -21,12 +21,10 @@
 | `multichat-command` | Envio de mensagens, sessão TikTok, histórico `/api/chat/recent` | Node 22, Fastify | 3001 | `refactor/extract-auth-service` | `npm test` |
 | `multichat-reader` | Leitura dos chats, normalização, Realtime, histórico em memória | Node 22, Fastify, ws, `@grpc/grpc-js` | 3002 | `chore/k8s-deploy` | `npm test` |
 | `galindogamerbr-api` | API de conteúdo/estatísticas/webhooks/admin + jobs | Node 22, Hono, esbuild, vitest | 3004 | `feat/youtube-quota-guard` | `npm test` (`vitest run`) |
-| `k8s-platform` | Base do K3s, scripts de VM/tunnel, healthz, workflow de infra | YAML + bash | — | `feat/vm-bootstrap-and-healthz` | `kubeconform`, `actionlint`, `shellcheck` |
+| `deploy-platform` | Compose de produção, Caddy, scripts de VM/tunnel, deploy por SSH, healthz | YAML + bash | — | `main` | `docker compose config`, `actionlint`, `shellcheck` |
 | `fs25-monitoring-worker` | Monitor do servidor FS25 (30 s), estado no Postgres | Python | 3005 | `chore/gitignore` | `[NÃO TOCADO]` |
 | `fs25-mods-sync` | Sincronização de mods (CronJob + API + PVC) | Python | 3006 | `chore/gitignore` | `[NÃO TOCADO]` |
-| `tiktok-browser` (raiz) | Serviço Chromium do TikTok **para o K3s**: guarda as sessões no Postgres (`multichat.tiktok_browser_sessions`), tem `k8s/tiktok-browser.yaml` e imagem própria no GHCR | Node 22 | 3000 | `main` | `npm test` |
 
-**Atenção:** existem duas cópias do serviço Chromium. O compose local constrói a antiga, `multichat-command/tiktok-browser/` (sessões em disco); o K3s usa a do repositório `tiktok-browser` (sessões no Postgres). Antes de ligar o TikTok em produção, alinhe o compose à versão da raiz. Cada repositório tem um `AGENTS.md` com comandos e invariantes específicos. Este guia cobre o que atravessa repositórios.
 
 ## 2. Arquitetura
 
@@ -34,17 +32,17 @@
 Navegador ──► Cloudflare Pages (estático + functions/[[path]].ts = proxy)
                          │  /api, /oauth, /webhooks, /discord  (X-Origin-Auth)
                          ▼
-        Cloudflare Tunnel (cloudflared, pod) ──► Traefik (K3s) ──► Services
+        Cloudflare Tunnel (cloudflared) ──► Caddy (edge) ──► serviços (Docker Compose)
 ```
 
-Roteamento por prefixo mais longo (idêntico no gateway local `docker/traefik/dynamic.yml` e em `k8s-platform/base/platform.yaml`):
+Roteamento por prefixo mais longo (idêntico no gateway local `docker/traefik/dynamic.yml` e em `deploy-platform/Caddyfile`):
 
 | Caminho | Serviço |
 |---|---|
 | `/oauth/*`, `/api/account*`, `/api/accounts*`, `/api/member`, `/api/tiktok/connection` | `auth-service` |
 | `/api/chat/*`, `/api/tiktok/*` (exceto `/connection`), `/api/member/activity` | `multichat-command` |
 | `/webhooks/kick` | `multichat-reader` |
-| `/healthz` | `healthz` (nginx, só no K3s) |
+| `/healthz` | `edge` (Caddy serve `healthz/versions.json`) |
 | `/api/*`, `/webhooks/*`, `/discord` (restante) | `portal-api` (`galindogamerbr-api`) |
 | `/api/multichat-emotes`, `/api/multichat-badges`, `/api/twitch-channel`, `/api/youtube-channel`, `/api/youtube-last-live` (dentro do `/api/*` acima) | `portal-api`; públicas e com cache de borda |
 | `/api/accounts/twitch/{subscription,emotes,adopt}` (dentro de `/api/accounts*`) | `auth-service`; usam o token Twitch do próprio membro |
@@ -59,7 +57,7 @@ Um Postgres (Supabase) com **um schema por serviço**: `auth_service`, `multicha
 | Segredo | Quem usa | Observação |
 |---|---|---|
 | `TOKEN_ENCRYPTION_KEY` | `auth-service`, `command` | **Deve ser igual**; mudar invalida tokens guardados. AES-256-GCM, contexto `userId:plataforma`. |
-| `INTERNAL_SERVICE_TOKEN` | `auth-service`, `command`, `tiktok-browser` | Bearer das rotas `/internal/*` do auth-service e do `tiktok-browser`. |
+| `INTERNAL_SERVICE_TOKEN` | `auth-service`, `command` | Bearer das rotas `/internal/*` do auth-service. |
 | `INTERNAL_WAKE_SECRET` | `reader`, `command` | Bearer das rotas `/internal/*` do reader. |
 | `SUPABASE_JWT_*` | `auth-service`, `command`, `portal-api` | Validação **local** do JWT. |
 | `ORIGIN_AUTH_SECRET` | `portal-api`, Pages | Prova que o proxy do Pages originou a requisição. |
@@ -76,7 +74,7 @@ docker compose --env-file .env.docker up --build -d --wait --remove-orphans
 | Serviço | URL local |
 |---|---|
 | Portal (Vite dev) | `http://127.0.0.1:5173` (`/live`, `/login`, `/membro`, `/conta`, `/fazenda`...) |
-| Gateway (Traefik) | `http://127.0.0.1:8088` (espelha o roteamento de produção) |
+| Gateway (Traefik, só local) | `http://127.0.0.1:8088` (espelha o roteamento de produção) |
 | Supabase | `http://127.0.0.1:54321` |
 | auth-service / command / reader / portal-api | `:3003` / `:3001` / `:3002` / `:3004` |
 
@@ -186,12 +184,11 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 
 **Apenas uma** chave de API do YouTube deve ser usada (`YOUTUBE_API_KEY`). Somar cota com chaves de projetos diferentes viola a política de uso da API (verificar o texto vigente).
 
-## 9. K3s, deploy e infraestrutura (`k8s-platform` e `k8s/` de cada repositório)
-- `k8s-platform/base/`: `platform.yaml` (namespace `multichat`, `cloudflared`, Ingress), `healthz.yaml` (`GET /healthz` com a versão de cada serviço), `deployer.yaml` (RBAC do runner, só o namespace).
-- `k8s-platform/scripts/`: `cloudflare-tunnel.sh` (cria tunnel/hostnames/DNS pela API; grava `tunnel.env` com modo 600), `bootstrap-vm.sh` (k3s + base + runner), `record-version.sh` / `wait-version.sh`.
-- Deploy de cada serviço: `kubectl set image` + `rollout status` + `platform-record-version <serviço> <sha>` num runner self-hosted (`[self-hosted, k3s]`); `infra-check.yml` verifica de fora (runner do GitHub) se o `/healthz` responde.
-- A VM e a rede são criadas **à mão no console da Oracle**; o Terraform é **exportado depois** (Resource Discovery) e guardado em `k8s-platform/terraform/` (roteiro: `terraform/README.md`). Não rode `terraform apply` se o plano propuser recriar a instância (apaga os volumes do k3s).
-- `[NÃO VALIDADO]` Nada foi aplicado em um cluster real: `bootstrap-vm.sh`, `cloudflare-tunnel.sh` (testado só contra uma API simulada), os manifests em runtime e o gRPC a partir da VM da Oracle.
+## 9. Deploy e infraestrutura (`deploy-platform`)
+- Produção: VM Ubuntu de 1 GB, **Docker Compose** (sem K8s): 6 serviços + `edge` (Caddy) + `cloudflared`; Supabase fora da VM. `tiktok-browser` não é deployado.
+- `deploy-platform/`: `compose.yaml` (limites de memória, healthchecks), `Caddyfile` (roteamento por prefixo, mods e `/healthz`), `env/*.example`, `scripts/` (`bootstrap-vm.sh`, `deploy.sh`, `deploy-ssh.sh`, `cloudflare-tunnel.sh`, `supabase-*.ps1`).
+- Deploy de cada serviço: o `image.yml` builda a imagem e o job `deploy` roda `ssh deploy@VM <servico> <sha>`; a VM executa `platform-deploy` (pull, up só do serviço, espera `healthy`, reverte se falhar, grava a versão no `/healthz`). Jobs (`social-stats`, backfill, `mods-sync-job`) rodam pelo cron do host.
+- A VM e a rede são criadas **à mão no console da Oracle** (`scripts/oci-launch-retry.sh` ajuda a conseguir capacidade).
 
 ## 10. Convenções e invariantes (não quebre)
 1. **Flags de vinculação nascem desligadas.** Novas integrações de conta devem seguir o padrão: rotas 404 com código `*_linking_disabled`, formato de resposta estável, UI escondida por `VITE_*`.
@@ -199,7 +196,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 3. **Toda chamada à YouTube Data API passa pela proteção do seu serviço** (`youtubeFetch`, `spend()` + `youtube()` no reader, `jsonRequest` + `youtubeSendBudget` no command). Não adicione chamadas diretas.
 4. **Mensagens de chat são sempre normalizadas** (`ChatMessage`) antes de sair do reader, e o frontend as valida com `messageSchema`.
 5. **O reader descarta mensagens anteriores à conexão** exceto via `seedHistory`. Não remova essa regra: ela evita reenviar histórico ao reconectar.
-6. **`/internal/*` nunca ganha rota pública** (nem no Traefik local nem no Ingress).
+6. **`/internal/*` nunca ganha rota pública** (nem no Traefik local nem no Caddy).
 7. **Contas já vinculadas não são apagadas ao desligar uma flag.**
 8. **Textos de interface em português**; comentários seguem o idioma do arquivo ao redor. Identificadores em inglês.
 9. **Commits**: um por repositório/assunto, mensagem em inglês no estilo `feat:`/`fix:`/`chore:`, terminando com as linhas de atribuição pedidas pelo ambiente. **Nomes de branch nunca contêm "codex".** Não faça push sem pedido explícito.
@@ -219,7 +216,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 | Tokens do Instagram e do TikTok | Vêm do D1 (`instagram_token`, `tiktok_token`) e agora estão no banco local e no de produção; o `INSTAGRAM_ACCESS_TOKEN` do `.env.docker` só serve de partida |
 | Token do TikTok do admin (atualizado em 2026-09-10) | Renovação falha localmente; provável reconexão em `/admin/tiktok` `[causa não confirmada]` |
 | Métrica do Kick | Coleta devolve "sem dado" `[causa não investigada]` |
-| `crypto.ts` decifra AES-GCM sem `authTagLength` | Achado do SAST em `auth-service`, `multichat-command` e `tiktok-browser`; correção de 1 linha pendente |
+| `crypto.ts` decifra AES-GCM sem `authTagLength` | Achado do SAST em `auth-service` e `multichat-command`; correção de 1 linha pendente |
 | Ações do GitHub com tag mutável (67 usos) | Fixar por SHA pendente |
 | Importação do D1 | Simulação conferida contra o D1 real (13 tabelas); importado para o Postgres local (`import-d1-to-compose.ps1 -Apply`). Para a produção, confirmar com `select * from portal.site_visits_lifetime` |
 | Rotação de credenciais | Ver seção 12 |

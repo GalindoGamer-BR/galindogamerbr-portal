@@ -1,4 +1,4 @@
-// Única Pages Function que resta: repassa as chamadas de backend ao K3s (via Cloudflare Tunnel -> Traefik),
+// Única Pages Function que resta: repassa as chamadas de backend a VM Oracle (via Cloudflare Tunnel -> Caddy),
 // mantendo a mesma origem do portal (cookies SameSite=Lax) e as URLs públicas já cadastradas
 // (callbacks OAuth, WebSub do YouTube, webhook do Instagram). Todo o resto é estático.
 // _routes.json restringe a execução a estes prefixos; a allowlist abaixo repete a regra por segurança.

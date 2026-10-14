@@ -280,7 +280,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-  # Espelha o Ingress do Traefik de producao (k8s-platform) para o desenvolvimento local.
+  # Espelha o roteamento por caminho do Caddy de producao (deploy-platform/Caddyfile) para o desenvolvimento local.
   gateway:
     image: traefik:v3.1
     depends_on:

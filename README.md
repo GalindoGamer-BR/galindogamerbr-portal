@@ -14,13 +14,13 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-F38020?logo=cloudflare&logoColor=white)
 
-Portal da comunidade GalindoGamerBR. **Frontend** React + TypeScript + Vite, publicado como site estático no Cloudflare Pages. O backend roda em outros repositórios, no K3s (Oracle) com dados no Supabase.
+Portal da comunidade GalindoGamerBR. **Frontend** React + TypeScript + Vite, publicado como site estático no Cloudflare Pages. O backend roda em outros repositórios, numa VM Oracle (Docker Compose) com dados no Supabase.
 
 ## Arquitetura
 
 ```
 Browser → Cloudflare Pages (estático) ── functions/[[path]].ts (proxy) ──► API_ORIGIN
-                                                    Cloudflare Tunnel → Traefik → serviços
+                                                    Cloudflare Tunnel → Caddy → serviços
 ```
 
 | Parte | Repositório |
@@ -29,7 +29,7 @@ Browser → Cloudflare Pages (estático) ── functions/[[path]].ts (proxy) �
 | Conteúdo, estatísticas, webhooks, admin (`/api/*`, `/webhooks/*`, `/discord`) | `galindogamerbr-api` |
 | Envio de mensagens (`/api/chat/*`, `/api/tiktok/*`) / leitura de chat | `multichat-command` / `multichat-reader` |
 | Monitor do servidor FS25 e sincronização de mods | `fs25-monitoring-worker` / `fs25-mods-sync` |
-| Namespace, túnel, roteamento, guia de instalação | `k8s-platform` |
+| Compose de produção, Caddy, túnel, bootstrap da VM, deploy por SSH | `deploy-platform` |
 
 - A **única** Pages Function é `functions/[[path]].ts`: repassa `/api`, `/oauth`, `/webhooks` e `/discord` ao `API_ORIGIN` (mesma origem do portal, então cookies e callbacks OAuth/WebSub/Instagram continuam nas URLs atuais). Restringida por `public/_routes.json`.
 - SEO por rota (antes `_middleware.ts`): `scripts/seo-prerender.mjs` gera `dist/<rota>/index.html` no build; rotas desconhecidas e `/admin*` caem em `dist/spa.html` (`noindex`) via `public/_redirects`.
@@ -74,8 +74,6 @@ Secrets do repositório: `CLOUDFLARE_API_TOKEN` (editar Pages) e `CLOUDFLARE_ACC
 ### Preview (manual)
 `deploy-preview.yml` publica `--branch=preview` (URL fixa). Para o backend do preview, defina no ambiente *Preview* do Pages `API_ORIGIN` (URL do backend do preview) e `ORIGIN_AUTH_SECRET`. As URLs `*.pages.dev` podem estar atrás do Cloudflare Access.
 
-### Worker `fs25-portal-proxy`
-Segue como Cloudflare Worker (`workers/fs25-portal-proxy`, deploy em `deploy-fs25-portal-proxy.yml`), fora desta migração.
 
 ## Legado
 A `feat/multichat` mantém as Pages Functions, o D1/KV e o Worker de estatísticas até o corte validar a nova arquitetura. A pasta `migrations/` guarda o histórico do D1 (a versão Postgres está em `galindogamerbr-api/supabase/migrations`).
