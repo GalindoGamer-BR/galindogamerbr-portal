@@ -17,6 +17,19 @@ async function waitForAuth<T>(request: Promise<T>): Promise<T> {
     })]);
   } finally { clearTimeout(timer); }
 }
+// O Supabase devolve falhas do login social na URL (?error=...&error_description=...), repetidas no #hash. Sem tratar isso a
+// pessoa volta para /login sem nenhuma mensagem. Mostra um texto claro e deixa o detalhe tecnico no console para diagnostico.
+function supabaseLoginError(query: URLSearchParams, hash: URLSearchParams): string | null {
+  const code = query.get("error_code") || hash.get("error_code") || "";
+  const raw = query.get("error") || hash.get("error");
+  if (!raw && !code) return null;
+  const description = query.get("error_description") || hash.get("error_description") || "";
+  console.warn("Falha no login (Supabase):", { error: raw, code, description });
+  if (raw === "access_denied" || code === "access_denied") return "A autorização foi cancelada. Autorize o acesso para entrar.";
+  if (/exchange external code/i.test(description)) return "Não foi possível concluir o login com a Twitch. Tente novamente em instantes; se continuar, avise o suporte.";
+  if (code === "otp_expired") return "O link de acesso expirou. Peça um novo.";
+  return "Não foi possível concluir o login. Tente novamente em instantes.";
+}
 export default function PortalLogin() {
   const navigate = useNavigate();
   const route = useLocation();
@@ -37,6 +50,8 @@ export default function PortalLogin() {
     if (started.current || !supabase) return;
     started.current = true;
     const query = new URLSearchParams(location.search);
+    const authFailure = supabaseLoginError(query, new URLSearchParams(location.hash.slice(1)));
+    if (authFailure) { setError(authFailure); clearAttempt(); history.replaceState(null, "", "/login"); }
     if (query.has("oauth_error")) {
       const messages: Record<string, string> = {
         account_already_linked: "Esta conta TikTok já está vinculada a outro perfil.",
