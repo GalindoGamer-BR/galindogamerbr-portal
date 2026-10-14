@@ -38,7 +38,9 @@ jobs:
         run: npm test
 
       - name: Build
-        run: npm run build
+        # O typecheck acima ja executou `tsc -b`; aqui basta o bundle do Vite mais o SEO por rota gerado no build
+        # (scripts/seo-prerender.mjs), que e o dist/ que o deploy.yml publica.
+        run: npx vite build && node scripts/seo-prerender.mjs dist
         env:
           # Mesmo interruptor do deploy: o dist/ gerado aqui e o que o deploy.yml publica.
           VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}

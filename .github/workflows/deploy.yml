@@ -1,4 +1,8 @@
 name: Deploy
+run-name: >-
+  ${{ github.event_name == 'workflow_run'
+      && format('Deploy: {0}', github.event.workflow_run.display_title)
+      || format('Deploy manual: {0}', github.ref_name) }}
 
 # Antes disparava em paralelo com o CI (mesmo evento push:main), sem
 # depender do resultado — lint/typecheck/audit/sequência de migrations do
