@@ -1,0 +1,2 @@
+# Client-ID publico do web player da Twitch (constante conhecida, nao e segredo); arquivo ja removido do codigo atual.
+3b66e85a2720011e476cc621eeb2580c0cb3e43b:workers/social-stats-cron/src/twitch.ts:twitch-api-token:7
