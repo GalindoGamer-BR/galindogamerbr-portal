@@ -38,6 +38,23 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
+    title: 'Vínculo com YouTube',
+    content: (
+      <div className="space-y-4">
+        <p>Esta seção se aplica ao vínculo opcional da sua conta do YouTube (Google) ao <strong className="text-white">Portal GalindoGamerBR</strong>, usado somente para que você envie mensagens no chat das transmissões ao vivo do canal pelo multichat do portal. Dúvidas e solicitações podem ser enviadas para {EMAIL_LINK}.</p>
+        <h3 className="text-lg font-semibold text-white">Autorização e dados recebidos</h3>
+        <p>Ao vincular, você é direcionado ao Google para autorizar o aplicativo. A permissão solicitada é <code>https://www.googleapis.com/auth/youtube.force-ssl</code>. Com sua autorização, recebemos o identificador e o nome do seu canal do YouTube e os tokens de acesso e renovação. Não lemos seus vídeos, inscrições, playlists, comentários, e-mail nem histórico, e não publicamos nada que você não tenha digitado.</p>
+        <h3 className="text-lg font-semibold text-white">Como utilizamos os dados</h3>
+        <p>O token é usado apenas para enviar ao chat da transmissão ao vivo do canal, em seu nome, a mensagem que você digitou no multichat, e para identificar a qual canal sua conta corresponde. Os dados recebidos por essa autorização não são vendidos, não são usados para publicidade, perfilamento ou treinamento de modelos de IA, e não são transferidos a terceiros, exceto o necessário para prestar a função descrita, cumprir a lei ou proteger a segurança do serviço.</p>
+        <p>O uso e a transferência das informações recebidas das APIs do Google pelo portal seguem a <a href="https://developers.google.com/terms/api-services-user-data-policy" className="font-semibold text-gold hover:underline">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado. O uso do YouTube está sujeito aos <a href="https://www.youtube.com/t/terms" className="font-semibold text-gold hover:underline">Termos de Serviço do YouTube</a> e à <a href="https://policies.google.com/privacy" className="font-semibold text-gold hover:underline">Política de Privacidade do Google</a>.</p>
+        <h3 className="text-lg font-semibold text-white">Armazenamento e segurança</h3>
+        <p>Os tokens são armazenados criptografados no servidor, com acesso restrito, enquanto o vínculo existir. O identificador e o nome do canal ficam associados ao seu cadastro para exibir o vínculo na área do membro.</p>
+        <h3 className="text-lg font-semibold text-white">Revogar o acesso e excluir seus dados</h3>
+        <p>Você pode desvincular o YouTube a qualquer momento em <a href="/conta" className="font-semibold text-gold hover:underline">Minha conta</a>. A desvinculação revoga a autorização no Google e remove os tokens e o perfil do canal armazenados; se a revogação não puder ser confirmada, o vínculo é mantido e o portal informa o erro para você tentar novamente. Excluir sua conta do portal também revoga a autorização e apaga esses dados. Você ainda pode remover o acesso diretamente em <a href="https://myaccount.google.com/permissions" className="font-semibold text-gold hover:underline">myaccount.google.com/permissions</a>. Seu canal e seus conteúdos no YouTube não são apagados.</p>
+      </div>
+    ),
+  },
+  {
     title: 'Dados tratados',
     content: (
       <div className="space-y-4">
@@ -118,7 +135,7 @@ export function Privacidade() {
       eyebrow="Privacidade e transparência"
       title="POLÍTICA DE PRIVACIDADE"
       introduction="Saiba como o Portal GalindoGamerBR utiliza e protege seus dados pessoais e como você pode exercer seus direitos."
-      updatedAt="7 de outubro de 2026"
+      updatedAt="14 de outubro de 2026"
       sections={SECTIONS}
     />
   )

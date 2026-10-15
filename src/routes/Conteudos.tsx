@@ -13,6 +13,8 @@ import { useDicasVideos } from '../hooks/useDicasVideos'
 import { useEts2Videos } from '../hooks/useEts2Videos'
 import { useSnowrunnerVideos } from '../hooks/useSnowrunnerVideos'
 import { useContrabandPoliceVideos } from '../hooks/useContrabandPoliceVideos'
+import { useSeriesVideos } from '../hooks/useSeriesVideos'
+import { sortByLatestVideo } from '../lib/sortByLatestVideo'
 import { useLiveStatus } from '../hooks/useLiveStatus'
 
 const OTHER_GAMES = GAMES.filter(
@@ -36,6 +38,15 @@ export function Conteudos() {
   const ets2Videos = useEts2Videos()
   const snowrunnerVideos = useSnowrunnerVideos()
   const contrabandPoliceVideos = useContrabandPoliceVideos()
+  const seriesVideos = useSeriesVideos()
+
+  // Cards simples (OTHER_GAMES): a série com o vídeo mais recente vem primeiro. Enquanto o jogo não tem arte
+  // própria, o card usa a miniatura do vídeo mais recente dele.
+  const otherGames = sortByLatestVideo(OTHER_GAMES, seriesVideos)
+  const latestVideoBySlug = new Map<string, string>()
+  for (const video of [...seriesVideos].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))) {
+    if (!latestVideoBySlug.has(video.slug)) latestVideoBySlug.set(video.slug, video.videoId)
+  }
 
   const isLiveNow = live?.isLive && live.videoId === flagship?.videoId
 
@@ -271,9 +282,16 @@ export function Conteudos() {
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
-              {OTHER_GAMES.map((game) => (
-                <GameCard key={game.slug} game={game} />
-              ))}
+              {otherGames.map((game) => {
+                const latestVideoId = latestVideoBySlug.get(game.slug)
+                return (
+                  <GameCard
+                    key={game.slug}
+                    game={game}
+                    fallbackImage={latestVideoId ? `https://i.ytimg.com/vi/${latestVideoId}/hqdefault.jpg` : undefined}
+                  />
+                )
+              })}
             </div>
           </Container>
         </Reveal>

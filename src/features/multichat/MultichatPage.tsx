@@ -1,14 +1,16 @@
-import { TikTokChatConnection } from "./TikTokChatConnection";
 import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
-import { chatFilterPlatforms, linkablePlatforms, tiktokLinking, youtubeLinking } from "./flags";
-import { type TikTokConnectionState } from "./TikTokConnection";
+import { chatFilterPlatforms, linkablePlatforms, youtubeLinking } from "./flags";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
+import { SendQueue } from "./sendQueue";
+import { applyDisplayName, dropEchoed, optimisticMessages, type OutboxItem, type OwnNames } from "./outbox";
+import { useMemberName } from "./useMemberName";
 import {
+  appendMessages,
   labels,
   writablePlatforms,
   type Accounts,
@@ -58,7 +60,10 @@ const errors: Record<string, string> = {
   stream_not_configured: "Canal ainda não configurado.",
   message_rejected: "Mensagem recusada pela plataforma.",
 };
-const SEND_COOLDOWN_MS = 5000;
+// Mensagens que podem estar na fila de envio ao mesmo tempo (evita encher a fila sem querer).
+const MAX_OUTBOX = 5;
+// Depois de enviada, a mensagem provisória fica até a real chegar da plataforma, no máximo este tempo.
+const SENT_VISIBLE_MS = 10_000;
 const StarIcon = ({ filled }: { filled?: boolean }) => (
   <svg className="mc-btn-icon" viewBox="0 0 20 20" aria-hidden="true" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
     <path d="M10 2.2l2.4 5 5.4.7-4 3.8 1 5.4L10 14.5l-4.8 2.6 1-5.4-4-3.8 5.4-.7z" />
@@ -78,7 +83,7 @@ const GiftIcon = () => (
 // A página de inscrição da Twitch não pode ser embutida (X-Frame-Options: SAMEORIGIN), então abre numa janela
 // centralizada sobre o portal; se o navegador bloquear, o link abre em nova aba normalmente.
 const twitchSubsUrl = "https://www.twitch.tv/subs/galindogamerbr";
-// "Dar um sub" (presente) é um modal da própria página do canal na Twitch, sem URL nem API pública: abre o canal.
+// Na Twitch, "Dar um sub" (presente) segue o mesmo caminho do "Inscrever-se": a página de inscrição (twitchSubsUrl).
 const twitchChannelUrl = "https://www.twitch.tv/galindogamerbr";
 // YouTube: o "sub_confirmation" abre direto o diálogo de inscrição; "join" é a página de membros do canal.
 const youtubeSubscribeUrl = "https://www.youtube.com/@galindogamerbr?sub_confirmation=1";
@@ -116,16 +121,6 @@ const helpSeen = () => { try { return localStorage.getItem(helpSeenKey) === "1";
 export default function MultichatPage() {
   const { member: navMember, logout: navLogout } = useNavSession();
   const [session, setSession] = useState<Session | null>(null);
-  const [tiktok, setTikTok] = useState<TikTokConnectionState>({connected:false,canSend:false});
-  useEffect(()=>{
-    let active=true;
-    setTikTok({connected:false,canSend:false});
-    if(!session||!tiktokLinking)return;
-    const refresh=()=>{void command<TikTokConnectionState>("/api/tiktok/live").then(s=>{if(active)setTikTok(s);}).catch(()=>{});};
-    refresh();
-    window.addEventListener("focus",refresh);
-    return()=>{active=false;window.removeEventListener("focus",refresh);};
-  },[session?.user.id]);
   const [accounts, setAccounts] = useState<Accounts>(emptyAccounts);
   const [filter, setFilter] = useState<Platform | "all">("all");
   const [theater, setTheater] = useState(false);
@@ -164,25 +159,62 @@ export default function MultichatPage() {
   }, []);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<SendResult[]>([]);
-  // Intervalo minimo entre envios: o botao e o Enter ficam bloqueados e a contagem aparece na tela.
-  const [cooldownUntil, setCooldownUntil] = useState(0);
-  const [clock, setClock] = useState(Date.now());
-  useEffect(() => {
-    if (cooldownUntil <= Date.now()) return;
-    setClock(Date.now());
-    const timer = setInterval(() => {
-      const now = Date.now();
-      setClock(now);
-      if (now >= cooldownUntil) clearInterval(timer);
-    }, 250);
-    return () => clearInterval(timer);
-  }, [cooldownUntil]);
-  const cooldown = Math.max(0, Math.ceil((cooldownUntil - clock) / 1000));
+  // Fila de envio: a mensagem aparece no chat na hora e os envios saem um de cada vez, na ordem digitada. O campo
+  // nunca fica bloqueado esperando a resposta do servidor.
+  const [outbox, setOutbox] = useState<OutboxItem[]>([]);
+  const [queue] = useState(
+    () =>
+      new SendQueue({
+        send: async (item) => {
+          const data = await command<{ results: SendResult[] }>("/api/chat/messages", {
+            method: "POST",
+            body: JSON.stringify({
+              message: item.text,
+              id: item.id,
+              platforms: item.platforms,
+              ...(item.kickText ? { overrides: { kick: item.kickText } } : {}),
+            }),
+          });
+          return data.results;
+        },
+        onStart: (item) => {
+          setResults([]);
+          setNotice("");
+          setOutbox((current) => current.map((o) => (o.id === item.id ? { ...o, status: "sending" } : o)));
+        },
+        onFinish: (item, outcome) => {
+          if ("error" in outcome) {
+            setOutbox((current) => current.filter((o) => o.id !== item.id));
+            setNotice(outcome.error.message);
+            setMessage((current) => (current === "" ? item.text : current));
+            return;
+          }
+          const { results: sentResults } = outcome;
+          setResults(sentResults);
+          const failed = sentResults.filter((r) => !r.success).map((r) => r.platform);
+          setOutbox((current) => current.map((o) => (o.id === item.id ? { ...o, status: "sent", failed } : o)));
+          setTimeout(() => setOutbox((current) => current.filter((o) => o.id !== item.id)), SENT_VISIBLE_MS);
+          // Nada foi entregue: devolve o texto ao campo (se ele estiver vazio) para a pessoa tentar de novo.
+          if (failed.length >= item.platforms.length) setMessage((current) => (current === "" ? item.text : current));
+        },
+      }),
+  );
   const [player, setPlayer] = useState<WritablePlatform>("twitch");
   const chat = useMultichat(session);
+  const memberName = useMemberName(session);
+  const ownNames = useMemo<OwnNames>(
+    () => ({ twitch: accounts.twitch.username, youtube: accounts.youtube.username, kick: accounts.kick.username }),
+    [accounts.twitch.username, accounts.youtube.username, accounts.kick.username],
+  );
+  // No site as mensagens do próprio usuário usam o nome de exibição escolhido no portal; as que ele acabou de enviar
+  // aparecem na hora (provisórias) até a mensagem real chegar das plataformas.
+  const chatMessages = useMemo(() => {
+    const real = applyDisplayName(chat.messages, ownNames, memberName);
+    if (!outbox.length) return real;
+    return appendMessages(real, dropEchoed(optimisticMessages(outbox, memberName, ownNames), chat.messages, ownNames));
+  }, [chat.messages, outbox, ownNames, memberName]);
   const liveStatus = useLiveStatus();
   // Sem live no YouTube, o player mostra o arquivo da última live encerrada.
   const youtubeLastLive = useYoutubeLastLive(player === "youtube" && !liveStatus?.isLive);
@@ -278,8 +310,8 @@ export default function MultichatPage() {
       setBusy(false);
     }
   };
-  const tikTokLinked = tiktok.connected && tiktok.canSend;
-  const connectedPlatforms: Platform[] = [...linkablePlatforms.filter((p)=>accounts[p].connected), ...(tikTokLinked ? ["tiktok" as const] : [])];
+  // Sem envio ao TikTok por enquanto: so as contas vinculadas (Twitch, YouTube, Kick) recebem mensagens.
+  const connectedPlatforms: Platform[] = linkablePlatforms.filter((p)=>accounts[p].connected);
   // Plataformas desligadas pelo usuário para o envio (lista de exclusão: contas recém-conectadas já entram ligadas).
   const [sendOff, setSendOff] = useState<Platform[]>(() => {
     try { const stored = JSON.parse(localStorage.getItem("mc:send-off") ?? "[]"); return Array.isArray(stored) ? stored.filter((p): p is Platform => typeof p === "string") : []; }
@@ -346,49 +378,25 @@ export default function MultichatPage() {
       return next;
     });
   };
-  const send = async (event: FormEvent) => {
+  const send = (event: FormEvent) => {
     event.preventDefault();
     if (!canSend) return;
-    const sent = message;
-    setSending(true);
-    setResults([]);
+    const item = { id: crypto.randomUUID(), text: message, platforms: targetPlatforms, ...(kickText ? { kickText } : {}) };
+    setOutbox((current) => [...current, { ...item, status: "queued", createdAt: Date.now(), failed: [] }]);
+    setMessage("");
     setNotice("");
-    try {
-      const data = await command<{ results: SendResult[] }>(
-        "/api/chat/messages",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            message,
-            id: crypto.randomUUID(),
-            platforms: targetPlatforms,
-            ...(kickText ? { overrides: { kick: kickText } } : {}),
-          }),
-        },
-      );
-      setResults(data.results);
-      if(data.results.some(r=>r.platform==="tiktok" && r.error==="reconnect_required")) setTikTok({connected:false,canSend:false});
-      setNotice("");
-      // So limpa se a pessoa nao digitou nada novo enquanto o envio corria.
-      if (data.results.every((r) => r.success)) setMessage((current) => (current === sent ? "" : current));
-    } catch (error) {
-      setNotice((error as Error).message);
-    } finally {
-      setSending(false);
-      setCooldownUntil(Date.now() + SEND_COOLDOWN_MS);
-      requestAnimationFrame(() => composer.current?.focus());
-    }
+    queue.enqueue(item);
+    requestAnimationFrame(() => composer.current?.focus());
   };
-  const limit = tikTokLinked ? 150 : youtubeLinking && accounts.youtube.connected ? 200 : 500;
+  const limit = youtubeLinking && accounts.youtube.connected ? 200 : 500;
   const canSend =
     !!session &&
     message.trim().length > 0 &&
     Array.from(message.trim()).length <= limit &&
     targetPlatforms.length > 0 &&
-    !sending &&
-    cooldown === 0 &&
+    outbox.length < MAX_OUTBOX &&
     !busy;
-  const visible = chat.messages.filter(
+  const visible = chatMessages.filter(
     (m) => filter === "all" || m.platform === filter,
   );
   const playerUrl =
@@ -600,11 +608,11 @@ export default function MultichatPage() {
               )}
               <a
                 className={"mc-btn " + (subscription?.status === "subscribed" ? "mc-btn-primary" : "mc-btn-secondary")}
-                href={twitchChannelUrl}
-                onClick={(event) => openSubsWindow(event, twitchChannelUrl)}
+                href={twitchSubsUrl}
+                onClick={openSubsWindow}
                 target="_blank"
                 rel="noreferrer"
-                title="Abre o canal na Twitch, onde fica o botão Dar um sub"
+                title="Abre a página de inscrição da Twitch para dar um sub"
               >
                 <GiftIcon /> Dar um sub
               </a>
@@ -764,11 +772,12 @@ export default function MultichatPage() {
             <div className="mc-composer-bottom">
               <span className="mc-muted">
                 {Array.from(message).length}/{limit}
-                {cooldown > 0 && ` · Aguarde ${cooldown}s para enviar outra mensagem`}
+                {outbox.some((o) => o.status !== "sent") && ` · Enviando${outbox.filter((o) => o.status === "queued").length ? ` (${outbox.filter((o) => o.status === "queued").length} na fila)` : ""}…`}
+                {outbox.length >= MAX_OUTBOX && " · Aguarde o envio das mensagens anteriores"}
               </span>
               {session ? (
                 <button className="mc-primary" disabled={!canSend}>
-                  {sending ? "Enviando…" : cooldown > 0 ? `Aguarde ${cooldown}s` : "Enviar"}
+                  Enviar
                 </button>
               ) : (
                 <button
@@ -817,12 +826,14 @@ export default function MultichatPage() {
               {results.map((r) => (
                 <span
                   key={r.platform}
-                  className={r.success ? "mc-success" : "mc-error"}
+                  className={r.success ? "mc-success" : r.skipped ? "mc-skipped" : "mc-error"}
                 >
                   <PlatformIcon platform={r.platform} />
                   {r.success
                     ? "Enviada"
-                    : errors[r.error || ""] || "Falha no envio"}
+                    : r.skipped
+                      ? r.error === "no_active_live" ? "Não enviada: sem transmissão ao vivo" : "Não enviada"
+                      : errors[r.error || ""] || "Falha no envio"}
                 </span>
               ))}
             </div>
@@ -853,7 +864,7 @@ export default function MultichatPage() {
                   </small>
                 </div>
                 <button
-                  disabled={!session || busy || sending}
+                  disabled={!session || busy}
                   onClick={() =>
                     accounts[p].connected ? void unlink(p) : void link(p)
                   }
@@ -862,16 +873,6 @@ export default function MultichatPage() {
                 </button>
               </div>
             ))}
-            {tiktokLinking && <TikTokChatConnection key={session?.user.id ?? "guest"} signedIn={!!session} state={tiktok} onChange={setTikTok} />}
-            {tiktokLinking && <section aria-labelledby="tiktok-chat-flow">
-              <h3 id="tiktok-chat-flow">Como conectar o chat TikTok</h3>
-              <p>O vínculo usado para entrar no portal é separado da sessão de envio ao chat.</p>
-              <ol className="mc-help-list">
-                <li><strong>Conecte o chat uma vez</strong><p>Na primeira conexão, você escaneará um QR code com o aplicativo TikTok e confirmará o login no celular.</p></li>
-                <li><strong>Continue sem repetir o login</strong><p>Reutilizaremos sua sessão enquanto ela estiver válida. Se ela expirar ou for revogada, será necessário conectar novamente.</p></li>
-                <li><strong>Escreva no multichat</strong><p>Com o chat conectado, suas mensagens também serão enviadas ao TikTok, em seu nome, sem confirmação a cada envio. Para parar, desconecte o chat nas configurações.</p></li>
-              </ol>
-            </section>}
             {!session && (
               <button
                 className="mc-twitch-login"
@@ -896,7 +897,7 @@ export default function MultichatPage() {
                 <p>
                   Entre no portal e abra Conexões para vincular{" "}
                   {linkablePlatforms.map((p) => labels[p]).join(", ").replace(/, ([^,]*)$/, " e $1")}
-                  {tiktokLinking ? ". No TikTok, conecte a sessão do chat nas configurações; o fluxo de conexão está explicado nas configurações" : ""}.
+                  .
                 </p>
               </li>
               <li>

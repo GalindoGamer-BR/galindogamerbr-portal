@@ -568,6 +568,9 @@
 .mc-error {
   color: #ff8d95;
 }
+.mc-skipped {
+  color: var(--mc-muted, #9aa4b2);
+}
 .mc-page .mc-twitch-login,
 .mc-dialog .mc-twitch-login {
   background: #9146ff;
@@ -987,3 +990,8 @@
 .mc-interact-card > .mc-interact-icon { color: #bf94ff; font-size: inherit; line-height: 1; }
 .mc-interact-card > .mc-interact-icon { padding: 0; overflow: hidden; background: #0e0e10; border: 1px solid #ffffff1f; }
 .mc-interact-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Mensagem do próprio usuário ainda não confirmada pela plataforma. */
+.mc-message-pending {
+  opacity: 0.6;
+}

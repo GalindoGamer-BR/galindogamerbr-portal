@@ -168,7 +168,6 @@ services:
       migrate: { condition: service_completed_successfully }
       supabase: { condition: service_healthy }
       auth-service: { condition: service_healthy }
-      tiktok-browser: { condition: service_healthy, required: false }
     ports: ["127.0.0.1:3001:3000"]
     environment:
       PORT: 3000
@@ -189,29 +188,9 @@ services:
       KICK_BROADCASTER_ID: ${KICK_BROADCASTER_ID:-}
       YOUTUBE_LINKING_ENABLED: ${YOUTUBE_LINKING_ENABLED:-false}
       TIKTOK_LINKING_ENABLED: ${TIKTOK_LINKING_ENABLED:-false}
-      TIKTOK_SEND_ENABLED: ${TIKTOK_SEND_ENABLED:-false}
-      TIKTOK_BROWSER_URL: http://tiktok-browser:3000
       MOCK_PLATFORMS: "false"
       MOCK_PLATFORM_URL: http://mock-platform:3100
       MOCK_PLATFORM_SECRET: ${MOCK_PLATFORM_SECRET}
-    healthcheck:
-      test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-  # Chromium headless: login por QR e envio de chat do TikTok (perfis no volume tiktok-browser-data).
-  # So sobe com TIKTOK_LINKING_ENABLED=true e `--profile tiktok-link`.
-  tiktok-browser:
-    profiles: ["tiktok-link"]
-    build: ../multichat-command/tiktok-browser
-    shm_size: 512m
-    environment:
-      PORT: 3000
-      DATA_DIR: /data
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
-      CHROMIUM_NO_SANDBOX: "true"
-      DEBUG_LOGIN: ${DEBUG_LOGIN:-false}
-    volumes: [tiktok-browser-data:/data]
     healthcheck:
       test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"]
       interval: 5s
@@ -378,4 +357,3 @@ volumes:
   multichat-db:
   portal-node-modules:
   mods-data:
-  tiktok-browser-data:

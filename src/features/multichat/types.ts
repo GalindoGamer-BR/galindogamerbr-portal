@@ -29,6 +29,8 @@ export const messageSchema = z.object({
         .optional(),
       badges: z.array(z.string()).optional(),
       color: z.string().optional(),
+      // Mensagem provisória do próprio usuário, ainda não confirmada pela plataforma (só existe no navegador).
+      pending: z.boolean().optional(),
       donation: z
         .object({ amount: z.number(), currency: z.string() })
         .optional(),
@@ -76,6 +78,8 @@ export type SendResult = {
   platform: Platform;
   success: boolean;
   error?: string;
+  /** Sem destino (ex.: plataforma sem live, TikTok sem envio): nao e falha da mensagem nem das outras plataformas. */
+  skipped?: boolean;
 };
 /**
  * Valida o historico vindo da API (ignora o que nao tem o formato esperado) e devolve as `limit` mais recentes

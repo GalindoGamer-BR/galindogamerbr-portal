@@ -7,7 +7,7 @@ export type SeoData = {
   noIndex?: boolean
 }
 
-export const DEFAULT_DESCRIPTION =
+const DEFAULT_DESCRIPTION =
   'Lives, séries, simuladores, games e a comunidade do GalindoGamerBR. Acompanhe os conteúdos e participe da Fazenda Nova Aliança.'
 
 export const ROUTE_SEO: Record<string, SeoData> = {
@@ -52,13 +52,21 @@ export const ROUTE_SEO: Record<string, SeoData> = {
     title: 'Créditos',
     description: 'Conheça os créditos do portal GalindoGamerBR, desenvolvido por Pedro Henrique, e as atribuições dos recursos visuais utilizados.',
   },
+  '/live': {
+    title: 'Multichat ao vivo',
+    description: 'Chat unificado do YouTube, Twitch e Kick para acompanhar e conversar durante as lives do GalindoGamerBR.',
+    noIndex: true,
+  },
+  '/login': { title: 'Entrar', description: 'Entre no portal GalindoGamerBR para usar o multichat e a área do membro.', noIndex: true },
+  '/membro': { title: 'Área do membro', description: 'Gerencie seu perfil e as plataformas conectadas ao portal GalindoGamerBR.', noIndex: true },
+  '/conta': { title: 'Minha conta', description: 'Dados e privacidade da sua conta no portal GalindoGamerBR.', noIndex: true },
   '/mapa-do-site': {
     title: 'Mapa do Site',
     description: 'Encontre todas as páginas e seções do site oficial GalindoGamerBR.',
   },
 }
 
-export const CANONICAL_ALIASES: Record<string, string> = {
+const CANONICAL_ALIASES: Record<string, string> = {
   '/boas-vindas': '/boasvindas',
   '/comece-aqui': '/boasvindas',
   '/jogos': '/conteudos',

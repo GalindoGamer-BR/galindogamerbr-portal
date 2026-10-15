@@ -24,7 +24,7 @@ type Size = keyof typeof SIZES
 
 const baseClasses = 'inline-flex items-center justify-center font-semibold uppercase tracking-wide transition hover:-translate-y-0.5'
 
-export function buttonClasses(variant: Variant = 'default', size: Size = 'md', className = ''): string {
+function buttonClasses(variant: Variant = 'default', size: Size = 'md', className = ''): string {
   return `${baseClasses} ${SIZES[size]} ${VARIANTS[variant]} ${className}`
 }
 

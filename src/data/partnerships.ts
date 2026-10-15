@@ -10,11 +10,3 @@ export const PARTNERSHIP_TYPES = [
 ] as const
 
 export type PartnershipType = (typeof PARTNERSHIP_TYPES)[number]['value']
-
-export function isPartnershipType(value: string): value is PartnershipType {
-  return PARTNERSHIP_TYPES.some((type) => type.value === value)
-}
-
-export function getPartnershipTypeLabel(value: PartnershipType): string {
-  return PARTNERSHIP_TYPES.find((type) => type.value === value)?.label ?? value
-}
