@@ -25,7 +25,7 @@ Sempre use `--env-file .env.docker`. Portal: `http://127.0.0.1:5173`; gateway: `
 
 ## Invariantes
 - Integrações de conta são escondidas por `flags.ts` (`tiktokLinking`, `youtubeLinking`, `linkablePlatforms`, `chatFilterPlatforms`); variáveis `VITE_*_LINKING_ENABLED` **ausentes = desligado**. Não importe `import.meta.env` direto nos componentes para isso.
-- O textarea do chat só é desabilitado para visitantes (`!session`), nunca durante envio/intervalo (5 s entre envios).
+- O textarea do chat só é desabilitado para visitantes (`!session`), nunca durante o envio. Enviar não bloqueia: a mensagem vai para o chat na hora (provisória, com o nome de exibição do perfil) e os envios saem em fila, um por vez (`sendQueue.ts`, `outbox.ts`); no máximo 5 na fila.
 - Mensagens do chat sempre passam por `messageSchema`/`parseHistory` e `appendMessages` (ordena por timestamp, deduplica, limite 1000).
 - O Vite roda com polling (`VITE_USE_POLLING`) por causa do volume do Docker no Windows; se o código servido estiver antigo, recrie o `portal`.
 - Textos de UI em português.

@@ -8,6 +8,14 @@ export const supabase = configured
   ? createClient(url, key, { auth: { flowType: "pkce" } })
   : null;
 export class PortalSessionRequired extends Error {}
+/** 429 do servidor: `retryAfterSeconds` vem do Retry-After (5 s se ausente). */
+export class RateLimited extends Error {
+  retryAfterSeconds: number;
+  constructor(retryAfterSeconds: number) {
+    super("Muitas solicitações. Aguarde alguns segundos.");
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
 
 // Entrar com a Twitch (conta nova ou já vinculada) conecta o chat sem nova autorização: o Supabase entrega o token da
 // Twitch só na sessão recém-aberta pelo OAuth, e o auth-service o valida (cliente, usuário e escopo) antes de guardar
@@ -105,12 +113,11 @@ export async function command<T>(
       throw new Error("Confira os dados: o nome deve ter de 2 a 24 caracteres, sem símbolos especiais.");
     if (details?.error === "provider_not_configured")
       throw new Error("Esta plataforma ainda precisa das credenciais de conexão no servidor.");
+    if (response.status === 429) throw new RateLimited(Number(response.headers.get("Retry-After")) || 5);
     throw new Error(
-      response.status === 429
-        ? "Muitas solicitações. Aguarde alguns segundos."
-        : response.status === 401
-          ? "Sua sessão expirou. Entre novamente."
-          : "Não foi possível concluir a solicitação.",
+      response.status === 401
+        ? "Sua sessão expirou. Entre novamente."
+        : "Não foi possível concluir a solicitação.",
     );
   }
   return response.status === 204 ? (undefined as T) : response.json();

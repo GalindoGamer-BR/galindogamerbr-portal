@@ -84,7 +84,6 @@ Perfis opcionais do compose:
 | `fs25` | `fs25-monitor`, `fs25-mods-sync`, `mods-files` | credenciais do Bisect |
 | `simulation` | `mock-platform` | — |
 | `jobs` | `social-stats` (uso: `docker compose --env-file .env.docker --profile jobs run --rm social-stats`) | tokens de Instagram/TikTok |
-| `tiktok-link` | `tiktok-browser` (Chromium) | `TIKTOK_LINKING_ENABLED=true` |
 
 Rodar os testes:
 - Serviços Node: `cd <repo> && npm test && npm run typecheck` (o reader exige `npm ci` na máquina; os demais já têm `node_modules`).
@@ -103,13 +102,14 @@ Armadilhas conhecidas:
 
 | Flag | Onde | Padrão | Efeito quando desligada |
 |---|---|---|---|
-| `TIKTOK_LINKING_ENABLED` | `auth-service`, `command` | `false` | `/oauth/tiktok/*`, `/api/tiktok/*`, `/internal/tiktok/*` → **404** `tiktok_linking_disabled`; `GET /api/tiktok/live` → `{state:"disabled"}`; envio ao TikTok → `tiktok_disabled`; `/api/member/activity` não é registrada |
-| `VITE_TIKTOK_LINKING_ENABLED` | build do portal | ausente = off | some "Entrar com TikTok", a sessão por QR e a ajuda do TikTok |
+| `TIKTOK_LINKING_ENABLED` | `auth-service`, `command` | `false` | login oficial do TikTok (OAuth do Login Kit): `/oauth/tiktok/*`, `/api/tiktok/connection` e `/internal/tiktok/*` → **404** `tiktok_linking_disabled`; `/api/member/activity` não é registrada. **O envio ao chat do TikTok não existe** (sem API oficial): `platforms:["tiktok"]` sempre volta `{success:false, skipped:true, error:"tiktok_disabled"}` sem tocar na rede |
+| `VITE_TIKTOK_LINKING_ENABLED` | build do portal | ausente = off | some "Entrar com TikTok" e a conexão do TikTok em Conexões |
 | `YOUTUBE_LINKING_ENABLED` | `auth-service`, `command` | `false` | `/oauth/youtube/*` e `/api/accounts/youtube` → 404 `youtube_linking_disabled`; `/api/accounts` devolve `youtube:{connected:false}` (contas salvas são mantidas); envio → `youtube_disabled` sem chamar o auth-service |
 | `VITE_YOUTUBE_LINKING_ENABLED` | build do portal | ausente = off | `linkablePlatforms` e `chatFilterPlatforms` omitem o YouTube; o **player** e a **leitura** não mudam |
-| `TIKTOK_SEND_ENABLED` | `command` | `false` | envio ao TikTok desligado mesmo com a vinculação ligada |
+| `LIVE_CROSS_CHECK_ENABLED` | `portal-api` | `true` | desligada, outra plataforma ao vivo (Twitch/Kick/TikTok) com o YouTube offline **não** reconfere a API do YouTube em ritmo curto (1/2/5 min por até 15 min); vale só o intervalo normal de descoberta (30 min com WebSub, 5 sem) |
+| `TIKTOK_GIFTS_ENABLED` | `reader` | `false` | desligada, o reader não soma presentes e `GET /internal/gifts/ranking` → 404 `gifts_disabled`. Ligada: ranking por live em memória (diamantes por usuário, um registro por combo encerrado) |
 
-Como ligar: **local** — `TIKTOK_LINKING_ENABLED=true` / `YOUTUBE_LINKING_ENABLED=true` no `.env.docker` (o compose repassa para os 3 pontos), `--profile tiktok-link` para o Chromium, recriar `auth-service command portal`. **K3s** — editar `multichat-command/k8s/command.yaml` e `auth-service/k8s/auth-service.yaml`, escalar `deploy/tiktok-browser --replicas=1`, e definir as variáveis de repositório `TIKTOK_LINKING_ENABLED`/`YOUTUBE_LINKING_ENABLED` (o build do Pages as lê).
+Como ligar: **local** — `TIKTOK_LINKING_ENABLED=true` / `YOUTUBE_LINKING_ENABLED=true` no `.env.docker` (o compose repassa), recriar `auth-service command portal`. **Produção** — preencha a chave no `deploy-platform/github-secrets.env`, rode `scripts/setup-github.sh` e faça o redeploy do serviço: o `ENV_FILE` de cada serviço só leva as chaves **listadas em `env/<serviço>.env.example`**, então uma flag nova precisa estar lá. Para o login do TikTok também `TIKTOK_CLIENT_KEY/SECRET` e `TIKTOK_REDIRECT_URI` (igual ao cadastrado no app do TikTok).
 
 ## 5. Login e contas
 - **Login do membro**: `/login` → botão **Entrar com Twitch** (`supabase.auth.signInWithOAuth`, escopos `user:read:email user:write:chat user:read:subscriptions user:read:follows user:read:emotes`, `redirectTo` = `/login`). Depois: se o usuário não tem e-mail confirmado (ou é `@tiktok.identity.invalid`), mostra `MemberEmail`; senão vai a `/membro`. Com a flag do TikTok ligada há também `POST /oauth/tiktok/login` → `/login#tiktok_login=<id>` → `POST /oauth/tiktok/exchange`.
@@ -133,7 +133,7 @@ Como ligar: **local** — `TIKTOK_LINKING_ENABLED=true` / `YOUTUBE_LINKING_ENABL
 
 **Histórico**: `GET /api/chat/recent?limit=N` (público, cache 5 s, N ≤ 200) → `command` → `GET reader:/internal/recent`. Se o reader cair, devolve `{messages: []}`. Twitch, Kick e TikTok **não** entregam histórico: só aparecem mensagens recebidas depois que o reader subiu. A janela é só memória (some ao reiniciar).
 
-**Envio**: frontend `POST /api/chat/messages` (JWT) → `command` → `writer(platform).sendMessage(contexto do auth-service, texto)`. Limites: Twitch/Kick 500 caracteres, YouTube 200, TikTok 150; 10 envios/5 s por usuário; no frontend há intervalo de **5 s** entre envios e o textarea só é desabilitado para visitantes.
+**Envio**: frontend `POST /api/chat/messages` (JWT) → `command` → `writer(platform).sendMessage(contexto do auth-service, texto)`. Limites: Twitch/Kick 500 caracteres, YouTube 200, TikTok 150; 10 envios/5 s por usuário; no frontend o envio é **instantâneo e em fila** (`sendQueue.ts`: um por vez, ~600 ms entre envios, repete após 429; `outbox.ts`: mensagem provisória com o nome de exibição do perfil até a real chegar) e o textarea só é desabilitado para visitantes.
 
 ### 6.1 Interface do `/live` (`src/features/multichat/`)
 - **Cabeçalho do canal, por plataforma selecionada.** *Twitch*: título e categoria (`GET /api/twitch-channel`, cache 60 s, reconsulta a cada 2 min), card "Sobre", seguir/sub/"Dar um sub" (a Twitch não tem API para seguir nem presentear: abre o canal em janela) e aviso de "sem anúncios" para subs. *YouTube*: título da live (`/api/live`) ou "Última live: …", inscritos (`GET /api/youtube-channel`), botões **Inscrever-se** (`?sub_confirmation=1`) e **Seja membro** (`/join`). *Kick*: Seguir e Inscrever-se abrem o canal. O card "Interaja na Twitch" (SoundAlerts e Stream Stickers) só aparece com a Twitch selecionada: as extensões só rodam dentro do `twitch.tv` (`X-Frame-Options`), então abrem em janela.
@@ -166,7 +166,7 @@ Leitura no reader (`providers.ts: connectYouTube`):
 
 Proteções em cada serviço:
 - **portal-api**: toda chamada passa por `youtubeFetch` (`src/lib/youtubeQuota.ts`); após `quotaExceeded` não chama o Google até o reset (devolve 403 sintético). Consulta única de `liveStreamingDetails` com memo de 60 s; descoberta de live a cada 5 min; playlists com cache de 30 min.
-- **command**: `YOUTUBE_SEND_DAILY_UNITS=2000` (20 por mensagem); `quotaExceeded` bloqueia envios até o reset (`youtube_send_budget`).
+- **command**: `YOUTUBE_SEND_DAILY_UNITS=2000` (20 por mensagem); a cota do envio é do projeto Google do OAuth client, separado da `YOUTUBE_API_KEY`; `quotaExceeded` bloqueia envios até o reset (`youtube_send_budget`).
 
 Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll) ou ~1.420/h (stream); chat quieto ~475/h; sem live ~39/h. Antes dos cortes: ~3.975/h com chat ocupado (esgota em ~2 h).
 
@@ -177,7 +177,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 | Serviço | Principais |
 |---|---|
 | `auth-service` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`, `TOKEN_ENCRYPTION_KEY`, `INTERNAL_SERVICE_TOKEN`, `FRONTEND_URL`, `TWITCH_*`, `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI`, `KICK_*`, `TIKTOK_CLIENT_KEY/SECRET/REDIRECT_URI`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED` |
-| `command` | as de Supabase/JWT, `AUTH_SERVICE_URL`, `READER_URL`, `INTERNAL_WAKE_SECRET`, `INTERNAL_SERVICE_TOKEN`, `TOKEN_ENCRYPTION_KEY`, `LIVE_STATUS_URL`, `YOUTUBE_LIVE_CHAT_ID`, `TIKTOK_BROWSER_URL`, `TIKTOK_SEND_ENABLED`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED`, `YOUTUBE_SEND_DAILY_UNITS` |
+| `command` | as de Supabase/JWT, `AUTH_SERVICE_URL`, `READER_URL`, `INTERNAL_WAKE_SECRET`, `INTERNAL_SERVICE_TOKEN`, `TOKEN_ENCRYPTION_KEY`, `LIVE_STATUS_URL`, `YOUTUBE_LIVE_CHAT_ID`, `TIKTOK_LINKING_ENABLED`, `YOUTUBE_LINKING_ENABLED`, `YOUTUBE_SEND_DAILY_UNITS` |
 | `reader` | `SUPABASE_*`, `INTERNAL_WAKE_SECRET`, `AUTO_START`, `TWITCH_*`, `YOUTUBE_API_KEY`, `YOUTUBE_LIVE_STATUS_URL`, `YOUTUBE_TRANSPORT`, `YOUTUBE_POLL_*`, `YOUTUBE_STREAM_GAP_*`, `YOUTUBE_DAILY_UNITS`, `YOUTUBE_BOOST_MESSAGES`, `KICK_*`, `TIKTOK_USERNAME` |
 | `portal-api` | `DATABASE_URL`, `DATABASE_SCHEMA`, `YOUTUBE_API_KEY`, `YOUTUBE_CHANNEL_ID`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` (emotes, badges e dados do canal), `FS25_BISECT_*`, `FS25_XML_CODE`, `RESEND_API_KEY`, `ORIGIN_AUTH_SECRET`, `DISCORD_*` |
 | `social-stats` (job) | `DATABASE_URL`, `YOUTUBE_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `TIKTOK_CLIENT_KEY/SECRET` |
@@ -185,7 +185,7 @@ Projeção por hora (modelo, não medição direta): chat ocupado ~1.880/h (poll
 **Apenas uma** chave de API do YouTube deve ser usada (`YOUTUBE_API_KEY`). Somar cota com chaves de projetos diferentes viola a política de uso da API (verificar o texto vigente).
 
 ## 9. Deploy e infraestrutura (`deploy-platform`)
-- Produção: VM Ubuntu de 1 GB, **Docker Compose** (sem K8s): 6 serviços + `edge` (Caddy) + `cloudflared`; Supabase fora da VM. `tiktok-browser` não é deployado.
+- Produção: VM Ubuntu de 1 GB, **Docker Compose** (sem K8s): 6 serviços + `edge` (Caddy) + `cloudflared`; Supabase fora da VM. O envio ao chat do TikTok (e o serviço `tiktok-browser`) foi descartado. O Pages só serve o site e o proxy `functions/[[path]].ts`; sem Workers, D1 nem KV da Cloudflare. A descoberta de live e as estatísticas só usam a API oficial do YouTube (sem scraping).
 - `deploy-platform/`: `compose.yaml` (limites de memória, healthchecks), `Caddyfile` (roteamento por prefixo, mods e `/healthz`), `env/*.example`, `scripts/` (`bootstrap-vm.sh`, `deploy.sh`, `deploy-ssh.sh`, `cloudflare-tunnel.sh`, `supabase-*.ps1`).
 - Deploy de cada serviço: o `image.yml` builda a imagem e o job `deploy` roda `ssh deploy@VM <servico> <sha>`; a VM executa `platform-deploy` (pull, up só do serviço, espera `healthy`, reverte se falhar, grava a versão no `/healthz`). Jobs (`social-stats`, backfill, `mods-sync-job`) rodam pelo cron do host.
 - A VM e a rede são criadas **à mão no console da Oracle** (`scripts/oci-launch-retry.sh` ajuda a conseguir capacidade).

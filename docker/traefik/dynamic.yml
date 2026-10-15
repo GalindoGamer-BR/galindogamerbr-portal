@@ -3,7 +3,7 @@
 http:
   routers:
     command:
-      rule: "PathPrefix(`/api/chat`) || (PathPrefix(`/api/tiktok`) && !PathPrefix(`/api/tiktok/connection`)) || PathPrefix(`/api/member/activity`)"
+      rule: "PathPrefix(`/api/chat`) || PathPrefix(`/api/gifts`) || PathPrefix(`/api/member/activity`)"
       service: command
       priority: 300
     reader-kick-webhook:

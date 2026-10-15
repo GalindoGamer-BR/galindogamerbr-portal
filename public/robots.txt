@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /login
+Disallow: /membro
+Disallow: /conta
 Disallow: /api/
 
 Sitemap: https://galindogamerbr.com.br/sitemap.xml

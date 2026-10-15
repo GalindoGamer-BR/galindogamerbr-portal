@@ -111,27 +111,6 @@ export function LockIcon({ className }: IconProps) {
   )
 }
 
-export function SpeakerIcon({ className }: IconProps) {
-  return (
-    <svg {...base} className={size(className)}>
-      <path d="M3.5 8v4h2.8L10 15V5L6.3 8H3.5Z" />
-      <path d="M12.6 7.4a3.6 3.6 0 0 1 0 5.2M14.8 5.2a6.6 6.6 0 0 1 0 9.6" />
-    </svg>
-  )
-}
-
-export function StickerIcon({ className }: IconProps) {
-  return (
-    <svg {...base} className={size(className)}>
-      <path d="M4.2 3.5h11.6c.9 0 1.7.8 1.7 1.7v6.3L11.5 17.5H4.2c-.9 0-1.7-.8-1.7-1.7V5.2c0-.9.8-1.7 1.7-1.7Z" />
-      <path d="M17.5 11.5h-4.3c-.9 0-1.7.8-1.7 1.7v4.3" />
-      <circle cx="7.4" cy="8.2" r=".6" />
-      <circle cx="12.2" cy="8.2" r=".6" />
-      <path d="M7 11.6c1.6 1.4 3.2 1.4 4.6 0" />
-    </svg>
-  )
-}
-
 export function WindowIcon({ className }: IconProps) {
   return (
     <svg {...base} className={size(className)}>

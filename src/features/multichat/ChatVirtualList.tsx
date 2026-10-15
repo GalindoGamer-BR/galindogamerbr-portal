@@ -67,7 +67,7 @@ export function ChatVirtualList({
                 key={row.key}
                 data-index={row.index}
                 ref={virtualizer.measureElement}
-                className="mc-message"
+                className={message.metadata?.pending ? "mc-message mc-message-pending" : "mc-message"}
                 style={{
                   position: "absolute",
                   top: 0,
