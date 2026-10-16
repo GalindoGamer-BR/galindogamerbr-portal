@@ -16,7 +16,7 @@ export const GAMES: Game[] = [
     tag: 'Carro-chefe',
     icon: '/assets/logos/trator.webp',
     description: 'Fazendas, máquinas, produção, mods e histórias da comunidade, incluindo a série Fazenda Nova Aliança.',
-    image: '/assets/banners/fs25.webp',
+    image: '', // carro-chefe: a pagina mostra o video, nao um banner (o arquivo nao existe mais)
     href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUn2vIz-FSyMlL_ldV6_kzrN',
     flagship: true,
   },
