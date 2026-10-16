@@ -209,6 +209,9 @@ export function Jogar() {
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-base">{game.title}</h3>
                       <span className="rounded-full border border-line px-2.5 py-0.5 text-xs font-semibold text-gold">{item.channel}</span>
+                      {item.subsOnly ? (
+                        <span className="rounded-full border border-purple/50 bg-purple/15 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white">Somente subs</span>
+                      ) : null}
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
                   </div>
@@ -219,11 +222,13 @@ export function Jogar() {
               href="/discord"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex min-h-48 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gold/50 bg-bg/30 p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-gold hover:bg-bg/50"
+              className={`${INFO_CARD_CLASSNAME} block overflow-hidden !border-gold/60 !p-0`}
             >
-              <span className="text-4xl transition duration-300 group-hover:scale-110" aria-hidden="true">💡</span>
-              <span className="font-display text-xl tracking-wide">FIQUE À VONTADE PARA SUGERIR NOVOS JOGOS</span>
-              <span className="text-base leading-relaxed text-white/80">Quer jogar outra coisa com a gente? Conte no Discord.</span>
+              <img src="/assets/banners/sugestao-jogos.webp" alt="" loading="lazy" className="aspect-video w-full object-cover" />
+              <div className="p-5">
+                <h3 className="font-display text-base tracking-wide">FIQUE À VONTADE PARA SUGERIR NOVOS JOGOS</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/80">Quer jogar outra coisa com a gente? Conte no Discord.</p>
+              </div>
             </a>
           </div>
           <div className="mt-8">

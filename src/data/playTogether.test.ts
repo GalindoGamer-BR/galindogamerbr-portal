@@ -3,6 +3,11 @@ import { GAMES } from './games'
 import { PLAY_TOGETHER } from './playTogether'
 
 describe('PLAY_TOGETHER', () => {
+  it('Construction Simulator e SnowRunner são somente para subs; os demais são abertos', () => {
+    const subsOnly = PLAY_TOGETHER.filter((game) => game.subsOnly).map((game) => game.slug).sort()
+    expect(subsOnly).toEqual(['construction-simulator', 'snowrunner'])
+  })
+
   it('cada jogo existe em games.ts e não se repete', () => {
     const slugs = PLAY_TOGETHER.map((game) => game.slug)
     expect(new Set(slugs).size).toBe(slugs.length)

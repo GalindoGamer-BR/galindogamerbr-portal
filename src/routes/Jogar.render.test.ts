@@ -68,6 +68,7 @@ describe('página /jogar', () => {
     expect(others).toContain('#ets2')
     expect(others).toContain('#snowrunner')
     expect(others).toContain('SUGERIR NOVOS JOGOS')
+    expect(others.match(/Somente subs/g)).toHaveLength(2)
     expect(others).toContain('Entrar no Discord')
   })
 })
