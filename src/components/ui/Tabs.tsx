@@ -45,28 +45,37 @@ type TabsProps = {
 }
 
 /**
- * Abas acessíveis (WAI-ARIA tabs) sincronizadas com o hash da URL: `/pagina#mods` abre a aba Mods, trocar de aba troca o
- * hash sem empilhar histórico, e o hash também reage a links internos que mudam só o `#`.
+ * Abas acessíveis (WAI-ARIA tabs). O hash da URL só serve de entrada: `/pagina#mods` abre a aba Mods (e links internos
+ * `#mods` também), mas trocar de aba não escreve nada na URL.
  */
 export function Tabs({ tabs, defaultId, idPrefix, ariaLabel, renderPanel }: TabsProps) {
   const [active, setActive] = useState(() => resolveTabFromHash(typeof window === 'undefined' ? '' : window.location.hash, tabs, defaultId))
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef(new Map<string, HTMLButtonElement>())
 
+  // A aba atual vive só no estado: a URL não ganha #hash a cada clique. Se a URL ainda traz o hash de uma aba (a pessoa
+  // chegou por /pagina#mods), ele é limpo para não ficar desatualizado em relação à aba aberta.
+  const clearTabHash = useCallback(() => {
+    if (!findTabByHash(window.location.hash, tabs)) return
+    window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
+  }, [tabs])
+
   const select = useCallback((id: string) => {
     setActive(id)
-    window.history.replaceState(window.history.state, '', `#${id}`)
-  }, [])
+    clearTabHash()
+  }, [clearTabHash])
 
   useEffect(() => {
     // Hash que não é de aba (#vip, uma seção da página) não mexe na aba atual.
     const onHashChange = () => {
       const id = findTabByHash(window.location.hash, tabs)
-      if (id) setActive(id)
+      if (!id) return
+      setActive(id)
+      clearTabHash()
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
-  }, [tabs])
+  }, [tabs, clearTabHash])
 
   // Deep link (abriu /pagina#mods): leva a barra de abas para a tela. O Layout rola para o topo a cada troca de rota, então
   // isto roda depois dele (setTimeout) para não ser desfeito. Hash que não é de aba fica por conta de quem o usa.
