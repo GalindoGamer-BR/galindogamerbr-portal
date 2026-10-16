@@ -2,12 +2,17 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Reac
 
 export type TabItem = { id: string; label: string; /** Outros hashes que abrem esta aba (links antigos, como #participar). */ hashAliases?: string[] }
 
-/** Aba que o hash da URL aponta (`#vip`), ou `fallback` quando vazio ou desconhecido. */
-export function resolveTabFromHash(hash: string, tabs: TabItem[], fallback: string): string {
+/** Aba que o hash da URL aponta (`#mods`), ou `null` quando o hash é vazio ou não é de nenhuma aba (ex.: `#vip`, que é seção). */
+export function findTabByHash(hash: string, tabs: TabItem[]): string | null {
   const wanted = decodeSafe(hash.replace(/^#/, '')).toLowerCase()
-  if (!wanted) return fallback
+  if (!wanted) return null
   const found = tabs.find((tab) => tab.id.toLowerCase() === wanted || tab.hashAliases?.some((alias) => alias.toLowerCase() === wanted))
-  return found ? found.id : fallback
+  return found ? found.id : null
+}
+
+/** Aba que o hash aponta, ou `fallback` quando vazio ou desconhecido. */
+export function resolveTabFromHash(hash: string, tabs: TabItem[], fallback: string): string {
+  return findTabByHash(hash, tabs) ?? fallback
 }
 
 /** Para onde o teclado leva o foco: setas com volta ao outro lado, Home e End. `null` para qualquer outra tecla. */
@@ -40,7 +45,7 @@ type TabsProps = {
 }
 
 /**
- * Abas acessíveis (WAI-ARIA tabs) sincronizadas com o hash da URL: `/pagina#vip` abre a aba VIP, trocar de aba troca o
+ * Abas acessíveis (WAI-ARIA tabs) sincronizadas com o hash da URL: `/pagina#mods` abre a aba Mods, trocar de aba troca o
  * hash sem empilhar histórico, e o hash também reage a links internos que mudam só o `#`.
  */
 export function Tabs({ tabs, defaultId, idPrefix, ariaLabel, renderPanel }: TabsProps) {
@@ -54,17 +59,22 @@ export function Tabs({ tabs, defaultId, idPrefix, ariaLabel, renderPanel }: Tabs
   }, [])
 
   useEffect(() => {
-    const onHashChange = () => setActive(resolveTabFromHash(window.location.hash, tabs, defaultId))
+    // Hash que não é de aba (#vip, uma seção da página) não mexe na aba atual.
+    const onHashChange = () => {
+      const id = findTabByHash(window.location.hash, tabs)
+      if (id) setActive(id)
+    }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
-  }, [tabs, defaultId])
+  }, [tabs])
 
-  // Deep link (abriu /pagina#vip): leva a barra de abas para a tela. O Layout rola para o topo a cada troca de rota, então
-  // isto roda depois dele (setTimeout) para não ser desfeito.
+  // Deep link (abriu /pagina#mods): leva a barra de abas para a tela. O Layout rola para o topo a cada troca de rota, então
+  // isto roda depois dele (setTimeout) para não ser desfeito. Hash que não é de aba fica por conta de quem o usa.
   useEffect(() => {
-    if (!window.location.hash) return
+    if (!findTabByHash(window.location.hash, tabs)) return
     const timer = window.setTimeout(() => wrapperRef.current?.scrollIntoView({ block: 'start' }), 0)
     return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
   }, [])
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

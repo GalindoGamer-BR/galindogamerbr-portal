@@ -44,11 +44,22 @@ describe('página /jogar', () => {
     expect(await render('#fazenda-nova-alianca')).toContain('A resenha continua')
   })
 
-  it('#mods, #vip e #outros-jogos abrem as respectivas abas', async () => {
+  it('o VIP é uma seção própria, fora das abas: aparece em qualquer aba e #vip não troca a aba', async () => {
+    for (const hash of ['', '#mods', '#fazenda', '#outros-jogos', '#vip']) {
+      const html = await render(hash)
+      expect(html, hash).toContain('id="vip"')
+      expect(html, hash).toContain('Ouro')
+    }
+    expect(await render('#vip')).toContain('Prepare os mods')
+    expect(await render('')).not.toContain('id="jogar-tab-vip"')
+  })
+
+  it('#mods e #outros-jogos abrem as respectivas abas', async () => {
     expect(await render('#mods')).toContain('Instale o Mod Sync')
-    expect(await render('#vip')).toContain('Ouro')
     const others = await render('#outros-jogos')
     expect(others).toContain('#wardogs')
+    expect(others).toContain('#ets2')
+    expect(others).toContain('#snowrunner')
     expect(others).toContain('Entrar no Discord')
   })
 })

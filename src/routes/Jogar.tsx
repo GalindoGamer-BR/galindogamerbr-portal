@@ -22,7 +22,6 @@ const TABS: TabItem[] = [
   { id: 'como-entrar', label: 'Como entrar', hashAliases: ['participar'] },
   { id: 'fazenda', label: 'Fazenda', hashAliases: ['fazenda-nova-alianca'] },
   { id: 'mods', label: 'Mods' },
-  { id: 'vip', label: 'VIP' },
   { id: 'outros-jogos', label: 'Outros jogos' },
 ]
 
@@ -82,11 +81,19 @@ function StepCard({ n, title, text, action }: { n: string; title: string; text: 
 
 // Página única de "como jogar com o Galindo": a Fazenda Nova Aliança (servidor de Farming Simulator 25) e os outros
 // jogos em que ele joga junto com a comunidade. Um único botão cheio (Discord, que é por onde tudo começa); o resto vive
-// em abas, sem sair da página. Substitui a antiga /fazenda (que continua como alias em App.tsx).
+// em abas, sem sair da página; o VIP é uma seção própria, fora das abas. Substitui a antiga /fazenda (que continua como alias em App.tsx).
 export function Jogar() {
   const rulesVideoTitleId = useId()
   const [rulesVideoOpen, setRulesVideoOpen] = useState(false)
   const [rulesVideoId, setRulesVideoId] = useState(FARM_RULES_VIDEO_ID)
+
+  // Quem chega de outra página em /jogar#vip: o Layout rola para o topo a cada troca de rota, então a seção é
+  // alcançada depois dele.
+  useEffect(() => {
+    if (window.location.hash !== '#vip') return
+    const timer = window.setTimeout(() => document.getElementById('vip')?.scrollIntoView({ block: 'start' }), 0)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     getFarmVideos().then((videos) => setRulesVideoId(videos.rulesVideoId)).catch(() => {})
@@ -154,8 +161,6 @@ export function Jogar() {
         </div>
       )
     }
-
-    if (id === 'vip') return <VipSteps variant="full" />
 
     if (id === 'outros-jogos') {
       return (
@@ -242,6 +247,14 @@ export function Jogar() {
         <Container>
           <Tabs tabs={TABS} defaultId="como-entrar" idPrefix="jogar" ariaLabel="Como jogar com o Galindo" renderPanel={renderPanel} />
         </Container>
+      </section>
+
+      <section id="vip" className="scroll-mt-24 py-12 sm:py-16">
+        <Reveal>
+          <Container>
+            <VipSteps variant="full" />
+          </Container>
+        </Reveal>
       </section>
 
       <Modal
