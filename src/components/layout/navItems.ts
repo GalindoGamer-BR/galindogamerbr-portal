@@ -4,14 +4,15 @@ export const NAV_ITEMS = [
   { label: 'Conteúdos', to: '/conteudos' },
   { label: 'Participe da Fazenda', to: '/fazenda' },
   { label: 'Comunidade', to: '/comunidade' },
-  { label: 'Sobre', to: '/sobre' },
   { label: 'Parceiros', to: '/parceiros' },
+  { label: 'Multichat', to: '/live' },
 ] as const
 
-// Só o que não está na navbar (NAV_ITEMS) — repetir os mesmos links nos
+// Só o que não está na navbar (NAV_ITEMS; o Sobre mora aqui para dar lugar ao Multichat lá) — repetir os mesmos links nos
 // dois lugares era redundante. O mapa do site (/mapa-do-site) reúne os dois
 // grupos pra quem quiser ver tudo num lugar só.
 export const FOOTER_ITEMS = [
+  { label: 'Sobre', to: '/sobre' },
   { label: 'Privacidade', to: '/privacidade' },
   { label: 'Termos', to: '/termos' },
   { label: 'Créditos', to: '/creditos' },

@@ -59,7 +59,7 @@ export function Header() {
             <AccountMenu member={member} onLogout={() => void logout()} />
           ) : (
             <button type="button" onClick={() => setLoginOpen(true)} className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-gold hover:text-gold">
-              Área do membro
+              Entrar
             </button>
           )}
         </div>

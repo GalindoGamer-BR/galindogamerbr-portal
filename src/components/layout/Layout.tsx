@@ -21,12 +21,15 @@ export function Layout() {
   return (
     <div className="flex min-h-screen flex-col">
       <Seo />
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded-md focus:bg-gold focus:px-4 focus:py-2 focus:font-semibold focus:text-bg">
+        Pular para o conteúdo
+      </a>
       {/* Fundo padrão de todas as páginas — uma página específica pode
           sobrepor renderizando seu próprio <PageBackground> (ex.: Sobre.tsx),
           que vence por vir depois no DOM, mesmo z-index. */}
       <PageBackground image="/assets/body-bg.webp" />
       <Header />
-      <main className="flex-1">
+      <main id="conteudo" className="flex-1">
         <Outlet />
       </main>
       <Footer />
