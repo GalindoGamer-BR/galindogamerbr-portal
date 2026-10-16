@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Container } from '../components/ui/Container'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { Reveal } from '../components/ui/Reveal'
@@ -61,16 +61,32 @@ function InfoCard({ icon, title, text }: { icon: string; title: string; text: st
   )
 }
 
-function StepCard({ n, title, text, action }: { n: string; title: string; text: string; action: ReactNode }) {
-  return (
-    <div className="flex gap-4 rounded-xl border border-line bg-bg/50 p-5 sm:p-6">
+type StepCardProps = { n: string; title: string; text: string; cta: string } & ({ href: string; external?: boolean; onClick?: never } | { onClick: () => void; href?: never; external?: never })
+
+// O card inteiro é o link (ou o botão): clicar em qualquer ponto dele faz a ação, e `cta` é só o rótulo visual da ação.
+function StepCard({ n, title, text, cta, href, external, onClick }: StepCardProps) {
+  const className = 'group flex w-full gap-4 rounded-xl border border-line bg-bg/50 p-5 text-left transition duration-300 hover:-translate-y-0.5 hover:border-gold/60 hover:bg-bg/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold sm:p-6'
+  const body = (
+    <>
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-gold bg-gold/10 text-base font-bold text-gold">{n}</span>
-      <div className="min-w-0">
-        <h3 className="text-lg font-semibold leading-tight">{title}</h3>
-        <p className="mt-1.5 text-base leading-relaxed text-white/80">{text}</p>
-        <div className="mt-3 text-base font-semibold text-gold [&_a:hover]:underline [&_button:hover]:underline">{action}</div>
-      </div>
-    </div>
+      <span className="min-w-0">
+        <span className="block font-display text-xl leading-tight tracking-wide">{title}</span>
+        <span className="mt-1.5 block text-base leading-relaxed text-white/80">{text}</span>
+        <span className="mt-3 block font-display text-base tracking-wide text-gold group-hover:underline">{cta}</span>
+      </span>
+    </>
+  )
+  if (href) {
+    return (
+      <a href={href} className={className} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+        {body}
+      </a>
+    )
+  }
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {body}
+    </button>
   )
 }
 
@@ -198,10 +214,10 @@ export function Jogar() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <StepCard n="1" title="Entre no Discord" text="É por lá que tudo começa: avisos, regras e o canal de cada jogo." action={<a href="/discord" target="_blank" rel="noopener noreferrer">Entrar no Discord</a>} />
-          <StepCard n="2" title="Assista e leia as regras" text="Veja o vídeo das regras e leia as que ficam fixadas no Discord." action={<button type="button" onClick={() => setRulesVideoOpen(true)}>Assistir ao vídeo</button>} />
-          <StepCard n="3" title="Seja VIP" text="O acesso à fazenda é para membros VIP. Veja como virar VIP mais abaixo." action={<a href="#vip">Ir para o VIP</a>} />
-          <StepCard n="4" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." action={<a href="#mods">Ver como</a>} />
+          <StepCard n="1" title="Entre no Discord" text="É por lá que tudo começa: avisos, regras e o canal de cada jogo." cta="Entrar no Discord" href="/discord" external />
+          <StepCard n="2" title="Assista e leia as regras" text="Veja o vídeo das regras e leia as que ficam fixadas no Discord." cta="Assistir ao vídeo" onClick={() => setRulesVideoOpen(true)} />
+          <StepCard n="3" title="Seja VIP" text="O acesso à fazenda é para membros VIP. Veja como virar VIP mais abaixo." cta="Ir para o VIP" href="#vip" />
+          <StepCard n="4" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." cta="Ver como" href="#mods" />
         </div>
       </div>
     )
