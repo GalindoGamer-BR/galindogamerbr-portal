@@ -7,32 +7,32 @@ const ICON_CREDITS = [
   {
     label: 'Sun icons created by Magnific - Flaticon',
     href: 'https://www.flaticon.com/free-icons/sun',
-    icon: '/assets/icons/schedule-icon-sun.png',
+    icon: '/assets/icons/schedule-icon-sun.webp',
   },
   {
     label: 'Sunset icons created by Magnific - Flaticon',
     href: 'https://www.flaticon.com/free-icons/sunset',
-    icon: '/assets/icons/schedule-icon-sunset.png',
+    icon: '/assets/icons/schedule-icon-sunset.webp',
   },
   {
     label: 'Instagram icons created by Magnific - Flaticon',
     href: 'https://www.flaticon.com/br/icones-gratis/instagram',
-    icon: '/assets/logos/instagram.png',
+    icon: '/assets/logos/instagram.webp',
   },
   {
     label: 'Youtube icons created by Magnific - Flaticon',
     href: 'https://www.flaticon.com/br/icones-gratis/youtube',
-    icon: '/assets/logos/youtube.png',
+    icon: '/assets/logos/youtube.webp',
   },
   {
     label: 'Tik tok icons created by Magnific - Flaticon',
     href: 'https://www.flaticon.com/br/icones-gratis/tik-tok',
-    icon: '/assets/logos/tiktok.png',
+    icon: '/assets/logos/tiktok.webp',
   },
   {
     label: 'Twitch icons created by Laisa Islam Ani - Flaticon',
     href: 'https://www.flaticon.com/free-icons/twitch',
-    icon: '/assets/logos/twitch.png',
+    icon: '/assets/logos/twitch.webp',
   },
 ]
 

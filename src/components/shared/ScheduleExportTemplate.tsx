@@ -21,7 +21,7 @@ const FULL_DAY_NAMES: Record<number, string> = {
 // As linhas de TERÇA e QUINTA já nascem mais altas na própria arte
 // (108/104px vs ~85-92px das demais) porque são os dois dias com dois
 // blocos de horário. Ver conversa/memória do projeto pra reproduzir se o
-// template.png for atualizado de novo.
+// template (WebP) for atualizado de novo.
 const PORTRAIT_DAY_ROWS: Array<{ day: number; top: number; height: number }> = [
   { day: 1, top: 449, height: 103 },
   { day: 2, top: 559, height: 104 },
@@ -39,7 +39,7 @@ const TEMPLATES = {
   portrait: {
     width: 1080,
     height: 1350,
-    background: '/assets/programacao/schedule-export-template-v2.png',
+    background: '/assets/programacao/schedule-export-template-v2.webp',
     rows: PORTRAIT_DAY_ROWS,
     boxLeft: 318,
     boxRight: 1057,
@@ -53,7 +53,7 @@ const TEMPLATES = {
   wide: {
     width: 1920,
     height: 1080,
-    background: '/assets/programacao/schedule-export-template-wide.png',
+    background: '/assets/programacao/schedule-export-template-wide.webp',
     rows: [
       { day: 1, top: 372, height: 71 },
       { day: 2, top: 451, height: 71 },
@@ -82,7 +82,7 @@ const TEMPLATES = {
 function TimeIcon({ kind, size }: { kind: BlockIconKind; size: number }) {
   return (
     <img
-      src={kind === 'sun' ? '/assets/icons/schedule-icon-sun.png' : '/assets/icons/schedule-icon-sunset.png'}
+      src={kind === 'sun' ? '/assets/icons/schedule-icon-sun.webp' : '/assets/icons/schedule-icon-sunset.webp'}
       alt=""
       style={{ width: size, height: size, flexShrink: 0 }}
     />
@@ -95,7 +95,7 @@ type ScheduleExportTemplateProps = {
 }
 
 // Template offscreen renderizado pra exportação de imagem (ScheduleExportButton
-// / PublicScheduleExportButton). Usa a arte de fundo pronta (template.png) e só
+// / PublicScheduleExportButton). Usa a arte de fundo pronta (template (WebP)) e só
 // sobrepõe o texto de cada dia nas posições medidas acima — mais simples e mais
 // fiel ao design de referência do que recriar o layout inteiro em CSS.
 export const ScheduleExportTemplate = forwardRef<HTMLDivElement, ScheduleExportTemplateProps>(function ScheduleExportTemplate(
@@ -128,7 +128,7 @@ export const ScheduleExportTemplate = forwardRef<HTMLDivElement, ScheduleExportT
           <div key={day} style={{ transform: nudge ? `translateY(${nudge}px)` : undefined }}>
             {template.dayIconSize > 0 && (
               <img
-                src={isOffline ? '/assets/icons/schedule-icon-offline.png' : '/assets/icons/schedule-icon-calendar.png'}
+                src={isOffline ? '/assets/icons/schedule-icon-offline.webp' : '/assets/icons/schedule-icon-calendar.webp'}
                 alt=""
                 style={{
                   position: 'absolute',
