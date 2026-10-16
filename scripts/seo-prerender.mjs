@@ -17,7 +17,15 @@ export const ROUTES = {
   '/': { description: DEFAULT_DESCRIPTION },
   '/boasvindas': { title: 'Boas vindas', description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, da fazenda e da comunidade.' },
   '/conteudos': { title: 'Conteúdos', description: 'Assista às séries, lives e vídeos de simuladores e games do canal GalindoGamerBR.' },
-  '/jogar': { title: 'Jogue com o Galindo', description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.' },
+  '/jogar': { title: 'Jogue com o Galindo', description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.' ,
+    // Conteúdo estático que os robôs leem antes (ou sem) o JavaScript; o React o substitui ao montar (createRoot).
+    fallback: {
+      h1: 'Venha jogar com a gente',
+      text: 'A Fazenda Nova Aliança, no Farming Simulator 25, e outros jogos em comunidade. Tudo começa no Discord.',
+      items: ['Como entrar: 18 anos ou mais, regras em vídeo, VIP e mods', 'Fazenda Nova Aliança: o servidor, a série e os mods da fazenda', 'VIP: como virar VIP e pedir a liberação', 'Outros jogos: WARDOGS, Hell Let Loose, Construction Simulator, ETS2 e SnowRunner'],
+      links: [{ href: '/discord', label: 'Entrar no Discord' }, { href: '/mods', label: 'Baixar o Mod Sync' }, { href: '/comunidade', label: 'Conhecer a comunidade' }],
+    },
+  },
   '/mods': { title: 'Mods da Fazenda', description: 'Baixe e sincronize os mods oficiais usados no servidor da Fazenda Nova Aliança no Farming Simulator 25.' },
   '/comunidade': { title: 'Comunidade', description: 'Entre nos canais oficiais e faça parte da comunidade GalindoGamerBR.' },
   '/sobre': { title: 'Sobre', description: 'Conheça Galindo, a história do canal GalindoGamerBR e a paixão por simuladores, games e comunidade.' },
@@ -57,7 +65,43 @@ export function render(template, canonicalPath, data, robots) {
   html = setAttr(html, /<meta property="og:url"[^>]*>/, 'content', canonical)
   html = setAttr(html, /<meta name="twitter:title"[^>]*>/, 'content', title)
   html = setAttr(html, /<meta name="twitter:description"[^>]*>/, 'content', data.description)
+  if (robots === INDEX && canonicalPath !== '/') html = html.replace('</head>', () => `${pageJsonLd(canonical, title, data)}
+  </head>`)
+  if (data.fallback) html = html.replace('<div id="root"></div>', () => `<div id="root">${fallbackHtml(data.fallback)}</div>`)
   return html
+}
+
+// Dados estruturados da página (WebPage + trilha de navegação) — o Organization do index.html já vale para o site todo.
+function pageJsonLd(canonical, title, data) {
+  const graph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${canonical}#webpage`,
+        url: canonical,
+        name: title,
+        description: data.description,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Início', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: data.title ?? SITE_NAME, item: canonical },
+        ],
+      },
+    ],
+  }
+  // `<` escapado para o JSON nunca fechar a tag <script>.
+  return `<script type="application/ld+json">${JSON.stringify(graph).replace(/</g, '\\u003c')}</script>`
+}
+
+function fallbackHtml({ h1, text, items, links }) {
+  const li = items.map((item) => `<li>${escape(item)}</li>`).join('')
+  const nav = links.map((link) => `<a href="${escape(link.href)}">${escape(link.label)}</a>`).join(' ')
+  return `<main><h1>${escape(h1)}</h1><p>${escape(text)}</p><ul>${li}</ul><nav>${nav}</nav></main>`
 }
 
 const INDEX = 'index, follow, max-image-preview:large'
