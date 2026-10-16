@@ -30,16 +30,16 @@ describe('página /jogar', () => {
     expect(html).toContain('Prepare os mods')
     expect(html).toContain('18 ANOS OU MAIS')
     expect(html).not.toContain('Uma fazenda feita em conjunto')
-    expect(html).not.toContain('Instale o Mod Sync')
   })
 
   it('o alias antigo #participar abre "Como entrar"', async () => {
     expect(await render('#participar')).toContain('Entre no Discord')
   })
 
-  it('#fazenda abre a aba da fazenda, com a história e os blocos da comunidade', async () => {
+  it('#fazenda abre a aba da fazenda, com a história, os mods e os blocos da comunidade', async () => {
     const farm = await render('#fazenda')
     expect(farm).toContain('FAZENDA NOVA ALIANÇA')
+    expect(farm).toContain('Instale o Mod Sync')
     expect(farm).toContain('Uma fazenda feita em conjunto')
     expect(farm).not.toContain('Prepare os mods')
     expect(await render('#fazenda-nova-alianca')).toContain('A resenha continua')
@@ -52,12 +52,17 @@ describe('página /jogar', () => {
       expect(html, hash).toContain('Ouro')
     }
     expect(await render('#vip')).toContain('Prepare os mods')
-    expect(await render('#mods')).not.toContain('18 ANOS OU MAIS')
     expect(await render('')).not.toContain('id="jogar-tab-vip"')
   })
 
-  it('#mods e #outros-jogos abrem as respectivas abas', async () => {
-    expect(await render('#mods')).toContain('Instale o Mod Sync')
+  it('os mods moram na aba da fazenda: #mods abre a fazenda e não há aba Mods', async () => {
+    const mods = await render('#mods')
+    expect(mods).toContain('Instale o Mod Sync')
+    expect(mods).toContain('FAZENDA NOVA ALIANÇA')
+    expect(mods).not.toContain('id="jogar-tab-mods"')
+  })
+
+  it('#outros-jogos abre a aba de outros jogos', async () => {
     const others = await render('#outros-jogos')
     expect(others).toContain('#wardogs')
     expect(others).toContain('#ets2')

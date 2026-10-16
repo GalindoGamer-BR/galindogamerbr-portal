@@ -9,6 +9,7 @@ import { VipSteps } from '../components/shared/VipSteps'
 import { Modal } from '../components/ui/Modal'
 import { VideoEmbed } from '../components/shared/VideoEmbed'
 import { getFarmVideos } from '../lib/api/farm'
+import { useFlagshipVideos } from '../hooks/useFlagshipVideo'
 import { FAZENDA_NOVA_ALIANCA, GAMES } from '../data/games'
 import { PLAY_TOGETHER } from '../data/playTogether'
 
@@ -20,8 +21,7 @@ const SERVER_MODS_LIST_URL = 'http://galindoverso.gamesservers.io:9017/mods.html
 
 const TABS: TabItem[] = [
   { id: 'como-entrar', label: 'Como entrar', hashAliases: ['participar'] },
-  { id: 'fazenda', label: 'Fazenda', hashAliases: ['fazenda-nova-alianca'] },
-  { id: 'mods', label: 'Mods' },
+  { id: 'fazenda', label: 'Fazenda', hashAliases: ['fazenda-nova-alianca', 'mods'] },
   { id: 'outros-jogos', label: 'Outros jogos' },
 ]
 
@@ -97,13 +97,21 @@ export function Jogar() {
   const rulesVideoTitleId = useId()
   const [rulesVideoOpen, setRulesVideoOpen] = useState(false)
   const [rulesVideoId, setRulesVideoId] = useState(FARM_RULES_VIDEO_ID)
+  // Último episódio da série da fazenda (mesma fonte do carro-chefe de /conteudos), usado como imagem do cartão da aba.
+  const [latestEpisode] = useFlagshipVideos()
 
-  // Quem chega de outra página em /jogar#vip: o Layout rola para o topo a cada troca de rota, então a seção é
-  // alcançada depois dele.
+  // #vip e #mods apontam para blocos da página (a seção do VIP e o bloco de mods dentro da aba Fazenda). Vindo de outra
+  // página o Layout rola para o topo a cada troca de rota, e o bloco de mods só existe depois de a aba Fazenda abrir:
+  // por isso a rolagem espera um instante.
   useEffect(() => {
-    if (window.location.hash !== '#vip') return
-    const timer = window.setTimeout(() => document.getElementById('vip')?.scrollIntoView({ block: 'start' }), 0)
-    return () => window.clearTimeout(timer)
+    const scrollToBlock = (hash: string) => {
+      const id = hash === '#vip' ? 'vip' : hash === '#mods' ? 'mods' : null
+      if (id) window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 60)
+    }
+    scrollToBlock(window.location.hash)
+    const onHashChange = (event: HashChangeEvent) => scrollToBlock(`#${event.newURL.split('#')[1] ?? ''}`)
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
   useEffect(() => {
@@ -114,13 +122,49 @@ export function Jogar() {
     if (id === 'fazenda') {
       return (
         <div>
-          <div className="rounded-xl border border-gold/40 bg-bg/50 p-6 sm:p-8">
-            <Eyebrow>Farming Simulator 25</Eyebrow>
-            <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA NOVA ALIANÇA</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{FAZENDA_NOVA_ALIANCA.description}</p>
-            <div className="mt-5 flex flex-wrap items-center gap-4">
-              <LinkButton variant="green" href={FAZENDA_NOVA_ALIANCA.href} target="_blank" rel="noopener noreferrer">Ver a série no YouTube</LinkButton>
-              <a href="#como-entrar" className="text-sm font-semibold text-gold hover:underline">Como entrar no servidor</a>
+          <div className="grid items-center gap-6 overflow-hidden rounded-xl border border-gold/50 bg-panel2 bg-[radial-gradient(circle_at_0%_0%,rgba(217,177,79,0.22),transparent_50%),radial-gradient(circle_at_100%_100%,rgba(56,163,90,0.2),transparent_50%)] p-6 sm:p-8 md:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <Eyebrow>Farming Simulator 25</Eyebrow>
+              <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA NOVA ALIANÇA</h2>
+              <p className="mt-3 text-base leading-relaxed text-white/85">{FAZENDA_NOVA_ALIANCA.description}</p>
+              <div className="mt-5 flex flex-wrap items-center gap-4">
+                <LinkButton variant="green" href={FAZENDA_NOVA_ALIANCA.href} target="_blank" rel="noopener noreferrer">Ver a série no YouTube</LinkButton>
+                <a href="#como-entrar" className="text-sm font-semibold text-gold hover:underline">Como entrar no servidor</a>
+              </div>
+            </div>
+            {latestEpisode?.videoId ? (
+              <a
+                href={`https://www.youtube.com/watch?v=${latestEpisode.videoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block aspect-video overflow-hidden rounded-xl border border-gold/40 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]"
+              >
+                <img src={latestEpisode.thumbnailUrl} alt={latestEpisode.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4 text-sm font-semibold text-white">Assistir ao último episódio</span>
+              </a>
+            ) : (
+              <div className="flex aspect-video items-center justify-center rounded-xl border border-gold/30 bg-bg/40">
+                <img src="/assets/logos/trator.webp" alt="" className="h-24 w-24 object-contain opacity-80" />
+              </div>
+            )}
+          </div>
+
+          <div id="mods" className="mt-6 scroll-mt-24 rounded-xl border border-line bg-bg/50 p-6 sm:p-8">
+            <h3 className="text-2xl">MODS DA FAZENDA</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">O servidor usa uma coleção própria de mods. Com o aplicativo oficial você não precisa baixar nada na mão.</p>
+            <ol className="mt-5 grid gap-3 sm:grid-cols-3">
+              {MODS_SUMMARY.map((item, index) => (
+                <li key={item} className="rounded-lg border border-line bg-bg/40 p-4 text-sm leading-relaxed text-muted">
+                  <span className="mb-2 block text-xs font-bold tracking-widest text-gold">0{index + 1}</span>
+                  {item}
+                </li>
+              ))}
+            </ol>
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <NavButton variant="green" to="/mods">Baixar o Mod Sync</NavButton>
+              <a href={SERVER_MODS_LIST_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-gold hover:underline">
+                Ver a lista de mods do servidor
+              </a>
             </div>
           </div>
 
@@ -146,29 +190,6 @@ export function Jogar() {
             ))}
           </div>
 
-        </div>
-      )
-    }
-
-    if (id === 'mods') {
-      return (
-        <div className="rounded-xl border border-line bg-bg/50 p-6 sm:p-8">
-          <h3 className="text-2xl">MODS DA FAZENDA</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">O servidor usa uma coleção própria de mods. Com o aplicativo oficial você não precisa baixar nada na mão.</p>
-          <ol className="mt-5 grid gap-3 sm:grid-cols-3">
-            {MODS_SUMMARY.map((item, index) => (
-              <li key={item} className="rounded-lg border border-line bg-bg/40 p-4 text-sm leading-relaxed text-muted">
-                <span className="mb-2 block text-xs font-bold tracking-widest text-gold">0{index + 1}</span>
-                {item}
-              </li>
-            ))}
-          </ol>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <NavButton variant="green" to="/mods">Baixar o Mod Sync</NavButton>
-            <a href={SERVER_MODS_LIST_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-gold hover:underline">
-              Ver a lista de mods do servidor
-            </a>
-          </div>
         </div>
       )
     }
@@ -217,7 +238,7 @@ export function Jogar() {
           <StepCard n="1" title="Entre no Discord" text="É por lá que tudo começa: avisos, regras e o canal de cada jogo." cta="Entrar no Discord" href="/discord" external />
           <StepCard n="2" title="Assista e leia as regras" text="Veja o vídeo das regras e leia as que ficam fixadas no Discord." cta="Assistir ao vídeo" onClick={() => setRulesVideoOpen(true)} />
           <StepCard n="3" title="Seja VIP" text="O acesso à fazenda é para membros VIP. Veja como virar VIP mais abaixo." cta="Ir para o VIP" href="#vip" />
-          <StepCard n="4" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." cta="Ver como" href="#mods" />
+          <StepCard n="4" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." cta="Ver os mods" href="#mods" />
         </div>
       </div>
     )
