@@ -3,7 +3,6 @@ import { Eyebrow } from '../components/ui/Eyebrow'
 import { Reveal } from '../components/ui/Reveal'
 import { LinkButton, NavButton } from '../components/ui/Button'
 import { HubLink } from '../components/shared/HubLink'
-import { VipSteps } from '../components/shared/VipSteps'
 import { CommunityStatsGrid } from '../components/shared/CommunityStatsGrid'
 
 const WHATSAPP_URL = 'https://chat.whatsapp.com/JM27GGiEFzRFtUyuc8wUdk'
@@ -122,9 +121,18 @@ export function Comunidade() {
         </Reveal>
       </section>
 
-      <section id="vip" className="pb-16 sm:pb-24">
+      <section className="pb-16 sm:pb-24">
         <Reveal>
-          <Container><VipSteps variant="full" /></Container>
+          <Container>
+            <div className="flex flex-col items-start justify-between gap-5 rounded-xl border border-gold/40 bg-panel p-6 sm:flex-row sm:items-center sm:p-8">
+              <div className="max-w-2xl">
+                <Eyebrow>Quer jogar com a gente?</Eyebrow>
+                <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA, VIP E OUTROS JOGOS EM UM SÓ LUGAR</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">Veja como entrar no servidor, virar VIP e jogar junto com a comunidade.</p>
+              </div>
+              <NavButton variant="gold" to="/jogar">Jogue com o Galindo</NavButton>
+            </div>
+          </Container>
         </Reveal>
       </section>
     </>

@@ -17,7 +17,7 @@ export const ROUTES = {
   '/': { description: DEFAULT_DESCRIPTION },
   '/boasvindas': { title: 'Boas vindas', description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, da fazenda e da comunidade.' },
   '/conteudos': { title: 'Conteúdos', description: 'Assista às séries, lives e vídeos de simuladores e games do canal GalindoGamerBR.' },
-  '/fazenda': { title: 'Fazenda Nova Aliança', description: 'Conheça a Fazenda Nova Aliança no Farming Simulator 25 e saiba como participar do servidor e da comunidade.' },
+  '/jogar': { title: 'Jogue com o Galindo', description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.' },
   '/mods': { title: 'Mods da Fazenda', description: 'Baixe e sincronize os mods oficiais usados no servidor da Fazenda Nova Aliança no Farming Simulator 25.' },
   '/comunidade': { title: 'Comunidade', description: 'Entre nos canais oficiais e faça parte da comunidade GalindoGamerBR.' },
   '/sobre': { title: 'Sobre', description: 'Conheça Galindo, a história do canal GalindoGamerBR e a paixão por simuladores, games e comunidade.' },
@@ -32,7 +32,7 @@ export const ROUTES = {
   '/membro': { title: 'Área do membro', description: 'Gerencie seu perfil e as plataformas conectadas ao portal GalindoGamerBR.', noIndex: true },
   '/conta': { title: 'Minha conta', description: 'Dados e privacidade da sua conta no portal GalindoGamerBR.', noIndex: true },
 }
-export const ALIASES = { '/boas-vindas': '/boasvindas', '/comece-aqui': '/boasvindas', '/jogos': '/conteudos' }
+export const ALIASES = { '/boas-vindas': '/boasvindas', '/comece-aqui': '/boasvindas', '/jogos': '/conteudos', '/fazenda': '/jogar' }
 const NOT_FOUND = { title: 'Página não encontrada', description: 'A página que você procura não foi encontrada.' }
 
 const escape = (value) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')

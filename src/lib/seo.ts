@@ -20,9 +20,9 @@ export const ROUTE_SEO: Record<string, SeoData> = {
     title: 'Conteúdos',
     description: 'Assista às séries, lives e vídeos de simuladores e games do canal GalindoGamerBR.',
   },
-  '/fazenda': {
-    title: 'Fazenda Nova Aliança',
-    description: 'Conheça a Fazenda Nova Aliança no Farming Simulator 25 e saiba como participar do servidor e da comunidade.',
+  '/jogar': {
+    title: 'Jogue com o Galindo',
+    description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.',
   },
   '/mods': {
     title: 'Mods da Fazenda',
@@ -70,6 +70,7 @@ const CANONICAL_ALIASES: Record<string, string> = {
   '/boas-vindas': '/boasvindas',
   '/comece-aqui': '/boasvindas',
   '/jogos': '/conteudos',
+  '/fazenda': '/jogar',
 }
 
 export function normalizeSeoPath(pathname: string): string {

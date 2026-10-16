@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Container } from '../components/ui/Container'
 import { Eyebrow } from '../components/ui/Eyebrow'
-import { LinkButton } from '../components/ui/Button'
+import { LinkButton, NavButton } from '../components/ui/Button'
 import { Reveal } from '../components/ui/Reveal'
+import { DownloadIcon } from '../components/ui/DownloadIcon'
 
 const MODSYNC_URL = 'https://modsync.phmoreira.dev/'
 const DOWNLOAD_LATEST_URL = 'https://modsync.phmoreira.dev/download/latest'
 const LATEST_VERSION_URL = 'https://modsync.phmoreira.dev/latest'
-
-function DownloadIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3v12" />
-      <path d="M7 10l5 5 5-5" />
-      <path d="M5 21h14" />
-    </svg>
-  )
-}
 
 const STEPS = [
   { number: '01', title: 'Escolha a pasta', text: 'Mostre ao aplicativo onde ficam os mods do seu jogo.' },
@@ -76,6 +67,9 @@ export function Mods() {
                   <LinkButton variant="green" href={DOWNLOAD_LATEST_URL}><DownloadIcon />Baixar versão mais recente</LinkButton>
                   <LinkButton variant="default" href={MODSYNC_URL} target="_blank" rel="noopener noreferrer">Release notes</LinkButton>
                 </div>
+                <p className="mt-4 text-sm text-muted">
+                  Vai entrar na fazenda? <NavButton variant="default" size="sm" to="/jogar#como-entrar" className="ml-2">Veja como jogar com o Galindo</NavButton>
+                </p>
 
                 <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-widest text-muted">
                   {latestVersion && <span className="text-green">Versão {latestVersion}</span>}

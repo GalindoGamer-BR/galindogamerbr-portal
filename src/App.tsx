@@ -2,12 +2,12 @@ import PortalMember from './features/multichat/PortalMember'
 import PortalLogin from './features/multichat/PortalLogin'
 import PortalAccount from './features/multichat/PortalAccount'
 import { lazy, Suspense, type ComponentType, type ReactElement } from 'react'
-import { createBrowserRouter, isRouteErrorResponse, Navigate, RouterProvider, useRouteError } from 'react-router-dom'
+import { createBrowserRouter, isRouteErrorResponse, Navigate, RouterProvider, useLocation, useRouteError } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { Home } from './routes/Home'
 import { BemVindo } from './routes/BemVindo'
 import { Conteudos } from './routes/Conteudos'
-import { Fazenda } from './routes/Fazenda'
+import { Jogar } from './routes/Jogar'
 import { Mods } from './routes/Mods'
 import { Comunidade } from './routes/Comunidade'
 import { Sobre } from './routes/Sobre'
@@ -66,6 +66,12 @@ function withAdminSuspense(element: ReactElement): ReactElement {
   return <Suspense fallback={<AdminRouteFallback />}>{element}</Suspense>
 }
 
+// /fazenda virou /jogar; o <Navigate> simples perderia o #hash (/fazenda#vip), então ele é repassado.
+function FazendaRedirect() {
+  const { hash } = useLocation()
+  return <Navigate to={{ pathname: '/jogar', hash }} replace />
+}
+
 function RouteError() {
   const error = useRouteError()
   if (isRouteErrorResponse(error) && error.status === 404) return <NotFound />
@@ -91,7 +97,8 @@ const router = createBrowserRouter([
       { path: '/comece-aqui', element: <Navigate to="/boasvindas" replace /> },
       { path: '/conteudos', element: <Conteudos /> },
       { path: '/jogos', element: <Navigate to="/conteudos" replace /> },
-      { path: '/fazenda', element: <Fazenda /> },
+      { path: '/jogar', element: <Jogar /> },
+      { path: '/fazenda', element: <FazendaRedirect /> },
       { path: '/mods', element: <Mods /> },
       { path: '/comunidade', element: <Comunidade /> },
       { path: '/login', element: withAdminSuspense(<PortalLogin />) },

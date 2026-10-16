@@ -37,7 +37,7 @@ const BRANCHES: MapBranch[] = [
     color: 'green',
     pages: [
       { label: 'Conteúdos', to: '/conteudos', description: 'Vídeos, séries, dicas e jogos do canal.' },
-      { label: 'Participe da Fazenda', to: '/fazenda', description: 'Regras e acesso à Fazenda Nova Aliança.' },
+      { label: 'Jogue com o Galindo', to: '/jogar', description: 'Fazenda Nova Aliança e outros jogos: regras, mods e VIP.' },
       { label: 'Mods da Fazenda', to: '/mods', description: 'Lista e sincronização dos mods do servidor.', direct: true },
     ],
   },

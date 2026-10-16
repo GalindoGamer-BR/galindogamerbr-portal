@@ -73,7 +73,7 @@ docker compose --env-file .env.docker up --build -d --wait --remove-orphans
 
 | Serviço | URL local |
 |---|---|
-| Portal (Vite dev) | `http://127.0.0.1:5173` (`/live`, `/login`, `/membro`, `/conta`, `/fazenda`...) |
+| Portal (Vite dev) | `http://127.0.0.1:5173` (`/live`, `/login`, `/membro`, `/conta`, `/jogar`...) |
 | Gateway (Traefik, só local) | `http://127.0.0.1:8088` (espelha o roteamento de produção) |
 | Supabase | `http://127.0.0.1:54321` |
 | auth-service / command / reader / portal-api | `:3003` / `:3001` / `:3002` / `:3004` |

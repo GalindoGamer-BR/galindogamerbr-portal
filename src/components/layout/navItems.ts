@@ -2,7 +2,7 @@ export const NAV_ITEMS = [
   { label: 'Início', to: '/' },
   { label: 'Boas vindas', to: '/boasvindas' },
   { label: 'Conteúdos', to: '/conteudos' },
-  { label: 'Participe da Fazenda', to: '/fazenda' },
+  { label: 'Jogue com o Galindo', to: '/jogar' },
   { label: 'Comunidade', to: '/comunidade' },
   { label: 'Parceiros', to: '/parceiros' },
   { label: 'Multichat', to: '/live' },
