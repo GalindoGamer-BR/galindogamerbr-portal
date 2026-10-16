@@ -19,8 +19,8 @@ type VipStepsProps = {
   variant?: 'full' | 'compact'
 }
 
-// Fonte única do fluxo VIP — usado completo em /comunidade e resumido no
-// teaser da Home, pra nunca dessincronizar as regras entre os dois lugares.
+// Fonte única do fluxo VIP — usado completo na aba VIP de /jogar e resumido no
+// teaser da Home, pra nunca dessincronizar as regras entre os lugares.
 export function VipSteps({ variant = 'full' }: VipStepsProps) {
   return (
     <div className="relative isolate overflow-hidden rounded-xl border border-gold/40 bg-panel p-6 shadow-[0_20px_65px_-40px_rgba(217,177,79,0.65)] sm:p-8">

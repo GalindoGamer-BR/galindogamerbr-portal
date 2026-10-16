@@ -121,15 +121,15 @@ function FazendaTeaser() {
               <span className="relative mt-7 text-sm font-semibold uppercase text-gold transition group-hover:translate-x-1">Assistir à mensagem</span>
             </Link>
 
-            <Link to="/fazenda" className="group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-xl border border-line bg-gradient-to-br from-panel to-panel2 p-7 transition duration-300 hover:-translate-y-1 hover:border-green/60 sm:p-8">
+            <Link to="/jogar" className="group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-xl border border-line bg-gradient-to-br from-panel to-panel2 p-7 transition duration-300 hover:-translate-y-1 hover:border-green/60 sm:p-8">
               <span className="absolute -right-5 -top-6 text-9xl opacity-[0.06] transition group-hover:scale-110">🚜</span>
               <div className="relative">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-green/40 bg-green/10 text-2xl">🚜</span>
-                <Eyebrow className="mt-6">Fazenda Nova Aliança</Eyebrow>
-                <h2 className="mt-1 text-3xl sm:text-4xl">VENHA PARA A LIDA COM A COMUNIDADE</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">Conheça o servidor, confira os requisitos e prepare tudo para participar da fazenda.</p>
+                <Eyebrow className="mt-6">Jogue com o Galindo</Eyebrow>
+                <h2 className="mt-1 text-3xl sm:text-4xl">VENHA JOGAR COM A GENTE</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">A Fazenda Nova Aliança e outros jogos em comunidade: confira os requisitos e prepare tudo para entrar.</p>
               </div>
-              <span className="relative mt-7 text-sm font-semibold uppercase text-green transition group-hover:translate-x-1">Ver como participar</span>
+              <span className="relative mt-7 text-sm font-semibold uppercase text-green transition group-hover:translate-x-1">Ver como jogar</span>
             </Link>
           </div>
         </Container>

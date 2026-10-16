@@ -12,11 +12,11 @@ const FALLBACK_WELCOME_VIDEO_ID = 'tfoJW_5GJ3A'
 const LINK_CARDS = [
   {
     step: '01',
-    to: '/fazenda',
+    to: '/jogar',
     icon: '🚜',
-    title: 'Fazenda Nova Aliança',
-    text: 'Conheça o servidor, assista às regras e veja o que é necessário para participar da fazenda.',
-    cta: 'Conhecer a fazenda',
+    title: 'Jogue com o Galindo',
+    text: 'Entre na Fazenda Nova Aliança e em outros jogos da comunidade: regras, mods e VIP em um só lugar.',
+    cta: 'Ver como jogar',
   },
   {
     step: '02',

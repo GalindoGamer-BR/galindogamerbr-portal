@@ -230,8 +230,8 @@ export function Conteudos() {
                     <NavButton className="w-full" variant="blue" to="/mods">
                       Sincronize seus mods
                     </NavButton>
-                    <NavButton className="w-full" variant="purple" to="/fazenda">
-                      Participe da Fazenda
+                    <NavButton className="w-full" variant="purple" to="/jogar">
+                      Jogue com o Galindo
                     </NavButton>
                   </div>
                 </div>
