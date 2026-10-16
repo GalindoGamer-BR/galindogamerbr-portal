@@ -28,6 +28,7 @@ describe('página /jogar', () => {
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('Entre no Discord')
     expect(html).toContain('Prepare os mods')
+    expect(html).toContain('18 ANOS OU MAIS')
     expect(html).not.toContain('Uma fazenda feita em conjunto')
     expect(html).not.toContain('Instale o Mod Sync')
   })
@@ -51,6 +52,7 @@ describe('página /jogar', () => {
       expect(html, hash).toContain('Ouro')
     }
     expect(await render('#vip')).toContain('Prepare os mods')
+    expect(await render('#mods')).not.toContain('18 ANOS OU MAIS')
     expect(await render('')).not.toContain('id="jogar-tab-vip"')
   })
 

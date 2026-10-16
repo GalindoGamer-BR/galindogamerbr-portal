@@ -41,11 +41,6 @@ const INTERACT_ITEMS = [
   { icon: '📺', title: 'Chat da live', text: 'Participe do chat durante as transmissões, muita decisão da fazenda sai dali.' },
 ] as const
 
-const PLAIN_REQUIREMENTS = [
-  { icon: '📜', title: 'Leia as regras', text: 'As regras da fazenda ficam fixadas no Discord, dá uma lida antes de entrar.' },
-  { icon: '🔞', title: 'Seja maior de 18 anos', text: 'Requisito pra jogar no servidor, sem exceção.' },
-] as const
-
 const MODS_SUMMARY = [
   'Instale o Mod Sync: é gratuito e roda no Windows.',
   'Escolha a pasta de mods do jogo e sincronize; ele baixa e atualiza tudo sozinho.',
@@ -68,13 +63,13 @@ function InfoCard({ icon, title, text }: { icon: string; title: string; text: st
 
 function StepCard({ n, title, text, action }: { n: string; title: string; text: string; action: ReactNode }) {
   return (
-    <div className="flex flex-col justify-between rounded-lg border border-gold/40 bg-bg/40 p-5">
-      <div>
-        <span className="text-xs font-bold tracking-widest text-gold">{n}</span>
-        <h3 className="mt-2 text-sm font-semibold uppercase tracking-wide">{title}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+    <div className="flex gap-4 rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-gold bg-gold/10 text-base font-bold text-gold">{n}</span>
+      <div className="min-w-0">
+        <h3 className="text-lg font-semibold leading-tight">{title}</h3>
+        <p className="mt-1.5 text-base leading-relaxed text-white/80">{text}</p>
+        <div className="mt-3 text-base font-semibold text-gold [&_a:hover]:underline [&_button:hover]:underline">{action}</div>
       </div>
-      <div className="mt-4 text-sm font-semibold text-gold [&_a:hover]:underline [&_button:hover]:underline">{action}</div>
     </div>
   )
 }
@@ -193,17 +188,20 @@ export function Jogar() {
 
     return (
       <div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StepCard n="01" title="Entre no Discord" text="É por lá que tudo começa: regras, avisos e o canal de cada jogo." action={<a href="/discord" target="_blank" rel="noopener noreferrer">Entrar no Discord</a>} />
-          <StepCard n="02" title="Assista às regras" text="Veja as regras e as orientações para jogar no servidor da fazenda." action={<button type="button" onClick={() => setRulesVideoOpen(true)}>Assistir agora</button>} />
-          <StepCard n="03" title="Seja VIP" text="O acesso à fazenda é para membros VIP maiores de 18 anos. Veja como virar VIP." action={<a href="#vip">Ver como</a>} />
-          <StepCard n="04" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." action={<a href="#mods">Ver como</a>} />
+        <div className="flex items-start gap-4 rounded-xl border-2 border-gold bg-gold/10 p-5 sm:items-center sm:p-6">
+          <span className="text-4xl leading-none" aria-hidden="true">🔞</span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-gold">Requisito principal</p>
+            <h2 className="mt-1 text-2xl sm:text-3xl">PARA JOGAR, VOCÊ PRECISA TER 18 ANOS OU MAIS</h2>
+            <p className="mt-1.5 text-base text-white/80">Vale para o servidor da fazenda, sem exceção.</p>
+          </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {PLAIN_REQUIREMENTS.map((item) => (
-            <InfoCard key={item.title} {...item} />
-          ))}
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <StepCard n="1" title="Entre no Discord" text="É por lá que tudo começa: avisos, regras e o canal de cada jogo." action={<a href="/discord" target="_blank" rel="noopener noreferrer">Entrar no Discord</a>} />
+          <StepCard n="2" title="Assista e leia as regras" text="Veja o vídeo das regras e leia as que ficam fixadas no Discord." action={<button type="button" onClick={() => setRulesVideoOpen(true)}>Assistir ao vídeo</button>} />
+          <StepCard n="3" title="Seja VIP" text="O acesso à fazenda é para membros VIP. Veja como virar VIP mais abaixo." action={<a href="#vip">Ir para o VIP</a>} />
+          <StepCard n="4" title="Prepare os mods" text="Sincronize os mods do servidor antes de entrar, com um clique." action={<a href="#mods">Ver como</a>} />
         </div>
       </div>
     )
