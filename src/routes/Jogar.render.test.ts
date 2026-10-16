@@ -28,11 +28,20 @@ describe('página /jogar', () => {
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('Entre no Discord')
     expect(html).toContain('Prepare os mods')
+    expect(html).not.toContain('Uma fazenda feita em conjunto')
     expect(html).not.toContain('Instale o Mod Sync')
   })
 
   it('o alias antigo #participar abre "Como entrar"', async () => {
     expect(await render('#participar')).toContain('Entre no Discord')
+  })
+
+  it('#fazenda abre a aba da fazenda, com a história e os blocos da comunidade', async () => {
+    const farm = await render('#fazenda')
+    expect(farm).toContain('FAZENDA NOVA ALIANÇA')
+    expect(farm).toContain('Uma fazenda feita em conjunto')
+    expect(farm).not.toContain('Prepare os mods')
+    expect(await render('#fazenda-nova-alianca')).toContain('A resenha continua')
   })
 
   it('#mods, #vip e #outros-jogos abrem as respectivas abas', async () => {

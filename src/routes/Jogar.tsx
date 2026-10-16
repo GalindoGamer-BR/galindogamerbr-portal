@@ -9,7 +9,7 @@ import { VipSteps } from '../components/shared/VipSteps'
 import { Modal } from '../components/ui/Modal'
 import { VideoEmbed } from '../components/shared/VideoEmbed'
 import { getFarmVideos } from '../lib/api/farm'
-import { GAMES } from '../data/games'
+import { FAZENDA_NOVA_ALIANCA, GAMES } from '../data/games'
 import { PLAY_TOGETHER } from '../data/playTogether'
 
 const FARM_RULES_VIDEO_ID = 'TcBrAo_A1Lc'
@@ -20,6 +20,7 @@ const SERVER_MODS_LIST_URL = 'http://galindoverso.gamesservers.io:9017/mods.html
 
 const TABS: TabItem[] = [
   { id: 'como-entrar', label: 'Como entrar', hashAliases: ['participar'] },
+  { id: 'fazenda', label: 'Fazenda', hashAliases: ['fazenda-nova-alianca'] },
   { id: 'mods', label: 'Mods' },
   { id: 'vip', label: 'VIP' },
   { id: 'outros-jogos', label: 'Outros jogos' },
@@ -92,6 +93,45 @@ export function Jogar() {
   }, [])
 
   const renderPanel = (id: string) => {
+    if (id === 'fazenda') {
+      return (
+        <div>
+          <div className="rounded-xl border border-gold/40 bg-panel p-6 sm:p-8">
+            <Eyebrow>Farming Simulator 25</Eyebrow>
+            <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA NOVA ALIANÇA</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{FAZENDA_NOVA_ALIANCA.description}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-4">
+              <LinkButton variant="green" href={FAZENDA_NOVA_ALIANCA.href} target="_blank" rel="noopener noreferrer">Ver a série no YouTube</LinkButton>
+              <a href="#como-entrar" className="text-sm font-semibold text-gold hover:underline">Como entrar no servidor</a>
+            </div>
+          </div>
+
+          <div className="mt-10 max-w-2xl">
+            <Eyebrow>Uma fazenda feita em conjunto</Eyebrow>
+            <h2 className="mt-1 text-2xl sm:text-3xl">TODO MUNDO AJUDA A FAZER A HISTÓRIA ACONTECER</h2>
+            <p className="mt-2 text-muted">Participe do seu jeito: no servidor, nas lives ou fortalecendo a comunidade.</p>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CONTRIBUTE_ITEMS.map((item) => (
+              <InfoCard key={item.title} {...item} />
+            ))}
+          </div>
+
+          <div className="mt-12 max-w-2xl">
+            <Eyebrow>A resenha continua</Eyebrow>
+            <h2 className="mt-1 text-2xl sm:text-3xl">A FAZENDA VAI ALÉM DO JOGO</h2>
+            <p className="mt-2 text-muted">Converse, combine tarefas e acompanhe as decisões em todos os espaços da comunidade.</p>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {INTERACT_ITEMS.map((item) => (
+              <InfoCard key={item.title} {...item} />
+            ))}
+          </div>
+
+        </div>
+      )
+    }
+
     if (id === 'mods') {
       return (
         <div className="rounded-xl border border-line bg-panel p-6 sm:p-8">
@@ -157,28 +197,6 @@ export function Jogar() {
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {PLAIN_REQUIREMENTS.map((item) => (
-            <InfoCard key={item.title} {...item} />
-          ))}
-        </div>
-
-        <div className="mt-12 max-w-2xl">
-          <Eyebrow>Uma fazenda feita em conjunto</Eyebrow>
-          <h2 className="mt-1 text-2xl sm:text-3xl">TODO MUNDO AJUDA A FAZER A HISTÓRIA ACONTECER</h2>
-          <p className="mt-2 text-muted">Participe do seu jeito: no servidor, nas lives ou fortalecendo a comunidade.</p>
-        </div>
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CONTRIBUTE_ITEMS.map((item) => (
-            <InfoCard key={item.title} {...item} />
-          ))}
-        </div>
-
-        <div className="mt-12 max-w-2xl">
-          <Eyebrow>A resenha continua</Eyebrow>
-          <h2 className="mt-1 text-2xl sm:text-3xl">A FAZENDA VAI ALÉM DO JOGO</h2>
-          <p className="mt-2 text-muted">Converse, combine tarefas e acompanhe as decisões em todos os espaços da comunidade.</p>
-        </div>
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {INTERACT_ITEMS.map((item) => (
             <InfoCard key={item.title} {...item} />
           ))}
         </div>
