@@ -14,7 +14,7 @@ import { useEts2Videos } from '../hooks/useEts2Videos'
 import { useSnowrunnerVideos } from '../hooks/useSnowrunnerVideos'
 import { useContrabandPoliceVideos } from '../hooks/useContrabandPoliceVideos'
 import { useSeriesVideos } from '../hooks/useSeriesVideos'
-import { sortByLatestVideo } from '../lib/sortByLatestVideo'
+import { rankGameCards } from '../lib/rankGameCards'
 import { useLiveStatus } from '../hooks/useLiveStatus'
 
 const OTHER_GAMES = GAMES.filter(
@@ -40,9 +40,7 @@ export function Conteudos() {
   const contrabandPoliceVideos = useContrabandPoliceVideos()
   const seriesVideos = useSeriesVideos()
 
-  // Cards simples (OTHER_GAMES): a série com o vídeo mais recente vem primeiro. Enquanto o jogo não tem arte
-  // própria, o card usa a miniatura do vídeo mais recente dele.
-  const otherGames = sortByLatestVideo(OTHER_GAMES, seriesVideos)
+  // Enquanto um jogo não tem arte própria, o card usa a miniatura do vídeo mais recente dele.
   const latestVideoBySlug = new Map<string, string>()
   for (const video of [...seriesVideos].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))) {
     if (!latestVideoBySlug.has(video.slug)) latestVideoBySlug.set(video.slug, video.videoId)
@@ -106,8 +104,32 @@ export function Conteudos() {
     liveVideoId: live?.isLive && game.videos.some((video) => video.videoId === live.videoId) ? live.videoId : null,
   }))
   const liveHighlightIndex = otherGameHighlights.findIndex((game) => game.liveVideoId)
+
   const promotedLiveGame = liveHighlightIndex >= 0 ? otherGameHighlights[liveHighlightIndex] : null
   const remainingGameHighlights = otherGameHighlights.filter((_, index) => index !== liveHighlightIndex)
+
+  // Todos os outros jogos (cards grandes e pequenos) seguem a atualização das playlists: o jogo com o vídeo mais recente
+  // vem primeiro. Os primeiros ocupam os cards grandes, na quantidade que já existia; o resto vai para a grade.
+  const SERIES_VARIANTS = ['purple', 'blue', 'red', 'green'] as const
+  const ranked = rankGameCards(remainingGameHighlights, OTHER_GAMES, seriesVideos, remainingGameHighlights.length)
+  const bigCards = ranked.big.map((card, index) => {
+    if (card.highlight) return card.highlight
+    const game = card.game!
+    const videos = seriesVideos.filter((video) => video.slug === game.slug)
+    return {
+      slug: game.slug,
+      image: game.image || (videos[0] ? `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg` : ''),
+      title: game.title.toUpperCase(),
+      badgeEmoji: '🎮',
+      badgeLabel: game.tag,
+      description: game.description,
+      href: game.href,
+      variant: SERIES_VARIANTS[index % SERIES_VARIANTS.length],
+      videos,
+      liveVideoId: null as string | null,
+    }
+  })
+  const smallGames = ranked.small.map((card) => card.game ?? GAMES.find((game) => game.slug === card.slug)!)
 
   return (
     <>
@@ -276,13 +298,13 @@ export function Conteudos() {
                 O que estiver ao vivo agora não aparece aqui — está promovido
                 acima do carro-chefe (ver promotedLiveGame). */}
             <div className="mt-8 flex flex-col gap-6">
-              {remainingGameHighlights.map((game) => (
+              {bigCards.map((game) => (
                 <GameHighlightCard key={game.slug} {...game} />
               ))}
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
-              {otherGames.map((game) => {
+              {smallGames.map((game) => {
                 const latestVideoId = latestVideoBySlug.get(game.slug)
                 return (
                   <GameCard
