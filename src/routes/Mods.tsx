@@ -91,7 +91,7 @@ export function Mods() {
                   <div className="flex items-center justify-end border-b border-line bg-panel2/90 px-4 py-3">
                     <span className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">Mod Sync em ação</span>
                   </div>
-                  <img src="/assets/mod-sync-demo.gif" alt="Mod Sync sincronizando os mods da fazenda" className="w-full" />
+                  <img src="/assets/mod-sync-demo.webp" alt="Mod Sync sincronizando os mods da fazenda" className="w-full" />
                 </div>
               </div>
             </Reveal>

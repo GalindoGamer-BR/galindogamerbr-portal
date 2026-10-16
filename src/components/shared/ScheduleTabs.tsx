@@ -81,8 +81,8 @@ export function ScheduleTabs() {
                       <img
                         src={
                           blockIconKind(b.startTime) === 'sun'
-                            ? '/assets/icons/schedule-icon-sun.png'
-                            : '/assets/icons/schedule-icon-sunset.png'
+                            ? '/assets/icons/schedule-icon-sun.webp'
+                            : '/assets/icons/schedule-icon-sunset.webp'
                         }
                         alt=""
                         className="h-4 w-4"

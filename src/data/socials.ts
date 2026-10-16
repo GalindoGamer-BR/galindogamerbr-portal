@@ -22,12 +22,12 @@ export type Social = {
 // com "posts" (YouTube/TikTok/Instagram) ficam juntas primeiro, separadas
 // das redes só de live/chat (Twitch/Kick/Discord).
 export const SOCIALS: Social[] = [
-  { platform: 'instagram', name: 'Instagram', href: 'https://www.instagram.com/galindogamerbr', icon: 'instagram', logo: 'instagram.png', color: '#E1306C' },
-  { platform: 'youtube', name: 'YouTube', href: 'https://www.youtube.com/@galindogamerbr', icon: 'youtube', logo: 'youtube.png', color: '#FF0000' },
-  { platform: 'tiktok', name: 'TikTok', href: 'https://www.tiktok.com/@galindogamerbr', icon: 'tiktok', logo: 'tiktok.png', color: '#FE2C55' },
-  { platform: 'twitch', name: 'Twitch', href: 'https://www.twitch.tv/galindogamerbr', icon: 'twitch', logo: 'twitch.png', color: '#9146FF' },
+  { platform: 'instagram', name: 'Instagram', href: 'https://www.instagram.com/galindogamerbr', icon: 'instagram', logo: 'instagram.webp', color: '#E1306C' },
+  { platform: 'youtube', name: 'YouTube', href: 'https://www.youtube.com/@galindogamerbr', icon: 'youtube', logo: 'youtube.webp', color: '#FF0000' },
+  { platform: 'tiktok', name: 'TikTok', href: 'https://www.tiktok.com/@galindogamerbr', icon: 'tiktok', logo: 'tiktok.webp', color: '#FE2C55' },
+  { platform: 'twitch', name: 'Twitch', href: 'https://www.twitch.tv/galindogamerbr', icon: 'twitch', logo: 'twitch.webp', color: '#9146FF' },
   { platform: 'kick', name: 'Kick', href: 'https://kick.com/galindogamerbr', icon: 'kick', logo: 'kick.svg', color: '#53FC18' },
   // /discord (não o link cru) — redireciona pro convite guardado em D1,
   // editável em /admin/discord sem precisar de deploy (ver functions/discord.ts).
-  { platform: 'discord', name: 'Discord', href: '/discord', icon: 'discord', logo: 'discord.png', color: '#5865F2' },
+  { platform: 'discord', name: 'Discord', href: '/discord', icon: 'discord', logo: 'discord.webp', color: '#5865F2' },
 ]

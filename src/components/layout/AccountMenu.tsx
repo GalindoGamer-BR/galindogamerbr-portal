@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { NavMember } from './useNavSession'
-import { ChatIcon, LogoutIcon, UserIcon } from '../ui/Icons'
+import { LogoutIcon, UserIcon } from '../ui/Icons'
 
 type AccountMenuProps = {
   member: NavMember | null
   onLogout: () => void
 }
 
-// Foto e nome de exibição do usuário na navbar; o clique abre o menu com área do membro, multichat e sair.
+// Foto e nome de exibição do usuário na navbar; o clique abre o menu com área do membro e sair.
 export function AccountMenu({ member, onLogout }: AccountMenuProps) {
   const [open, setOpen] = useState(false)
   const [avatarFailed, setAvatarFailed] = useState(false)
@@ -32,7 +32,6 @@ export function AccountMenu({ member, onLogout }: AccountMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-haspopup="menu"
         aria-expanded={open}
         className="flex items-center gap-2.5 rounded-full border border-line bg-panel2/60 py-1 pl-1 pr-3 text-sm font-semibold text-white/90 transition hover:border-gold hover:text-gold"
       >
@@ -47,10 +46,9 @@ export function AccountMenu({ member, onLogout }: AccountMenuProps) {
         <span aria-hidden="true" className={`text-xs text-white/60 transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-line bg-panel shadow-xl">
-          <Link role="menuitem" to="/membro" onClick={() => setOpen(false)} className={itemClass}><UserIcon className={iconClass} />Área do membro</Link>
-          <Link role="menuitem" to="/live" onClick={() => setOpen(false)} className={itemClass}><ChatIcon className={iconClass} />Multichat</Link>
-          <button role="menuitem" type="button" onClick={() => { setOpen(false); onLogout() }} className={`${itemClass} border-t border-line`}><LogoutIcon className={iconClass} />Sair</button>
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-line bg-panel shadow-xl">
+          <Link to="/membro" onClick={() => setOpen(false)} className={itemClass}><UserIcon className={iconClass} />Área do membro</Link>
+          <button type="button" onClick={() => { setOpen(false); onLogout() }} className={`${itemClass} border-t border-line`}><LogoutIcon className={iconClass} />Sair</button>
         </div>
       )}
     </div>

@@ -94,7 +94,7 @@ const kickChannelUrl = "https://kick.com/galindogamerbr";
 const twitchPanels = [
   {
     label: "Stream Stickers",
-    logo: "/assets/icons/streamstickers.png",
+    logo: "/assets/icons/streamstickers.webp",
     description: "Cole stickers na tela da live e apareça junto com a galera.",
     action: "Abrir stickers",
     url: "https://www.twitch.tv/popout/galindogamerbr/extensions/5tbyqce941455yffg7fzg36tp6or8p/panel",

@@ -16,7 +16,7 @@ export const GAMES: Game[] = [
     tag: 'Carro-chefe',
     icon: '/assets/logos/trator.webp',
     description: 'Fazendas, máquinas, produção, mods e histórias da comunidade, incluindo a série Fazenda Nova Aliança.',
-    image: '/assets/banners/fs25.webp',
+    image: '', // carro-chefe: a pagina mostra o video, nao um banner (o arquivo nao existe mais)
     href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUn2vIz-FSyMlL_ldV6_kzrN',
     flagship: true,
   },
@@ -65,26 +65,25 @@ export const GAMES: Game[] = [
     image: '/assets/banners/contraband-police.webp',
     href: 'https://www.youtube.com/watch?v=0OrMwgvz0mw&list=PLSLPCJiW7RZM',
   },
-  // Cards simples de /conteudos. `image: ''` = arte ainda não enviada: o card usa a miniatura do vídeo mais recente
-  // da série (ver GameCard). Para usar a arte própria, salve em public/assets/banners/<slug>.webp (1672x941) e
-  // preencha `image`. Os slugs batem com as playlists de galindogamerbr-api/src/lib/series.ts, e a ordem na página
-  // é pela série com o vídeo mais recente (ver sortByLatestVideo).
+  // Jogos de /conteudos com playlist própria. `image` é o banner (WebP 1672×941 em /assets/banners); vazio = arte ainda
+  // não enviada, e o card usa a miniatura do vídeo mais recente da série. Os slugs batem com as playlists de
+  // galindogamerbr-api/src/lib/series.ts, e a ordem na página segue o último vídeo de cada playlist (rankGameCards).
   {
     slug: 'construction-simulator',
     title: 'Construction Simulator',
     tag: 'Simulação',
     icon: null,
     description: 'Obras, máquinas pesadas e projetos do zero. A obra não pode parar!',
-    image: '',
+    image: '/assets/banners/construction-simulator.webp',
     href: 'https://www.youtube.com/playlist?list=PLNIYa7Wh3_Os',
   },
   {
-    slug: 'watch-dogs',
-    title: 'Watch Dogs',
-    tag: 'Ação',
+    slug: 'watch-dogs', // identificador interno legado (liga ao slug da API); a série é WARDOGS
+    title: 'WARDOGS',
+    tag: 'Operações militares',
     icon: null,
-    description: 'Hacker na cidade: invasões, perseguições e a saga completa de Aiden Pearce.',
-    image: '',
+    description: 'Operações militares e combate tático com o GalindoGamerBR.',
+    image: '/assets/banners/wardogs.webp',
     href: 'https://www.youtube.com/playlist?list=PLPrDkzFyI_V4',
   },
   {
@@ -93,7 +92,7 @@ export const GAMES: Game[] = [
     tag: 'Guerra tática',
     icon: null,
     description: 'Guerra realista, trabalho em equipe e combate intenso na Segunda Guerra Mundial.',
-    image: '',
+    image: '/assets/banners/hell-let-loose.webp',
     href: 'https://www.youtube.com/playlist?list=PLHQC4n-xJg9k',
   },
   {
@@ -102,7 +101,7 @@ export const GAMES: Game[] = [
     tag: 'Ação e aventura',
     icon: null,
     description: 'A jornada de Kratos e Atreus pelos reinos nórdicos, do início ao fim.',
-    image: '',
+    image: '/assets/banners/god-of-war-2018.webp',
     href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUnGQatZojTChJMyQHYAr1ou',
   },
 ]
