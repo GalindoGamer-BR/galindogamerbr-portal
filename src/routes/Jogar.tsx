@@ -215,6 +215,16 @@ export function Jogar() {
                 </article>
               )
             })}
+            <a
+              href="/discord"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex min-h-48 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gold/50 bg-bg/30 p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-gold hover:bg-bg/50"
+            >
+              <span className="text-4xl transition duration-300 group-hover:scale-110" aria-hidden="true">💡</span>
+              <span className="font-display text-xl tracking-wide">FIQUE À VONTADE PARA SUGERIR NOVOS JOGOS</span>
+              <span className="text-base leading-relaxed text-white/80">Quer jogar outra coisa com a gente? Conte no Discord.</span>
+            </a>
           </div>
           <div className="mt-8">
             <LinkButton variant="gold" href="/discord" target="_blank" rel="noopener noreferrer">Entrar no Discord</LinkButton>
