@@ -49,7 +49,7 @@ const MODS_SUMMARY = [
 
 // Card genérico dos grids — hover sutil (zoom no ícone + borda dourada), mesma linguagem usada no resto do site
 // (CommunityStatsGrid, HubLink) pra não destoar visualmente.
-const INFO_CARD_CLASSNAME = 'group rounded-lg border border-line bg-gradient-to-br from-panel to-panel2 p-5 transition duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_16px_40px_-28px_rgba(217,177,79,0.8)]'
+const INFO_CARD_CLASSNAME = 'group rounded-lg border border-line bg-bg/50 p-5 transition duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_16px_40px_-28px_rgba(217,177,79,0.8)]'
 
 function InfoCard({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
@@ -63,7 +63,7 @@ function InfoCard({ icon, title, text }: { icon: string; title: string; text: st
 
 function StepCard({ n, title, text, action }: { n: string; title: string; text: string; action: ReactNode }) {
   return (
-    <div className="flex gap-4 rounded-xl border border-line bg-panel p-5 sm:p-6">
+    <div className="flex gap-4 rounded-xl border border-line bg-bg/50 p-5 sm:p-6">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-gold bg-gold/10 text-base font-bold text-gold">{n}</span>
       <div className="min-w-0">
         <h3 className="text-lg font-semibold leading-tight">{title}</h3>
@@ -98,7 +98,7 @@ export function Jogar() {
     if (id === 'fazenda') {
       return (
         <div>
-          <div className="rounded-xl border border-gold/40 bg-panel p-6 sm:p-8">
+          <div className="rounded-xl border border-gold/40 bg-bg/50 p-6 sm:p-8">
             <Eyebrow>Farming Simulator 25</Eyebrow>
             <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA NOVA ALIANÇA</h2>
             <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{FAZENDA_NOVA_ALIANCA.description}</p>
@@ -136,7 +136,7 @@ export function Jogar() {
 
     if (id === 'mods') {
       return (
-        <div className="rounded-xl border border-line bg-panel p-6 sm:p-8">
+        <div className="rounded-xl border border-line bg-bg/50 p-6 sm:p-8">
           <h3 className="text-2xl">MODS DA FAZENDA</h3>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">O servidor usa uma coleção própria de mods. Com o aplicativo oficial você não precisa baixar nada na mão.</p>
           <ol className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -241,9 +241,11 @@ export function Jogar() {
         </Container>
       </section>
 
-      <section className="border-t border-line bg-panel/40 py-12 sm:py-16">
+      <section className="border-t border-line py-12 sm:py-16">
         <Container>
-          <Tabs tabs={TABS} defaultId="como-entrar" idPrefix="jogar" ariaLabel="Como jogar com o Galindo" renderPanel={renderPanel} />
+          <div className="rounded-2xl border border-line bg-panel p-5 shadow-[0_24px_70px_-50px_rgba(0,0,0,0.9)] sm:p-8">
+            <Tabs tabs={TABS} defaultId="como-entrar" idPrefix="jogar" ariaLabel="Como jogar com o Galindo" renderPanel={renderPanel} />
+          </div>
         </Container>
       </section>
 
