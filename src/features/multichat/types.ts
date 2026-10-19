@@ -31,6 +31,32 @@ export const messageSchema = z.object({
       color: z.string().optional(),
       // Mensagem provisória do próprio usuário, ainda não confirmada pela plataforma (só existe no navegador).
       pending: z.boolean().optional(),
+      // Enviada pelo portal: uma linha só, com as plataformas de destino (as cópias de volta ficam escondidas; só existe no navegador).
+      portal: z.object({ platforms: z.array(z.enum(platforms)) }).optional(),
+      // Apagada ou punida pela moderação (marcada no navegador a partir do evento `live_event`).
+      removed: z.enum(["delete", "ban", "timeout", "clear"]).optional(),
+      // Resposta a outra mensagem da mesma plataforma (hoje só a Twitch): id do pai, nome e trecho para exibir.
+      replyTo: z
+        .object({
+          platformMessageId: z.string().min(1),
+          displayName: z.string().max(100).optional(),
+          text: z.string().max(500).optional(),
+        })
+        .optional(),
+      // Cheer da Twitch: bits da mensagem.
+      bits: z.number().int().positive().optional(),
+      // Aviso do canal (sub, resub, gift, raid, announcement); `message` é o texto do usuário e pode ser vazio.
+      event: z
+        .object({
+          type: z.enum(["sub", "resub", "subgift", "submysterygift", "raid", "announcement"]),
+          tier: z.string().max(10).optional(),
+          months: z.number().int().nonnegative().optional(),
+          count: z.number().int().nonnegative().optional(),
+          recipient: z.string().max(100).optional(),
+          viewers: z.number().int().nonnegative().optional(),
+          systemMessage: z.string().max(500).optional(),
+        })
+        .optional(),
       donation: z
         .object({ amount: z.number(), currency: z.string() })
         .optional(),
@@ -45,6 +71,41 @@ export const messageSchema = z.object({
     .optional(),
 });
 export type ChatMessage = z.infer<typeof messageSchema>;
+/** Mensagem a que o usuário está respondendo (vai ao `command` como `replyTo`). */
+export type ReplyTarget = { platform: Platform; platformMessageId: string; displayName: string; text?: string };
+// Evento de moderação publicado pelo reader em `live_event` (hoje só a Twitch: CLEARMSG e CLEARCHAT).
+export const moderationSchema = z.object({
+  type: z.literal("moderation"),
+  platform: z.enum(platforms),
+  action: z.enum(["delete", "ban", "timeout", "clear"]),
+  targetMessageId: z.string().optional(),
+  targetUserId: z.string().optional(),
+  login: z.string().optional(),
+  duration: z.number().int().nonnegative().optional(),
+  timestamp: z.string(),
+});
+export type ModerationEvent = z.infer<typeof moderationSchema>;
+/**
+ * Marca como removidas as mensagens atingidas pelo evento. `delete` casa pelo id da mensagem; ban, timeout e clear atingem só
+ * mensagens enviadas até o horário do evento (as seguintes são legítimas), nunca avisos do canal nem as provisórias.
+ * Devolve a mesma lista se nada mudou.
+ */
+export function applyModeration(messages: ChatMessage[], event: ModerationEvent): ChatMessage[] {
+  const at = Date.parse(event.timestamp);
+  const hit = (m: ChatMessage) => {
+    if (m.platform !== event.platform || m.metadata?.removed || m.metadata?.pending) return false;
+    if (event.action === "delete") return !!event.targetMessageId && m.platformMessageId === event.targetMessageId;
+    if (m.metadata?.event || (Number.isFinite(at) && Date.parse(m.timestamp) > at)) return false;
+    return event.action === "clear" || (!!event.targetUserId && m.user.id === event.targetUserId);
+  };
+  let changed = false;
+  const next = messages.map((m) => {
+    if (!hit(m)) return m;
+    changed = true;
+    return { ...m, metadata: { ...m.metadata, removed: event.action } };
+  });
+  return changed ? next : messages;
+}
 export const metricsSchema = z.object({
   platform: z.enum(platforms),
   viewers: z.number().optional(),

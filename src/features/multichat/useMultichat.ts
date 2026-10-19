@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
+import { useEffect, useRef, useState } from "react";
+import type { RealtimeChannel, Session } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabase, realtimePublicKey, publicGet } from "./services";
+import { emptyOnline, onlineMembers, type OnlineMembers } from "./presence";
 import {
   appendMessages,
+  applyModeration,
   messageSchema,
+  moderationSchema,
   parseHistory,
   metricsSchema,
   statusSchema,
+  type ModerationEvent,
   type ChatMessage,
   type Platform,
   type PlatformMetrics,
@@ -15,7 +19,8 @@ import {
 } from "./types";
 // Ao abrir o chat mostra so as ultimas mensagens (de todas as plataformas), em ordem de horario.
 const HISTORY_LIMIT = 15;
-export function useMultichat(session: Session | null) {
+/** `presence`: o membro aparece na lista de online quando há `name` e `visible` (o visitante só observa). */
+export function useMultichat(session: Session | null, presence?: { name: string; visible: boolean }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [metrics, setMetrics] = useState<
     Partial<Record<Platform, PlatformMetrics>>
@@ -26,6 +31,9 @@ export function useMultichat(session: Session | null) {
   const [connection, setConnection] = useState("Conectando aos chats…");
   const [live, setLive] = useState<boolean | null>(null);
   const [simulation, setSimulation] = useState(false);
+  const [online, setOnline] = useState<OnlineMembers>(emptyOnline);
+  const [subscribed, setSubscribed] = useState(false);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   useEffect(() => {
     if (!supabase) {
       setMessages([]);
@@ -40,6 +48,9 @@ export function useMultichat(session: Session | null) {
     let disposed = false;
     let subscribedAt = Date.now();
     let buffer: ChatMessage[] = [];
+    // Eventos de moderação recentes: o evento pode chegar antes do lote que traz a mensagem atingida (o reader agrupa
+    // mensagens a cada 50 ms), então ele também vale para o que chegar nos próximos minutos.
+    let moderation: { event: ModerationEvent; seenAt: number }[] = [];
     let lastSnapshot = Date.now();
     setConnection("Conectando aos chats…");
     // Historico recente (o que o reader guardou): mostra o chat ja com conteudo ao abrir; o merge ordena por
@@ -51,16 +62,32 @@ export function useMultichat(session: Session | null) {
         if (history.length) setMessages((previous) => appendMessages(previous, history));
       })
       .catch(() => {});
+    // Cada aba usa uma chave própria de presença: o id do usuário nunca vai para os outros navegadores.
     const channel = client.channel("live:galindogamerbr", {
-      config: { private: true },
+      config: { private: true, presence: { key: crypto.randomUUID() } },
     });
+    channelRef.current = channel;
     channel
+      .on("presence", { event: "sync" }, () => {
+        if (!disposed) setOnline(onlineMembers(channel.presenceState()));
+      })
       .on("broadcast", { event: "chat_batch" }, ({ payload }) => {
         const parsed = z
           .object({ messages: z.array(messageSchema).max(100) })
           .safeParse(payload);
-        if (parsed.success)
-          buffer = [...buffer, ...parsed.data.messages.filter(m => Date.parse(m.timestamp) >= subscribedAt)].slice(-1000);
+        if (parsed.success) {
+          let incoming = parsed.data.messages.filter(m => Date.parse(m.timestamp) >= subscribedAt);
+          for (const { event } of moderation) incoming = applyModeration(incoming, event);
+          buffer = [...buffer, ...incoming].slice(-1000);
+        }
+      })
+      .on("broadcast", { event: "live_event" }, ({ payload }) => {
+        const parsed = moderationSchema.safeParse(payload);
+        if (!parsed.success) return;
+        const now = Date.now();
+        moderation = [...moderation.filter((m) => now - m.seenAt < 120_000), { event: parsed.data, seenAt: now }].slice(-50);
+        buffer = applyModeration(buffer, parsed.data);
+        setMessages((previous) => applyModeration(previous, parsed.data));
       })
       .on("broadcast", { event: "metrics" }, ({ payload }) => {
         const parsed = z
@@ -100,6 +127,7 @@ export function useMultichat(session: Session | null) {
         if (disposed) return;
         channel.subscribe((status) => {
           if (status === "SUBSCRIBED") subscribedAt = Date.now();
+          if (!disposed) setSubscribed(status === "SUBSCRIBED");
           if (!disposed)
             setConnection(
               status === "SUBSCRIBED"
@@ -130,8 +158,22 @@ export function useMultichat(session: Session | null) {
       disposed = true;
       clearInterval(flush);
       clearInterval(stale);
+      channelRef.current = null;
+      setSubscribed(false);
+      setOnline(emptyOnline);
       void client.removeChannel(channel);
     };
   }, [session?.access_token]);
-  return { messages, metrics, providers, connection, live, simulation };
+  // Entrar e sair da lista de online sem reconectar o canal. Falha ao rastrear (ex.: sem a política de INSERT do
+  // Presence no Realtime) não afeta o chat: a pessoa só não aparece na lista.
+  const trackName = presence?.name;
+  const trackVisible = !!presence?.visible;
+  const loggedIn = !!session;
+  useEffect(() => {
+    const channel = channelRef.current;
+    if (!channel || !subscribed) return;
+    if (loggedIn && trackName && trackVisible) void channel.track({ name: trackName }).catch(() => undefined);
+    else void channel.untrack().catch(() => undefined);
+  }, [subscribed, loggedIn, trackName, trackVisible]);
+  return { messages, metrics, providers, connection, live, simulation, online };
 }

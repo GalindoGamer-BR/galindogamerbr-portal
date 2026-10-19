@@ -7,14 +7,17 @@ import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
 import { SendQueue } from "./sendQueue";
-import { applyDisplayName, dropEchoed, optimisticMessages, type OutboxItem, type OwnNames } from "./outbox";
+import { applyDisplayName, type OutboxItem, type OwnNames } from "./outbox";
+import { hideEchoes, parseSentLog, portalMessages, pruneSentLog, showsIn, type SentEntry } from "./sentLog";
 import { useMemberName } from "./useMemberName";
 import {
   appendMessages,
   labels,
   writablePlatforms,
   type Accounts,
+  type ChatMessage,
   type Platform,
+  type ReplyTarget,
   type SendResult,
   type WritablePlatform,
 } from "./types";
@@ -33,6 +36,11 @@ import { EmotePicker, type PickerEmote } from "./EmotePicker";
 import { emoteKey } from "./emotes";
 import { PlatformIcon } from "./PlatformIcon";
 import { MultichatDialog } from "./MultichatDialog";
+import { BadgeSettings } from "./BadgeSettings";
+import { useHiddenBadges } from "./useHiddenBadges";
+import { playerEmbedUrl, playerOffline } from "./player";
+import { OnlineMembers } from "./OnlineMembers";
+import { applyMention, mentionHandle, mentionQuery, suggestMentions } from "./mentions";
 import "./multichat.css";
 const emptyAccounts: Accounts = {
   twitch: { connected: false },
@@ -116,6 +124,8 @@ function openSubsWindow(event: MouseEvent<HTMLAnchorElement>, url = twitchSubsUr
 }
 
 const helpSeenKey = "mc:help-seen";
+const presenceHiddenKey = "mc:presence-hidden";
+const sentLogKey = "mc:sent-log";
 const helpSeen = () => { try { return localStorage.getItem(helpSeenKey) === "1"; } catch { return true; } };
 
 export default function MultichatPage() {
@@ -158,12 +168,25 @@ export default function MultichatPage() {
     return () => window.removeEventListener("keydown", escape);
   }, []);
   const [message, setMessage] = useState("");
+  // Mensagem a que o próximo envio responde (reply nativo na Twitch e na Kick; nas outras plataformas vai como "@nome").
+  const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null);
+  const startReply = useCallback((target: ChatMessage) => {
+    setReplyTo({ platform: target.platform, platformMessageId: target.platformMessageId, displayName: target.user.displayName, text: target.message.slice(0, 200) });
+    requestAnimationFrame(() => composer.current?.focus());
+  }, []);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<SendResult[]>([]);
   // Fila de envio: a mensagem aparece no chat na hora e os envios saem um de cada vez, na ordem digitada. O campo
   // nunca fica bloqueado esperando a resposta do servidor.
   const [outbox, setOutbox] = useState<OutboxItem[]>([]);
+  // Envios feitos pelo portal (uma linha por envio, sem as cópias que as plataformas devolvem); guardado por alguns minutos.
+  const [sentLog, setSentLog] = useState<SentEntry[]>(() => {
+    try { return parseSentLog(localStorage.getItem(sentLogKey), Date.now()); } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(sentLogKey, JSON.stringify(sentLog)); } catch { /* sem armazenamento: vale só nesta sessão */ }
+  }, [sentLog]);
   const [queue] = useState(
     () =>
       new SendQueue({
@@ -175,6 +198,7 @@ export default function MultichatPage() {
               id: item.id,
               platforms: item.platforms,
               ...(item.kickText ? { overrides: { kick: item.kickText } } : {}),
+              ...(item.replyTo ? { replyTo: { platform: item.replyTo.platform, platformMessageId: item.replyTo.platformMessageId, displayName: item.replyTo.displayName } } : {}),
             }),
           });
           return data.results;
@@ -187,6 +211,7 @@ export default function MultichatPage() {
         onFinish: (item, outcome) => {
           if ("error" in outcome) {
             setOutbox((current) => current.filter((o) => o.id !== item.id));
+            setSentLog((current) => current.filter((entry) => entry.id !== item.id));
             setNotice(outcome.error.message);
             setMessage((current) => (current === "" ? item.text : current));
             return;
@@ -195,6 +220,7 @@ export default function MultichatPage() {
           setResults(sentResults);
           const failed = sentResults.filter((r) => !r.success).map((r) => r.platform);
           setOutbox((current) => current.map((o) => (o.id === item.id ? { ...o, status: "sent", failed } : o)));
+          setSentLog((current) => current.map((entry) => (entry.id === item.id ? { ...entry, failed } : entry)));
           setTimeout(() => setOutbox((current) => current.filter((o) => o.id !== item.id)), SENT_VISIBLE_MS);
           // Nada foi entregue: devolve o texto ao campo (se ele estiver vazio) para a pessoa tentar de novo.
           if (failed.length >= item.platforms.length) setMessage((current) => (current === "" ? item.text : current));
@@ -202,20 +228,59 @@ export default function MultichatPage() {
       }),
   );
   const [player, setPlayer] = useState<WritablePlatform>("twitch");
-  const chat = useMultichat(session);
+  // Plataforma em que a pessoa pediu para abrir o player mesmo com o canal offline (arquivo da última live no YouTube).
+  const [openAnyway, setOpenAnyway] = useState<WritablePlatform | null>(null);
+  const hiddenBadges = useHiddenBadges();
+  // Quem está logado aparece na lista de online, a menos que escolha se esconder (fica salvo só neste navegador).
+  const [presenceVisible, setPresenceVisible] = useState(() => {
+    try { return localStorage.getItem(presenceHiddenKey) !== "1"; } catch { return true; }
+  });
+  const changePresenceVisible = (visible: boolean) => {
+    setPresenceVisible(visible);
+    try { localStorage.setItem(presenceHiddenKey, visible ? "0" : "1"); } catch { /* sem armazenamento: vale só nesta sessão */ }
+  };
   const memberName = useMemberName(session);
+  const chat = useMultichat(session, { name: memberName, visible: presenceVisible });
   const ownNames = useMemo<OwnNames>(
     () => ({ twitch: accounts.twitch.username, youtube: accounts.youtube.username, kick: accounts.kick.username }),
     [accounts.twitch.username, accounts.youtube.username, accounts.kick.username],
   );
+  // Menções: nomes pelos quais o próprio usuário é citado (para o destaque) e sugestões de "@" entre os membros online.
+  const mentionNames = useMemo(
+    () => [memberName, ownNames.twitch, ownNames.youtube, ownNames.kick].filter((name): name is string => !!name),
+    [memberName, ownNames],
+  );
+  const [caret, setCaret] = useState(0);
+  const [mentionPick, setMentionPick] = useState(0);
+  const [mentionClosedFor, setMentionClosedFor] = useState<string | null>(null);
+  const mention = session ? mentionQuery(message, caret) : null;
+  const mentionOptions = useMemo(() => {
+    if (!mention) return [];
+    const mine = mentionHandle(memberName).toLowerCase();
+    return suggestMentions(chat.online.names.map(mentionHandle).filter((handle) => handle.toLowerCase() !== mine), mention.query);
+  }, [mention?.query, chat.online.names, memberName]);
+  const mentionOpen = !!mention && mentionOptions.length > 0 && mentionClosedFor !== message;
+  const chooseMention = (handle: string) => {
+    if (!mention) return;
+    const next = applyMention(message, caret, mention, handle);
+    setMessage(next.text);
+    setCaret(next.caret);
+    setMentionPick(0);
+    requestAnimationFrame(() => {
+      composer.current?.focus();
+      composer.current?.setSelectionRange(next.caret, next.caret);
+    });
+  };
   // No site as mensagens do próprio usuário usam o nome de exibição escolhido no portal; as que ele acabou de enviar
   // aparecem na hora (provisórias) até a mensagem real chegar das plataformas.
+  const pendingSends = useMemo(() => new Set(outbox.filter((o) => o.status !== "sent").map((o) => o.id)), [outbox]);
   const chatMessages = useMemo(() => {
-    const real = applyDisplayName(chat.messages, ownNames, memberName);
-    if (!outbox.length) return real;
-    return appendMessages(real, dropEchoed(optimisticMessages(outbox, memberName, ownNames), chat.messages, ownNames));
-  }, [chat.messages, outbox, ownNames, memberName]);
+    const real = hideEchoes(applyDisplayName(chat.messages, ownNames, memberName), sentLog, ownNames);
+    const mine = portalMessages(sentLog, memberName, ownNames, pendingSends);
+    return mine.length ? appendMessages(real, mine) : real;
+  }, [chat.messages, sentLog, pendingSends, ownNames, memberName]);
   const liveStatus = useLiveStatus();
+  const offline = playerOffline(player, liveStatus) && openAnyway !== player;
   // Sem live no YouTube, o player mostra o arquivo da última live encerrada.
   const youtubeLastLive = useYoutubeLastLive(player === "youtube" && !liveStatus?.isLive);
   const youtubeChannel = useYoutubeChannel(player === "youtube");
@@ -318,11 +383,11 @@ export default function MultichatPage() {
     catch { return []; }
   });
   const sendPlatforms = connectedPlatforms.filter((p) => !sendOff.includes(p));
-  // Emote da Twitch, do BTTV e do FFZ só funciona na Twitch (BTTV e FFZ são extensões do navegador para a Twitch; Kick e
+  // Emote da Twitch, do BTTV, do FFZ e do 7TV só funciona na Twitch (BTTV, FFZ e 7TV são extensões do navegador para a Twitch; Kick e
   // YouTube mostrariam só o código): a mensagem com um deles vai apenas para a Twitch. Ignora os "emoticons" com símbolos
   // (:) B)), que apareceriam em mensagens comuns.
   const twitchEmoteCodes = useMemo(
-    () => new Set(pickerEmotes.filter((e) => (e.provider === "twitch" || e.provider === "bttv" || e.provider === "ffz") && /^[A-Za-z0-9_]{3,}$/.test(e.code)).map((e) => e.code)),
+    () => new Set(pickerEmotes.filter((e) => (e.provider === "twitch" || e.provider === "bttv" || e.provider === "ffz" || e.provider === "7tv") && /^[A-Za-z0-9_]{3,}$/.test(e.code)).map((e) => e.code)),
     [pickerEmotes],
   );
   const hasTwitchEmote = message.split(/\s+/).some((word) => twitchEmoteCodes.has(word));
@@ -381,9 +446,16 @@ export default function MultichatPage() {
   const send = (event: FormEvent) => {
     event.preventDefault();
     if (!canSend) return;
-    const item = { id: crypto.randomUUID(), text: message, platforms: targetPlatforms, ...(kickText ? { kickText } : {}) };
-    setOutbox((current) => [...current, { ...item, status: "queued", createdAt: Date.now(), failed: [] }]);
+    const item = { id: crypto.randomUUID(), text: message, platforms: targetPlatforms, ...(kickText ? { kickText } : {}), ...(replyTo ? { replyTo } : {}) };
+    const now = Date.now();
+    setOutbox((current) => [...current, { ...item, status: "queued", createdAt: now, failed: [] }]);
+    setSentLog((current) => pruneSentLog([...current, {
+      id: item.id, text: item.text, platforms: item.platforms, failed: [], createdAt: now,
+      ...(kickText ? { kickText } : {}),
+      ...(replyTo ? { replyTo: { platformMessageId: replyTo.platformMessageId, displayName: replyTo.displayName, text: replyTo.text } } : {}),
+    }], now));
     setMessage("");
+    setReplyTo(null);
     setNotice("");
     queue.enqueue(item);
     requestAnimationFrame(() => composer.current?.focus());
@@ -396,19 +468,9 @@ export default function MultichatPage() {
     targetPlatforms.length > 0 &&
     outbox.length < MAX_OUTBOX &&
     !busy;
-  const visible = chatMessages.filter(
-    (m) => filter === "all" || m.platform === filter,
-  );
-  const playerUrl =
-    player === "twitch"
-      ? `https://player.twitch.tv/?channel=galindogamerbr&parent=${encodeURIComponent(window.location.hostname)}&autoplay=false`
-      : player === "kick"
-        ? "https://player.kick.com/galindogamerbr?autoplay=false"
-        : liveStatus?.isLive && liveStatus.videoId
-          ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveStatus.videoId)}?autoplay=0`
-          : youtubeLastLive
-            ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(youtubeLastLive.videoId)}?autoplay=0`
-            : null;
+  const visible = chatMessages.filter((m) => showsIn(m, filter));
+  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : (openAnyway === "youtube" ? youtubeLastLive?.videoId : null) ?? null;
+  const playerUrl = offline ? null : playerEmbedUrl(player, window.location.hostname, youtubeVideoId);
   const insertEmote = (emote: PickerEmote) => {
     const code = emote.code;
     const input = composer.current;
@@ -505,19 +567,31 @@ export default function MultichatPage() {
                 key={player}
                 title={`Transmissão ${labels[player]}`}
                 src={playerUrl}
-                allow="autoplay; fullscreen; picture-in-picture"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                // O YouTube recusa o player embutido sem a origem da página (erro de configuração do player).
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             ) : (
-              <div className="mc-player-empty">
-                <strong>Nenhuma transmissão ativa no YouTube</strong>
-                <a
-                  href="https://www.youtube.com/@galindogamerbr/live"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Abrir canal
-                </a>
+              <div className="mc-player-empty" role="status">
+                <span className="mc-offline-badge">Offline</span>
+                <strong>{offline ? `O canal está offline na ${labels[player]}` : "Nenhuma transmissão ativa no YouTube"}</strong>
+                {offline && player === "youtube" && youtubeLastLive && <span className="mc-muted">Última live: {youtubeLastLive.title}</span>}
+                <div className="mc-player-empty-actions">
+                  {offline && (player !== "youtube" || youtubeLastLive) && (
+                    <button type="button" className="mc-btn mc-btn-secondary" onClick={() => setOpenAnyway(player)}>
+                      {player === "youtube" ? "Assistir a última live" : "Abrir o player mesmo assim"}
+                    </button>
+                  )}
+                  <a
+                    className="mc-btn mc-btn-secondary"
+                    href={player === "twitch" ? twitchChannelUrl : player === "kick" ? kickChannelUrl : "https://www.youtube.com/@galindogamerbr/live"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Abrir canal
+                  </a>
+                </div>
               </div>
             )}
           </div>
@@ -545,8 +619,8 @@ export default function MultichatPage() {
               </p>
               {player === "twitch" && twitchChannel?.game && <span className="mc-channel-game">{twitchChannel.game}</span>}
               <span className="mc-muted">
-                {player === "youtube" && !liveStatus?.isLive
-                  ? `Offline${youtubeLastLive?.endedAt ? ` · terminou em ${new Date(youtubeLastLive.endedAt).toLocaleDateString("pt-BR")}` : ""}`
+                {offline || (player === "youtube" && !liveStatus?.isLive)
+                  ? `Offline${player === "youtube" && youtubeLastLive?.endedAt ? ` · terminou em ${new Date(youtubeLastLive.endedAt).toLocaleDateString("pt-BR")}` : ""}`
                   : <>Português · {chat.metrics[player]?.viewers?.toLocaleString("pt-BR") ?? "—"} assistindo</>}
                 {player === "youtube" && youtubeChannel?.subscribers != null && <> · {youtubeChannel.subscribers.toLocaleString("pt-BR")} inscritos</>}
               </span>
@@ -707,7 +781,8 @@ export default function MultichatPage() {
           {!configured && (
             <div className="mc-notice">O Multichat está sendo preparado.</div>
           )}
-          <ChatVirtualList messages={visible} catalog={emotes.catalog} badges={badges} />
+          <OnlineMembers online={chat.online} canToggle={!!session} visible={presenceVisible} onToggle={changePresenceVisible} />
+          <ChatVirtualList messages={visible} catalog={emotes.catalog} badges={badges} hiddenBadges={hiddenBadges.hidden} onReply={session ? startReply : undefined} mentionNames={mentionNames} />
           {notice && (
             <div className="mc-notice" role="status">
               {notice}
@@ -732,7 +807,44 @@ export default function MultichatPage() {
                 onSelect={insertEmote}
               />
             )}
+            {replyTo && (
+              <div className="mc-reply-chip" role="status">
+                <span>
+                  Respondendo a <strong>{replyTo.displayName}</strong>
+                  {replyTo.text ? `: ${replyTo.text}` : ""}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Cancelar resposta"
+                  onClick={() => {
+                    setReplyTo(null);
+                    composer.current?.focus();
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="mc-input-wrap">
+              {mentionOpen && (
+                <ul className="mc-mention-list" role="listbox" aria-label="Membros online">
+                  {mentionOptions.map((handle, index) => (
+                    <li key={handle} role="option" aria-selected={index === mentionPick}>
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className={index === mentionPick ? "mc-mention-active" : undefined}
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          chooseMention(handle);
+                        }}
+                      >
+                        @{handle}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <textarea
                 ref={composer}
                 id="mc-message"
@@ -743,10 +855,37 @@ export default function MultichatPage() {
                     : "Entre com a Twitch para conversar"
                 }
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setCaret(e.target.selectionStart);
+                  setMentionPick(0);
+                }}
+                onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
                 disabled={!session}
                 rows={2}
                 onKeyDown={(e) => {
+                  if (mentionOpen && !e.nativeEvent.isComposing) {
+                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setMentionPick((current) => (current + (e.key === "ArrowDown" ? 1 : mentionOptions.length - 1)) % mentionOptions.length);
+                      return;
+                    }
+                    if (e.key === "Enter" || e.key === "Tab") {
+                      e.preventDefault();
+                      chooseMention(mentionOptions[Math.min(mentionPick, mentionOptions.length - 1)]);
+                      return;
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      setMentionClosedFor(message);
+                      return;
+                    }
+                  }
+                  if (e.key === "Escape" && replyTo) {
+                    e.preventDefault();
+                    setReplyTo(null);
+                    return;
+                  }
                   if (
                     e.key === "Enter" &&
                     !e.shiftKey &&
@@ -817,8 +956,8 @@ export default function MultichatPage() {
                   ? "Emotes da Twitch e da Kick não cabem na mesma mensagem. Envie separadamente."
                   : hasTwitchEmote
                     ? sendPlatforms.includes("twitch")
-                      ? "Emote da Twitch, BTTV ou FFZ: esta mensagem vai só para a Twitch."
-                      : "Emotes da Twitch, BTTV e FFZ só podem ser enviados à Twitch. Ligue a Twitch em Contas conectadas."
+                      ? "Emote da Twitch, BTTV, FFZ ou 7TV: esta mensagem vai só para a Twitch."
+                      : "Emotes da Twitch, BTTV, FFZ e 7TV só podem ser enviados à Twitch. Ligue a Twitch em Contas conectadas."
                     : "Emote da Kick: esta mensagem vai só para a Kick."}
               </p>
             )}
@@ -873,6 +1012,7 @@ export default function MultichatPage() {
                 </button>
               </div>
             ))}
+            <BadgeSettings platforms={connectedPlatforms} hidden={hiddenBadges.hidden} onToggle={hiddenBadges.toggle} />
             {!session && (
               <button
                 className="mc-twitch-login"
@@ -910,8 +1050,8 @@ export default function MultichatPage() {
               <li>
                 <strong>Use seus emotes</strong>
                 <p>
-                  Abra o sorriso ao lado da mensagem para buscar emotes Twitch e
-                  BTTV, incluindo animados.
+                  Abra o sorriso ao lado da mensagem para buscar emotes Twitch,
+                  BTTV e 7TV, incluindo animados.
                 </p>
               </li>
               <li>

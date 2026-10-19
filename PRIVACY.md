@@ -1,27 +1,17 @@
 # Política de Privacidade — GalindoGamerBR
 
-Última atualização: 18 de agosto de 2026.
+Última atualização: 19 de outubro de 2026.
 
-## Quem opera este site
+A versão completa e vigente é a página pública **https://galindogamerbr.com.br/privacidade** (fonte: `src/routes/Privacidade.tsx`), junto com os Termos de Uso em `/termos` (`src/routes/Termos.tsx`). Este arquivo é só um resumo; em caso de diferença vale a página.
 
-Este site (galindogamerbr.com.br) é a página institucional do canal GalindoGamerBR. Dúvidas sobre privacidade podem ser enviadas para contato@galindogamerbr.com.br.
+## Serviços de API do YouTube (requisitos da auditoria)
 
-## Quais dados coletamos
+O portal usa a YouTube Data API v3. As páginas legais precisam manter, enquanto o app usar a API:
 
-Visitantes comuns do site não precisam criar conta nem enviar dados pessoais pra navegar. Coletamos apenas:
+- **Termos de Uso**: dizer que, ao usar as funções que dependem da API, a pessoa concorda com os [Termos de Serviço do YouTube](https://www.youtube.com/t/terms); que o portal não é afiliado nem endossado pelo YouTube/Google; e como revogar o acesso.
+- **Política de Privacidade**: que dados da API são acessados (canal público, chat ao vivo público, e — no vínculo opcional — identificador/nome do canal e o escopo `youtube.force-ssl` só para enviar mensagens), como são usados, guardados (tokens criptografados; chat só em memória, 200 mensagens; cache do canal de até 1 h) e compartilhados (não são); link para a [Política de Privacidade do Google](https://policies.google.com/privacy); declaração de conformidade com a [Política de Dados do Usuário dos Serviços de API do Google](https://developers.google.com/terms/api-services-user-data-policy), inclusive Uso Limitado; como revogar ([security.google.com/settings/security/permissions](https://security.google.com/settings/security/permissions)) e como pedir a exclusão (apagar em até 7 dias); contato.
+- Sempre que a API ou os dados guardados mudarem (novos escopos, novo armazenamento), atualize as duas páginas **antes** de publicar.
 
-- **Estatísticas de acesso agregadas** (páginas visitadas, navegador, país aproximado), via Cloudflare Web Analytics — não usa cookies de rastreamento nem identifica visitantes individualmente.
-- **Login administrativo**: só a pessoa responsável pelo canal usa o painel administrativo, autenticando por e-mail e código de uso único (OTP). Isso gera um cookie de sessão técnico, necessário só pra manter esse login ativo.
-- **Formulários de contato** (quando enviados) usam os dados só pra responder a mensagem, nunca pra outra finalidade.
+## Resto
 
-## Métricas públicas de redes sociais
-
-A página Comunidade mostra números públicos de seguidores/inscritos do canal (YouTube, Twitch, Discord, TikTok, Kick e Instagram), obtidos a partir de dados públicos dessas plataformas e/ou de suas APIs oficiais quando aplicável (ex.: Instagram Graph API). Não coletamos nem armazenamos dados pessoais de quem segue o canal nessas redes — só o número total, público, de seguidores.
-
-## Serviços de terceiros
-
-O site roda na infraestrutura da Cloudflare (hospedagem, analytics, banco de dados) e usa a Resend pra envio de e-mails do login administrativo. Links para YouTube, Twitch, Discord, TikTok, Kick, Instagram e WhatsApp seguem as políticas de privacidade de cada uma dessas plataformas.
-
-## Seus direitos
-
-Você pode pedir a exclusão de qualquer dado pessoal que tenha nos enviado (ex.: por e-mail) a qualquer momento, escrevendo para contato@galindogamerbr.com.br.
+Login com Twitch, Google (`openid`, e-mail e perfil), TikTok e e-mail por código; mesclagem de contas e e-mails secundários; métricas públicas; formulário de parceiros; Cloudflare, Supabase e Resend como operadores. Contato: contato@galindogamerbr.com.br.

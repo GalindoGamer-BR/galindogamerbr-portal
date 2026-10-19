@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { command, supabase } from '../../features/multichat/services'
 
-export type NavMember = { name: string; avatarUrl: string | null }
+export type NavMember = { name: string; avatarUrl: string | null; isAdmin?: boolean }
 
 // Estado de login para a navbar: sessão, nome/foto do membro e logout.
 export function useNavSession() {

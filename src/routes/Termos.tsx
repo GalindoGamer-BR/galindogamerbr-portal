@@ -5,7 +5,7 @@ const SECTIONS: LegalSection[] = [
     title: 'Aceitação e finalidade',
     content: (
       <div className="space-y-3">
-        <p>Estes Termos de Uso regulam o acesso ao portal galindogamerbr.com.br, página institucional do canal GalindoGamerBR. Ao navegar ou utilizar seus recursos, você declara estar de acordo com estas condições e com a Política de Privacidade.</p>
+        <p>Estes Termos de Uso regulam o acesso ao portal galindogamerbr.com.br, página institucional do canal GalindoGamerBR. Ao navegar, criar uma conta ou utilizar seus recursos, você declara estar de acordo com estas condições e com a Política de Privacidade.</p>
         <p>O portal reúne informações sobre o canal, programação, vídeos, comunidade, Fazenda Nova Aliança, parceiros e caminhos para serviços mantidos em outras plataformas.</p>
       </div>
     ),
@@ -43,6 +43,26 @@ const SECTIONS: LegalSection[] = [
       <div className="space-y-3">
         <p>O acesso ao Discord, WhatsApp, servidores de jogos e demais espaços da comunidade pode depender de regras próprias, disponibilidade técnica, moderação e requisitos adicionais.</p>
         <p>A participação no servidor da Fazenda Nova Aliança é reservada a maiores de 18 anos que atendam aos requisitos informados, conheçam as regras e recebam a liberação da administração. A participação pode ser suspensa em caso de descumprimento das regras da comunidade.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Conta, login e multichat',
+    content: (
+      <div className="space-y-3">
+        <p>Algumas funções, como o multichat e a área do membro, exigem uma conta. Você pode entrar com Twitch, Google, TikTok ou e-mail e é responsável por manter o acesso seguro e pelas mensagens enviadas pela sua conta. Ao enviar uma mensagem pelo multichat, ela é publicada em seu nome nas plataformas que você conectou e fica sujeita às regras de cada uma delas.</p>
+        <p>Mantenha o respeito no chat: não é permitido assédio, discurso de ódio, spam, divulgação de golpes, conteúdo ilegal ou o envio de mensagens em nome de outra pessoa. Contas poderão ser limitadas ou removidas em caso de abuso.</p>
+        <p>Você pode vincular e desvincular plataformas, adicionar e remover e-mails secundários, mesclar outra conta sua a esta (a conta absorvida é excluída e a operação não pode ser desfeita) e excluir a sua conta a qualquer momento na área do membro. O tratamento dos dados nesses casos está descrito na <a href="/privacidade" className="font-semibold text-gold hover:underline">Política de Privacidade</a>.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Serviços de API do YouTube',
+    content: (
+      <div className="space-y-3">
+        <p>O portal usa os Serviços de API do YouTube para exibir dados públicos do canal e do chat ao vivo e, se você vincular sua conta, enviar mensagens ao chat do YouTube. <strong className="text-white">Ao usar essas funções, você concorda em ficar vinculado aos <a href="https://www.youtube.com/t/terms" className="font-semibold text-gold hover:underline">Termos de Serviço do YouTube</a></strong>, e o tratamento de dados pelo Google segue a <a href="https://policies.google.com/privacy" className="font-semibold text-gold hover:underline">Política de Privacidade do Google</a>.</p>
+        <p>As mensagens enviadas ao chat do YouTube também seguem as Diretrizes da Comunidade do YouTube e podem ser removidas ou moderadas pelo YouTube ou pelo canal; o portal não controla esse processo. Você pode revogar o acesso do portal à sua conta a qualquer momento nas <a href="https://security.google.com/settings/security/permissions" className="font-semibold text-gold hover:underline">configurações de segurança do Google</a> ou desvinculando o YouTube na área do membro.</p>
+        <p>O portal é independente: não é afiliado, patrocinado nem endossado pelo YouTube ou pelo Google. YouTube e Google são marcas da Google LLC.</p>
       </div>
     ),
   },
@@ -88,7 +108,7 @@ export function Termos() {
       eyebrow="Regras do portal"
       title="TERMOS DE USO"
       introduction="Conheça as condições para utilizar o portal, acessar conteúdos e interagir com os espaços ligados ao GalindoGamerBR."
-      updatedAt="25 de agosto de 2026"
+      updatedAt="19 de outubro de 2026"
       sections={SECTIONS}
     />
   )

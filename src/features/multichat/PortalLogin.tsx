@@ -1,12 +1,15 @@
 import MemberEmail from "./MemberEmail";
+import EmailLogin from "./EmailLogin";
 import type { User } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { configured, supabase, publicCommand } from "./services";
+import { command, configured, supabase, publicCommand } from "./services";
+import { takeMergeClaim } from "./mergeFlow";
 import { PlatformIcon } from "./PlatformIcon";
-import { tiktokLinking } from "./flags";
+import { googleLogin, tiktokLinking } from "./flags";
+import { GoogleIcon } from "./GoogleIcon";
 import { HomeIcon } from "../../components/ui/Icons";
-import { clearAttempt, clearReturnTo, proofKey, startTikTokLogin, startTwitchLogin, takeReturnTo, verifierKey } from "./loginFlows";
+import { clearAttempt, clearReturnTo, proofKey, startGoogleLogin, startTikTokLogin, startTwitchLogin, takeReturnTo, verifierKey } from "./loginFlows";
 import "./account.css";
 
 async function waitForAuth<T>(request: Promise<T>): Promise<T> {
@@ -28,6 +31,7 @@ function supabaseLoginError(query: URLSearchParams, hash: URLSearchParams): stri
   if (raw === "access_denied" || code === "access_denied") return "A autorização foi cancelada. Autorize o acesso para entrar.";
   if (/exchange external code/i.test(description)) return "Não foi possível concluir o login com a Twitch. Tente novamente em instantes; se continuar, avise o suporte.";
   if (code === "otp_expired") return "O link de acesso expirou. Peça um novo.";
+  if (/email_is_secondary/i.test(description)) return "Este e-mail já é secundário de outra conta do portal. Entre por e-mail (código) com ele, ou por um login da conta principal.";
   return "Não foi possível concluir o login. Tente novamente em instantes.";
 }
 export default function PortalLogin() {
@@ -36,7 +40,21 @@ export default function PortalLogin() {
   const started = useRef(false);
   const [requiresEmail, setRequiresEmail] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [merged, setMerged] = useState(false);
+  // Volta do login na "outra conta" de uma mesclagem: o token guardado liga esta sessão ao pedido da conta principal, a conta
+  // desta sessão é absorvida e a pessoa entra de novo na principal.
+  async function finishMerge(claimToken: string) {
+    setBusy(true);
+    try {
+      await command("/api/account/merge/claim", { method: "POST", body: JSON.stringify({ claimToken }) });
+      await supabase!.auth.signOut();
+      setMerged(true);
+    } catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
+  }
   function continueWith(user: User) {
+    const claimToken = takeMergeClaim();
+    if (claimToken) { void finishMerge(claimToken); return; }
     if (!user.email || !user.email_confirmed_at || user.app_metadata?.email_is_internal === true || user.email.endsWith("@tiktok.identity.invalid")) setRequiresEmail(true);
     else navigate(takeReturnTo(), { replace: true });
   }
@@ -105,6 +123,12 @@ export default function PortalLogin() {
     try { clearReturnTo(); await startTwitchLogin(); }
     catch (err) { setError((err as Error).message); setBusy(false); }
   }
+  async function loginGoogle() {
+    if (!supabase) return;
+    setBusy(true); setError("");
+    try { clearReturnTo(); await startGoogleLogin(); }
+    catch (err) { setError((err as Error).message); setBusy(false); }
+  }
   async function login() {
     setBusy(true); setError("");
     try { clearReturnTo(); await startTikTokLogin(); }
@@ -116,9 +140,13 @@ export default function PortalLogin() {
     {requiresEmail ? <MemberEmail onComplete={() => navigate(takeReturnTo(), { replace: true })} /> : <>
     <h1>Entre na comunidade</h1>
     {route.state?.accountDeleted === true && <p role="status">Conta excluída com sucesso.</p>}
-    <p>{tiktokLinking ? "Use sua conta Twitch ou TikTok para criar ou acessar seu perfil na comunidade." : "Use sua conta Twitch para criar ou acessar seu perfil na comunidade."}</p>
+    {merged && <p role="status">Contas mescladas. Entre na sua conta principal para continuar.</p>}
+    <p>{`Use sua conta ${["Twitch", googleLogin && "Google", tiktokLinking && "TikTok"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " ou $1")} para criar ou acessar seu perfil na comunidade.`}</p>
     <button className="portal-twitch-login" disabled={busy || !configured} onClick={() => void loginTwitch()}><PlatformIcon platform="twitch" />Entrar com Twitch</button>
+    {googleLogin && <button className="portal-google-login" disabled={busy || !configured} onClick={() => void loginGoogle()}><GoogleIcon />Entrar com Google</button>}
     {tiktokLinking && <button className="portal-tiktok-login" disabled={busy || !configured} onClick={() => void login()}><PlatformIcon platform="tiktok" />{busy ? "Aguarde…" : "Entrar com TikTok"}</button>}
+    <p>ou entre com seu e-mail</p>
+    <EmailLogin onSignedIn={continueWith} onBusy={setBusy} />
     {error && <p role="alert" className="portal-account-error">{error}</p>}
     </>}
     <p className="portal-account-legal">Consulte os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.</p>

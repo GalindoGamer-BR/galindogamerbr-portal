@@ -6,8 +6,8 @@ import { ClockIcon, GlobeIcon, LockIcon, SearchIcon, UserIcon } from "../../comp
 // "mine": emote que o membro pode usar na Twitch (lido com o token dele).
 export type PickerEmote = Emote & { mine?: boolean; /** id do canal dono do emote e tipo da coleção na Twitch (só nos meus emotes). */ owner?: string; type?: string; /** Motivo do bloqueio (sub, seguidor, bits); ausente = liberado. */ locked?: string };
 
-const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV", ffz: "FFZ" };
-const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv", "ffz"];
+const providerLabels: Record<Emote["provider"], string> = { twitch: "Twitch", kick: "Kick", bttv: "BTTV", ffz: "FFZ", "7tv": "7TV" };
+const providerOrder: Emote["provider"][] = ["twitch", "kick", "bttv", "ffz", "7tv"];
 // Título das coleções da Twitch que não pertencem a um canal (a Twitch não informa o nome delas).
 const collectionTitles: Record<string, string> = {
   prime: "Twitch Prime",
@@ -191,7 +191,7 @@ export function EmotePicker({
           <div key={s.id} data-tab={index === 0 || sections[index - 1].tab !== s.tab ? s.tab : undefined}>
             {s.group && sections[index - 1]?.group !== s.group && <h3 className="mc-pk-group">{s.group}</h3>}
             <p className="mc-pk-title">
-              {s.avatar ? <img className="mc-pk-avatar" src={s.avatar} alt="" referrerPolicy="no-referrer" loading="lazy" /> : s.provider && <PlatformIcon platform={s.provider === "bttv" || s.provider === "ffz" ? "twitch" : s.provider} />}
+              {s.avatar ? <img className="mc-pk-avatar" src={s.avatar} alt="" referrerPolicy="no-referrer" loading="lazy" /> : s.provider && <PlatformIcon platform={s.provider === "bttv" || s.provider === "ffz" || s.provider === "7tv" ? "twitch" : s.provider} />}
               {s.title}
             </p>
             <div className="mc-pk-grid">
@@ -216,7 +216,7 @@ export function EmotePicker({
           <p className="mc-muted">{needle ? "Nenhum emote encontrado." : "Carregando emotes…"}</p>
         )}
         <p className="mc-muted mc-pk-foot">
-          Emotes da Twitch, BTTV e FFZ só vão para a Twitch, e emote da Kick só para a Kick. Os de sub exigem a
+          Emotes da Twitch, BTTV, FFZ e 7TV só vão para a Twitch, e emote da Kick só para a Kick. Os de sub exigem a
           inscrição na plataforma.
         </p>
       </div>

@@ -1,4 +1,5 @@
 import { supabase, publicCommand } from "./services";
+import { googleLoginYoutube } from "./flags";
 
 // Início dos fluxos de login, compartilhado pela página /login e pelo modal da navbar.
 // O retorno do OAuth sempre cai em /login, que conclui a sessão e leva a /membro.
@@ -14,6 +15,23 @@ export async function startTwitchLogin() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "twitch",
     options: { scopes: "user:read:email user:write:chat user:read:subscriptions user:read:follows user:read:emotes", redirectTo: window.location.origin + "/login" }
+  });
+  if (error) throw error;
+}
+
+// Por padrão só identidade (openid, e-mail e perfil): o YouTube é vinculado à parte, em Conexões, porque nem todo Google tem
+// canal e o escopo de envio é sensível. Com googleLoginYoutube o escopo do YouTube vai junto e o vínculo é automático. `select_account` deixa escolher a conta quando há várias no navegador.
+export async function startGoogleLogin() {
+  if (!supabase) return;
+  clearAttempt();
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      scopes: "openid email profile" + (googleLoginYoutube ? " https://www.googleapis.com/auth/youtube.force-ssl" : ""),
+      // Com o escopo do YouTube o Google só devolve o token de renovação com consentimento explícito e acesso offline.
+      queryParams: googleLoginYoutube ? { prompt: "select_account consent", access_type: "offline" } : { prompt: "select_account" },
+      redirectTo: window.location.origin + "/login",
+    }
   });
   if (error) throw error;
 }

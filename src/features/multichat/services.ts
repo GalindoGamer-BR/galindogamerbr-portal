@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { googleLoginYoutube } from "./flags";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const realtimePublicKey = key;
@@ -24,11 +25,24 @@ if (supabase) {
   const adopted = new Set<string>();
   supabase.auth.onAuthStateChange((event, session) => {
     const token = session?.provider_token;
-    if (event !== "SIGNED_IN" || !token || !session.user.identities?.some(identity => identity.provider === "twitch") || adopted.has(token)) return;
+    // Token do Google (ya29.) é do login com Google; o da Twitch é outro formato.
+    if (event !== "SIGNED_IN" || !token || token.startsWith("ya29.") || !session.user.identities?.some(identity => identity.provider === "twitch") || adopted.has(token)) return;
     adopted.add(token);
     const body = JSON.stringify({ accessToken: token, ...(session.provider_refresh_token ? { refreshToken: session.provider_refresh_token } : {}) });
     // Fora do callback: chamar métodos do Supabase de dentro dele pode travar a fila de eventos de autenticação.
     setTimeout(() => void command("/api/accounts/twitch/adopt", { method: "POST", body }).catch(() => undefined), 0);
+  });
+}
+// O mesmo para o Google quando o login pede o escopo do YouTube: o token de envio vem na sessão recém-aberta e o auth-service o valida
+// (cliente, pessoa e escopo) antes de guardar. Quem não tem canal no YouTube ou recusou o escopo continua logado normalmente.
+if (supabase && googleLoginYoutube) {
+  const adoptedGoogle = new Set<string>();
+  supabase.auth.onAuthStateChange((event, session) => {
+    const token = session?.provider_token;
+    if (event !== "SIGNED_IN" || !token || !token.startsWith("ya29.") || adoptedGoogle.has(token)) return;
+    adoptedGoogle.add(token);
+    const body = JSON.stringify({ accessToken: token, ...(session.provider_refresh_token ? { refreshToken: session.provider_refresh_token } : {}) });
+    setTimeout(() => void command("/api/accounts/youtube/adopt", { method: "POST", body }).catch(() => undefined), 0);
   });
 }
 async function portalSession() {
@@ -84,7 +98,11 @@ export async function command<T>(
       account_merge_conflict: "As contas possuem vínculos diferentes da mesma plataforma. Nenhum vínculo foi sobrescrito; a união não foi concluída.",
       account_merge_failed: "Não foi possível unir os cadastros. Solicite um novo código e tente novamente.",
       account_merge_changed: "Seu cadastro mudou durante a confirmação. Solicite um novo código.",
-      try_again_later: "Aguarde a solicitação atual terminar e tente novamente."
+      try_again_later: "Aguarde a solicitação atual terminar e tente novamente.",
+      email_already_yours: "Este já é o e-mail principal da sua conta.",
+      secondary_email_limit: "Você já tem 5 e-mails secundários. Remova um para adicionar outro.",
+      merge_attempt_expired: "A mesclagem expirou ou já foi usada. Comece de novo.",
+      merge_same_account: "Esta é a mesma conta que está aberta. Escolha outra conta para mesclar."
     };
     if (emailErrors[details?.error]) throw new Error(emailErrors[details.error]);
     if (details?.error === "tiktok_revoke_failed")
@@ -140,6 +158,8 @@ export async function publicCommand<T>(path: string, body: unknown): Promise<T> 
   if (!response.ok) throw new Error(result.error === "invalid_login_attempt"
     ? "A tentativa expirou. Entre com o TikTok novamente."
     : result.error === "email_verification_required" ? "Confirme o e-mail do seu cadastro antes de entrar."
+    : result.error === "email_code_invalid" ? "Código inválido ou expirado. Confira o código ou solicite outro."
+    : response.status === 429 ? "Muitas tentativas. Aguarde alguns minutos e tente de novo."
     : "Não foi possível concluir o login. Tente novamente.");
   return result;
 }

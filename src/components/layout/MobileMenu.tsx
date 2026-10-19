@@ -6,11 +6,12 @@ type MobileMenuProps = {
   open: boolean
   onClose: () => void
   signedIn: boolean
+  isAdmin?: boolean
   onLogin: () => void
   onLogout: () => void
 }
 
-export function MobileMenu({ open, onClose, signedIn, onLogin, onLogout }: MobileMenuProps) {
+export function MobileMenu({ open, onClose, signedIn, isAdmin, onLogin, onLogout }: MobileMenuProps) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
@@ -41,6 +42,9 @@ export function MobileMenu({ open, onClose, signedIn, onLogin, onLogout }: Mobil
           <NavLink to="/membro" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Área do membro</NavLink>
         ) : (
           <button type="button" onClick={() => { onClose(); onLogin() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">Entrar</button>
+        )}
+        {signedIn && isAdmin && (
+          <NavLink to="/admin" onClick={onClose} className="rounded-md px-3 py-3 text-sm font-semibold uppercase tracking-wide text-white/80">Painel admin</NavLink>
         )}
         {signedIn && (
           <button type="button" onClick={() => { onClose(); onLogout() }} className="rounded-md px-3 py-3 text-left text-sm font-semibold uppercase tracking-wide text-white/80 hover:bg-panel2">

@@ -47,7 +47,6 @@ function lazyWithReload<T extends ComponentType<unknown>>(load: () => Promise<{ 
 // granularidade por rota).
 
 const MultichatPage = lazyWithReload(() => import('./features/multichat/MultichatPage'))
-const Login = lazyWithReload(() => import('./routes/admin/Login').then((m) => ({ default: m.Login })))
 const AdminIndex = lazyWithReload(() => import('./routes/admin/Index').then((m) => ({ default: m.AdminIndex })))
 const Schedule = lazyWithReload(() => import('./routes/admin/Schedule').then((m) => ({ default: m.Schedule })))
 const TikTok = lazyWithReload(() => import('./routes/admin/TikTok').then((m) => ({ default: m.TikTok })))
@@ -112,7 +111,7 @@ const router = createBrowserRouter([
       { path: '/creditos', element: <Creditos /> },
       { path: '/mapa-do-site', element: <MapaDoSite /> },
       { path: '/admin', element: withAdminSuspense(<AdminIndex />) },
-      { path: '/admin/login', element: withAdminSuspense(<Login />) },
+      { path: '/admin/login', element: <Navigate to="/login" replace /> },
       { path: '/admin/programacao', element: withAdminSuspense(<Schedule />) },
       { path: '/admin/tiktok', element: withAdminSuspense(<TikTok />) },
       { path: '/admin/discord', element: withAdminSuspense(<Discord />) },

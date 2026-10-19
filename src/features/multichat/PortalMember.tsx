@@ -5,6 +5,8 @@ import { tiktokLinking } from "./flags";
 import { MemberProfileEditor } from "./MemberProfileEditor";
 import { MemberAccounts } from "./MemberAccounts";
 import { AccountSettings } from "./AccountSettings";
+import { MergeAccounts } from "./MergeAccounts";
+import { AccountAccess } from "./AccountAccess";
 import { CameraIcon } from "../../components/ui/Icons";
 import "./member.css";
 import "./account.css";
@@ -13,9 +15,10 @@ type Member = { tiktokName?: string | null; name: string; avatarUrl: string | nu
 const date = (value: string) => new Date(value).toLocaleDateString("pt-BR");
 export default function PortalMember() {
   const navigate = useNavigate();
-  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false), [actionsOpen, setActionsOpen] = useState(false), [photoMenuOpen, setPhotoMenuOpen] = useState(false), [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [member, setMember] = useState<Member | null>(null), [reload, setReload] = useState(0), [editing, setEditing] = useState(false), [managing, setManaging] = useState(false), [merging, setMerging] = useState(false), [actionsOpen, setActionsOpen] = useState(false), [photoMenuOpen, setPhotoMenuOpen] = useState(false), [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false), [avatarFailed, setAvatarFailed] = useState(false);
   // Abre a seção ao voltar do OAuth de vínculo (?linked / ?oauth_error), para mostrar o resultado.
+  const [accessOpen, setAccessOpen] = useState(false);
   const [accountsOpen, setAccountsOpen] = useState(() => { const query = new URLSearchParams(window.location.search); return query.has("linked") || query.has("oauth_error"); });
   useEffect(() => {
     if (!supabase) { setError("O acesso à comunidade ainda não está configurado."); return; }
@@ -96,6 +99,7 @@ export default function PortalMember() {
             <button type="button" disabled={busy} aria-haspopup="menu" aria-expanded={actionsOpen} onClick={() => setActionsOpen(open => !open)}>Ações <span aria-hidden="true" className="member-menu-caret">▾</span></button>
             {actionsOpen && <div role="menu" className="member-menu-list">
               <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); setEditing(true); }}>Mudar nome de exibição</button>
+              <button role="menuitem" type="button" onClick={() => { setActionsOpen(false); setMerging(true); }}>Mesclar outra conta</button>
               <button role="menuitem" type="button" className="member-menu-danger" onClick={() => { setActionsOpen(false); setManaging(true); }}>Excluir conta</button>
             </div>}
           </div>
@@ -106,8 +110,13 @@ export default function PortalMember() {
         <summary><span><strong>Contas conectadas</strong><small>Contas usadas para enviar mensagens ao chat</small></span></summary>
         <MemberAccounts tiktokLogin={member.tiktokName} />
       </details>
+      <details className="member-dropdown" open={accessOpen} onToggle={event => setAccessOpen(event.currentTarget.open)}>
+        <summary><span><strong>Logins e e-mails</strong><small>Como você entra na sua conta</small></span></summary>
+        {accessOpen && <AccountAccess />}
+      </details>
       {editing && modal("Mudar nome de exibição", () => setEditing(false), <MemberProfileEditor key={member.name} mode="name" name={member.name} customized={member.customized ?? { name: false, avatar: false }} onChange={onProfileChange} />)}
       {photoFile && modal("Trocar foto", () => setPhotoFile(null), <MemberProfileEditor mode="avatar" name={member.name} initialFile={photoFile} customized={member.customized ?? { name: false, avatar: false }} onChange={onProfileChange} onDone={() => setPhotoFile(null)} />)}
+      {merging && modal("Mesclar contas", () => setMerging(false), <MergeAccounts onDone={() => { setMerging(false); setReload(n => n + 1); window.dispatchEvent(new Event("portal:profile-updated")); }} />, "portal-account-card")}
       {managing && modal("Excluir conta", () => setManaging(false), <AccountSettings />, "portal-account-card")}
       <div className="member-section-title"><div><span className="member-eyebrow">O que vem por aí</span><h2>Uma comunidade feita com você.</h2></div><span className="member-preview">Recursos futuros</span></div>
       <div className="member-content-grid">
