@@ -3,7 +3,7 @@
 // lib inteira no bundle de qualquer visitante da página de programação.
 export async function exportScheduleImage(
   node: HTMLElement,
-  filename = 'programacao-galindogamerbr.png',
+  filename = 'programacao-galindogamerbr.jpg',
   pixelRatio = 1,
 ): Promise<void> {
   const dataUrl = await renderScheduleImage(node, pixelRatio)
@@ -14,8 +14,9 @@ export async function exportScheduleImage(
 }
 
 export async function renderScheduleImage(node: HTMLElement, pixelRatio = 1): Promise<string> {
-  const { toPng } = await import('html-to-image')
+  const { toJpeg } = await import('html-to-image')
   // Os templates já usam a resolução final de publicação (vertical em
   // 1080x1350); pixelRatio maior duplicaria desnecessariamente o arquivo.
-  return toPng(node, { pixelRatio })
+  // JPEG: bem menor que PNG (o edge limita o corpo da requisição) e vira foto normal no WhatsApp.
+  return toJpeg(node, { pixelRatio, quality: 0.9 })
 }

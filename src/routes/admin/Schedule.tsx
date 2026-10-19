@@ -12,6 +12,9 @@ import {
   listVersions,
   publishVersion,
   saveBlocks,
+  publishScheduleToDiscord,
+  listScheduleAudit,
+  type ScheduleAuditEntry,
   updateVersion,
   type ScheduleBlock,
 } from '../../lib/api/schedule'
@@ -30,7 +33,16 @@ export function Schedule() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [audit, setAudit] = useState<ScheduleAuditEntry[]>([])
   const discordPortraitRef = useRef<HTMLDivElement>(null)
+
+  async function loadAudit() {
+    try {
+      setAudit((await listScheduleAudit()).entries)
+    } catch {
+      // histórico é só informativo
+    }
+  }
 
   async function bootstrap() {
     try {
@@ -53,6 +65,7 @@ export function Schedule() {
       }
 
       setVersionId(detail.id)
+      void loadAudit()
       setBlocks(weekBlocks)
     } finally {
       setLoading(false)
@@ -86,16 +99,26 @@ export function Schedule() {
     setSaving(true)
     setMessage(null)
     try {
-      const portraitImageDataUrl = discordPortraitRef.current
-        ? await renderScheduleImage(discordPortraitRef.current)
-        : undefined
-      const result = await saveBlocks(versionId, blocks, portraitImageDataUrl)
-      setMessage(
-        result.discordPublished
-          ? 'Programação salva na home e publicada no Discord.'
-          : 'Programação salva. Não houve alteração para publicar no Discord.',
-      )
+      await saveBlocks(versionId, blocks)
+      setMessage('Programação salva na home.')
+      // Imagem/Discord é um passo à parte: se falhar, a programação já está salva.
+      try {
+        const portraitImageDataUrl = discordPortraitRef.current
+          ? await renderScheduleImage(discordPortraitRef.current)
+          : undefined
+        const discord = await publishScheduleToDiscord(versionId, portraitImageDataUrl)
+        setMessage(
+          discord.discordPublished
+            ? 'Programação salva na home e publicada no Discord.'
+            : 'Programação salva na home. Não foi publicada no Discord (sem alteração ou falha).',
+        )
+      } catch {
+        setMessage('Programação salva na home, mas a publicação no Discord falhou.')
+      }
+    } catch (error) {
+      setMessage(`Não foi possível salvar a programação: ${error instanceof Error ? error.message : 'erro desconhecido'}`)
     } finally {
+      void loadAudit()
       setSaving(false)
     }
   }
@@ -190,6 +213,21 @@ export function Schedule() {
           <ScheduleExportButton blocks={blocks} />
           {message && <span className="text-sm text-muted">{message}</span>}
         </div>
+        {audit.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-sm font-semibold text-white">Histórico de alterações</h2>
+            <ul className="mt-2 space-y-1 text-sm text-muted">
+              {audit.filter((entry) => entry.action === 'blocks_saved' || entry.action === 'version_published').slice(0, 15).map((entry) => (
+                <li key={entry.id}>
+                  {new Date(`${entry.createdAt.replace(' ', 'T')}Z`).toLocaleString('pt-BR')} — {entry.actor} —{' '}
+                  {entry.action === 'blocks_saved'
+                    ? `salvou a programação (${entry.details?.before?.length ?? 0} → ${entry.details?.after?.length ?? 0} horários)`
+                    : 'publicou a programação'}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div style={{ position: 'fixed', top: 0, left: -9999, pointerEvents: 'none' }} aria-hidden="true">
           <ScheduleExportTemplate ref={discordPortraitRef} blocks={blocks} variant="portrait" />
         </div>

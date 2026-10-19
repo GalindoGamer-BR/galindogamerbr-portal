@@ -58,13 +58,33 @@ export function updateVersion(versionId: number, params: { label?: string; cycle
   })
 }
 
-export function saveBlocks(versionId: number, blocks: ScheduleBlock[], portraitImageDataUrl?: string) {
-  return adminJson<{ ok: true; count: number; discordPublished: boolean }>(`/api/admin/schedule/versions/${versionId}/blocks`, {
+export function saveBlocks(versionId: number, blocks: ScheduleBlock[]) {
+  return adminJson<{ ok: true; count: number }>(`/api/admin/schedule/versions/${versionId}/blocks`, {
     method: 'PUT',
-    body: JSON.stringify({ blocks, portraitImageDataUrl }),
+    body: JSON.stringify({ blocks }),
+  })
+}
+
+export function publishScheduleToDiscord(versionId: number, portraitImageDataUrl?: string) {
+  return adminJson<{ ok: boolean; discordPublished: boolean }>(`/api/admin/schedule/versions/${versionId}/discord`, {
+    method: 'POST',
+    body: JSON.stringify({ portraitImageDataUrl }),
   })
 }
 
 export function publishVersion(versionId: number) {
   return adminJson<{ ok: true }>(`/api/admin/schedule/versions/${versionId}/publish`, { method: 'POST' })
+}
+
+export type ScheduleAuditEntry = {
+  id: number
+  versionId: number | null
+  action: 'version_created' | 'version_updated' | 'blocks_saved' | 'version_published' | 'discord_published'
+  actor: string
+  details: { before?: string[]; after?: string[]; discordPublished?: boolean } | null
+  createdAt: string
+}
+
+export function listScheduleAudit() {
+  return adminJson<{ entries: ScheduleAuditEntry[] }>('/api/admin/schedule/audit')
 }
