@@ -29,7 +29,7 @@ export function PublicScheduleExportButton() {
       if (node) {
         await exportScheduleImage(
           node,
-          useWide ? 'programacao-galindogamerbr-youtube.png' : 'programacao-galindogamerbr.png',
+          useWide ? 'programacao-galindogamerbr-youtube.jpg' : 'programacao-galindogamerbr.jpg',
         )
       }
     } finally {

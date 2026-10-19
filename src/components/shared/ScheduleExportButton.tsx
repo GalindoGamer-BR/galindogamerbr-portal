@@ -21,7 +21,7 @@ export function ScheduleExportButton({ blocks }: ScheduleExportButtonProps) {
     try {
       await exportScheduleImage(
         node,
-        variant === 'portrait' ? 'programacao-galindogamerbr.png' : 'programacao-galindogamerbr-youtube.png',
+        variant === 'portrait' ? 'programacao-galindogamerbr.jpg' : 'programacao-galindogamerbr-youtube.jpg',
         1,
       )
     } finally {
