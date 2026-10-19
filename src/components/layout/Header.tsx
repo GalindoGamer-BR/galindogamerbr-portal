@@ -75,7 +75,7 @@ export function Header() {
         </button>
       </div>
 
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signedIn={signedIn} onLogin={() => setLoginOpen(true)} onLogout={() => void logout()} />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} signedIn={signedIn} isAdmin={member?.isAdmin} onLogin={() => setLoginOpen(true)} onLogout={() => void logout()} />
       {loginOpen && <LoginModal onClose={closeLogin} />}
     </header>
   )

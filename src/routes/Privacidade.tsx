@@ -38,19 +38,65 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
+    title: 'Login com Google',
+    content: (
+      <div className="space-y-4">
+        <p>Esta seção se aplica à opção Entrar com Google do <strong className="text-white">Portal GalindoGamerBR</strong>, usada para criar e acessar sua conta na comunidade. Dúvidas e solicitações podem ser enviadas para {EMAIL_LINK}.</p>
+        <h3 className="text-lg font-semibold text-white">Autorização e dados recebidos</h3>
+        <p>Ao selecionar Entrar com Google, você é direcionado ao Google para escolher a conta e autorizar o acesso. As permissões solicitadas são <code>openid</code>, <code>https://www.googleapis.com/auth/userinfo.email</code> e <code>https://www.googleapis.com/auth/userinfo.profile</code>. Com sua autorização, recebemos o identificador da sua conta Google, o endereço de e-mail verificado, o nome e a foto de perfil. Não recebemos sua senha do Google e essa opção não dá acesso a Gmail, Drive, contatos ou qualquer outro serviço. Quando o portal oferece vincular o YouTube já no login, a tela do Google também pede a permissão do YouTube descrita na seção Vínculo com YouTube; você pode recusá-la e entrar mesmo assim, e nesse caso o YouTube não é vinculado.</p>
+        <h3 className="text-lg font-semibold text-white">Como utilizamos os dados</h3>
+        <p>Utilizamos o identificador e o e-mail para criar seu cadastro e reconhecer você nos próximos acessos; o nome e a foto para apresentar seu perfil na área do membro. Os dados não são vendidos nem usados para publicidade. O uso das informações recebidas das APIs do Google segue a <a href="https://developers.google.com/terms/api-services-user-data-policy" className="font-semibold text-gold hover:underline">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado.</p>
+        <h3 className="text-lg font-semibold text-white">Armazenamento, revogação e exclusão</h3>
+        <p>O cadastro é armazenado na infraestrutura de autenticação e banco de dados do portal, baseada em Supabase, enquanto sua conta permanecer cadastrada. Você pode excluir sua conta em <a href="/conta" className="font-semibold text-gold hover:underline">Minha conta</a> e também remover o acesso do portal em <a href="https://myaccount.google.com/permissions" className="font-semibold text-gold hover:underline">myaccount.google.com/permissions</a>. O vínculo do YouTube para enviar mensagens é separado e opcional, descrito na seção a seguir.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Serviços de API do YouTube',
+    content: (
+      <div className="space-y-4">
+        <p>O <strong className="text-white">Portal GalindoGamerBR</strong> usa os <strong className="text-white">Serviços de API do YouTube</strong> (YouTube Data API v3). Ao usar os recursos do portal que dependem deles, você também concorda em ficar vinculado aos <a href="https://www.youtube.com/t/terms" className="font-semibold text-gold hover:underline">Termos de Serviço do YouTube</a>. O tratamento de dados pelo Google segue a <a href="https://policies.google.com/privacy" className="font-semibold text-gold hover:underline">Política de Privacidade do Google</a>.</p>
+        <p>O uso e a transferência, para qualquer outro aplicativo, das informações recebidas das APIs do Google seguem a <a href="https://developers.google.com/terms/api-services-user-data-policy" className="font-semibold text-gold hover:underline">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado. O portal é independente e não é afiliado, patrocinado nem endossado pelo YouTube ou pelo Google.</p>
+        <p>O portal usa esses serviços de duas formas: (1) dados públicos do canal e do chat ao vivo, sem login, descritos na próxima seção; e (2) o vínculo opcional da sua conta do YouTube para enviar mensagens ao chat, descrito na seção Vínculo com YouTube.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Dados públicos do YouTube no site',
+    content: (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-white">O que obtemos</h3>
+        <p>Por meio da API, o portal consulta dados públicos do canal GalindoGamerBR (título, descrição, número de inscritos e de vídeos, se há transmissão ao vivo, título e miniatura da transmissão e o vídeo da última live) e as mensagens públicas do chat ao vivo do canal: nome de exibição e foto de perfil de quem escreveu, o texto da mensagem, o valor de Super Chat quando houver e se a pessoa é dona do canal, moderadora, membro ou verificada.</p>
+        <h3 className="text-lg font-semibold text-white">Como utilizamos, armazenamos e compartilhamos</h3>
+        <p>Essas informações são exibidas no multichat e nas páginas do portal, junto com as mensagens das outras plataformas. As mensagens do chat ficam apenas na memória do servidor (as últimas 200) e no navegador de quem está com o chat aberto; <strong className="text-white">não são gravadas em banco de dados</strong> e desaparecem quando o serviço é reiniciado. Os dados do canal ficam em cache por até uma hora. Nenhum dado obtido dessa forma é mantido por mais de 30 dias, vendido, usado para publicidade ou compartilhado com terceiros, exceto o necessário para exibi-lo a quem acessa o portal.</p>
+        <h3 className="text-lg font-semibold text-white">Mensagens de outras pessoas</h3>
+        <p>Se você escreveu no chat do YouTube e quer que uma mensagem sua deixe de aparecer no portal, escreva para {EMAIL_LINK}. A mensagem original continua no YouTube, que a controla.</p>
+      </div>
+    ),
+  },
+  {
     title: 'Vínculo com YouTube',
     content: (
       <div className="space-y-4">
         <p>Esta seção se aplica ao vínculo opcional da sua conta do YouTube (Google) ao <strong className="text-white">Portal GalindoGamerBR</strong>, usado somente para que você envie mensagens no chat das transmissões ao vivo do canal pelo multichat do portal. Dúvidas e solicitações podem ser enviadas para {EMAIL_LINK}.</p>
-        <h3 className="text-lg font-semibold text-white">Autorização e dados recebidos</h3>
-        <p>Ao vincular, você é direcionado ao Google para autorizar o aplicativo. A permissão solicitada é <code>https://www.googleapis.com/auth/youtube.force-ssl</code>. Com sua autorização, recebemos o identificador e o nome do seu canal do YouTube e os tokens de acesso e renovação. Não lemos seus vídeos, inscrições, playlists, comentários, e-mail nem histórico, e não publicamos nada que você não tenha digitado.</p>
+        <h3 className="text-lg font-semibold text-white">Autorização e dados que acessamos</h3>
+        <p>Ao vincular, você é direcionado ao Google para autorizar o aplicativo e vê a tela de consentimento do Google. A permissão solicitada é <code>https://www.googleapis.com/auth/youtube.force-ssl</code>. Com ela, o portal acessa apenas: o identificador e o nome do seu canal do YouTube (para saber a qual canal sua conta corresponde) e a função de publicar no chat da transmissão ao vivo, em seu nome, a mensagem que você digitou. Também recebemos e guardamos os tokens de acesso e de renovação da autorização. O portal não lê nem altera seus vídeos, inscrições, playlists, comentários, e-mail ou histórico, e não publica nada que você não tenha digitado.</p>
         <h3 className="text-lg font-semibold text-white">Como utilizamos os dados</h3>
-        <p>O token é usado apenas para enviar ao chat da transmissão ao vivo do canal, em seu nome, a mensagem que você digitou no multichat, e para identificar a qual canal sua conta corresponde. Os dados recebidos por essa autorização não são vendidos, não são usados para publicidade, perfilamento ou treinamento de modelos de IA, e não são transferidos a terceiros, exceto o necessário para prestar a função descrita, cumprir a lei ou proteger a segurança do serviço.</p>
-        <p>O uso e a transferência das informações recebidas das APIs do Google pelo portal seguem a <a href="https://developers.google.com/terms/api-services-user-data-policy" className="font-semibold text-gold hover:underline">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado. O uso do YouTube está sujeito aos <a href="https://www.youtube.com/t/terms" className="font-semibold text-gold hover:underline">Termos de Serviço do YouTube</a> e à <a href="https://policies.google.com/privacy" className="font-semibold text-gold hover:underline">Política de Privacidade do Google</a>.</p>
-        <h3 className="text-lg font-semibold text-white">Armazenamento e segurança</h3>
-        <p>Os tokens são armazenados criptografados no servidor, com acesso restrito, enquanto o vínculo existir. O identificador e o nome do canal ficam associados ao seu cadastro para exibir o vínculo na área do membro.</p>
+        <p>O token é usado apenas para enviar ao chat da transmissão ao vivo do canal as mensagens que você escreve no multichat e para identificar o seu canal. Os dados recebidos por essa autorização não são vendidos, usados para publicidade, combinados com outros dados para criar perfis, transferidos a terceiros nem usados para outra finalidade, salvo exigência legal.</p>
+        <h3 className="text-lg font-semibold text-white">Armazenamento, retenção e segurança</h3>
+        <p>Os tokens são armazenados criptografados no servidor, com acesso restrito e sem exibição em registros. O identificador e o nome do canal ficam associados ao seu cadastro para exibir o vínculo na área do membro. Esses dados são mantidos apenas enquanto o vínculo existir: são apagados quando você desvincula o YouTube ou exclui a conta.</p>
         <h3 className="text-lg font-semibold text-white">Revogar o acesso e excluir seus dados</h3>
-        <p>Você pode desvincular o YouTube a qualquer momento em <a href="/conta" className="font-semibold text-gold hover:underline">Minha conta</a>. A desvinculação revoga a autorização no Google e remove os tokens e o perfil do canal armazenados; se a revogação não puder ser confirmada, o vínculo é mantido e o portal informa o erro para você tentar novamente. Excluir sua conta do portal também revoga a autorização e apaga esses dados. Você ainda pode remover o acesso diretamente em <a href="https://myaccount.google.com/permissions" className="font-semibold text-gold hover:underline">myaccount.google.com/permissions</a>. Seu canal e seus conteúdos no YouTube não são apagados.</p>
+        <p>Você pode desvincular o YouTube a qualquer momento em <a href="/membro" className="font-semibold text-gold hover:underline">Minha conta</a>. A desvinculação revoga a autorização no Google e remove imediatamente os tokens e o perfil do canal armazenados; se a revogação não puder ser confirmada, o vínculo é mantido e o portal informa o erro para você tentar novamente. Excluir sua conta do portal também revoga a autorização e apaga esses dados.</p>
+        <p>Você pode remover o acesso do portal diretamente nas <a href="https://security.google.com/settings/security/permissions" className="font-semibold text-gold hover:underline">configurações de segurança do Google</a> (também em <a href="https://myaccount.google.com/permissions" className="font-semibold text-gold hover:underline">myaccount.google.com/permissions</a>). Se você revogar por lá, o token guardado deixa de funcionar; para apagar os dados que ainda estejam armazenados, desvincule em Minha conta ou envie o pedido para {EMAIL_LINK}, e eles serão apagados em até 7 dias. Seu canal e seus conteúdos no YouTube não são apagados.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Contas, e-mails e mesclagem',
+    content: (
+      <div className="space-y-4">
+        <p>Sua conta no portal pode ter mais de um login (Twitch, Google ou TikTok) e mais de um e-mail. Em Logins e e-mails, na área do membro, você pode adicionar e remover e-mails secundários, mediante código enviado ao endereço, e entrar por qualquer um deles. Também pode remover um login principal quando houver mais de um; a autorização dele é revogada na plataforma e o vínculo de chat correspondente é apagado.</p>
+        <p>Você pode mesclar outra conta sua a esta. Para isso confirmamos que você controla as duas, por código enviado ao e-mail de cada uma ou entrando na outra conta. A conta absorvida é excluída, seus vínculos e logins passam para a conta principal e o e-mail dela passa a ser secundário. A mesclagem não pode ser desfeita. Os códigos são de uso único, expiram em minutos e são enviados pela Resend.</p>
       </div>
     ),
   },
@@ -94,7 +140,7 @@ const SECTIONS: LegalSection[] = [
     content: (
       <div className="space-y-3">
         <p>Dados são compartilhados apenas quando necessário para a operação. A Cloudflare fornece hospedagem, banco de dados, proteção e métricas; a Resend realiza o envio dos emails administrativos e das propostas comerciais. O conteúdo do formulário segue diretamente para a caixa de email responsável pelo contato.</p>
-        <p>Ao escolher reproduzir um vídeo, o conteúdo é carregado pelo YouTube, que poderá tratar dados conforme sua própria política. Links para YouTube, Twitch, Discord, TikTok, Kick, Instagram, WhatsApp e outros serviços levam a ambientes controlados por essas empresas.</p>
+        <p>Ao escolher reproduzir um vídeo ou a transmissão, o player incorporado do YouTube (em modo de privacidade aprimorada, youtube-nocookie.com) é carregado e o YouTube poderá tratar dados conforme os Termos de Serviço do YouTube e a Política de Privacidade do Google. A Supabase fornece a autenticação e o banco de dados das contas, e a Resend envia os códigos de acesso por e-mail. Links para YouTube, Twitch, Discord, TikTok, Kick, Instagram, WhatsApp e outros serviços levam a ambientes controlados por essas empresas.</p>
         <p>Alguns fornecedores podem processar informações fora do Brasil. Nesses casos, o tratamento fica sujeito às salvaguardas contratuais e às regras de proteção de dados aplicáveis ao serviço.</p>
       </div>
     ),
@@ -135,7 +181,7 @@ export function Privacidade() {
       eyebrow="Privacidade e transparência"
       title="POLÍTICA DE PRIVACIDADE"
       introduction="Saiba como o Portal GalindoGamerBR utiliza e protege seus dados pessoais e como você pode exercer seus direitos."
-      updatedAt="14 de outubro de 2026"
+      updatedAt="19 de outubro de 2026"
       sections={SECTIONS}
     />
   )

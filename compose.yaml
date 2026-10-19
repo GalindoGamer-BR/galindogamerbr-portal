@@ -36,6 +36,14 @@ services:
       GOTRUE_EXTERNAL_TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
       GOTRUE_EXTERNAL_TWITCH_SECRET: ${TWITCH_CLIENT_SECRET:-}
       GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI: http://localhost:54321/auth/v1/callback
+      # Entrar com Google: so liga com GOOGLE_LOGIN_ENABLED=true e GOOGLE_LOGIN_CLIENT_ID/SECRET no .env.docker.
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_LOGIN_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_LOGIN_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_LOGIN_CLIENT_SECRET:-}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: http://localhost:54321/auth/v1/callback
+      # Impede conta nova com e-mail que ja e secundario de outra conta (funcao da migration do auth-service).
+      GOTRUE_HOOK_BEFORE_USER_CREATED_ENABLED: "true"
+      GOTRUE_HOOK_BEFORE_USER_CREATED_URI: pg-functions://postgres/auth_service/hook_before_user_created
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
       GOTRUE_MAILER_AUTOCONFIRM: "false"
       GOTRUE_MAILER_OTP_EXP: 300
@@ -157,6 +165,9 @@ services:
       TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY:-}
       TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
       TIKTOK_REDIRECT_URI: ${TIKTOK_REDIRECT_URI:-}
+      # Codigo por e-mail de quem entra ou confirma um e-mail secundario (o Supabase so envia para o e-mail principal).
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: "${SMTP_FROM:-GalindoGamerBR <acesso@galindogamerbr.com.br>}"
     healthcheck:
       test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"]
       interval: 5s
@@ -287,6 +298,8 @@ services:
       VITE_USE_POLLING: "true"   # o volume do Docker Desktop nao propaga eventos de arquivo ao Vite
       VITE_YOUTUBE_LINKING_ENABLED: ${YOUTUBE_LINKING_ENABLED:-false}
       VITE_TIKTOK_LINKING_ENABLED: ${TIKTOK_LINKING_ENABLED:-false}
+      VITE_GOOGLE_LOGIN_ENABLED: ${GOOGLE_LOGIN_ENABLED:-false}
+      VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED: ${GOOGLE_LOGIN_YOUTUBE_ENABLED:-false}
     volumes:
       - .:/app
       - portal-node-modules:/app/node_modules

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { HomeIcon, LogoutIcon, UserIcon } from "../../components/ui/Icons";
+import { LogoutIcon } from "../../components/ui/Icons";
+import { userMenuLinks } from "./userMenu";
 import type { NavMember } from "../../components/layout/useNavSession";
 
-// Menu do usuário na barra do multichat: foto e nome de exibição; abre área do membro, portal e sair.
+// Menu do usuário na barra do multichat: foto e nome de exibição; abre área do membro, painel admin (se admin), portal e sair.
 export function MultichatUserMenu({ member, onLogout }: { member: NavMember | null; onLogout: () => void }) {
   const [open, setOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -23,8 +24,7 @@ export function MultichatUserMenu({ member, onLogout }: { member: NavMember | nu
       <span className={`mc-user-caret${open ? " mc-user-caret-open" : ""}`} aria-hidden="true">▾</span>
     </button>
     {open && <div role="menu" className="mc-user-menu">
-      <a role="menuitem" href="/membro"><UserIcon />Área do membro</a>
-      <a role="menuitem" href="/"><HomeIcon />Voltar ao portal</a>
+      {userMenuLinks(member).map(({ href, label, icon: Icon }) => <a key={href} role="menuitem" href={href}><Icon />{label}</a>)}
       <button role="menuitem" type="button" onClick={() => { setOpen(false); onLogout(); }}><LogoutIcon />Sair</button>
     </div>}
   </div>;

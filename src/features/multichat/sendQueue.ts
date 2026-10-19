@@ -1,7 +1,7 @@
 import { RateLimited } from "./services";
-import type { Platform, SendResult } from "./types";
+import type { Platform, ReplyTarget, SendResult } from "./types";
 
-export type QueueItem = { id: string; text: string; platforms: Platform[]; kickText?: string };
+export type QueueItem = { id: string; text: string; platforms: Platform[]; kickText?: string; replyTo?: ReplyTarget };
 
 type Deps = {
   send: (item: QueueItem) => Promise<SendResult[]>;

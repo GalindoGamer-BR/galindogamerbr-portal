@@ -41,7 +41,7 @@ Estado em 2026-10-10 (a seção "Atualização 2026-10-10" abaixo traz o que mud
 ## NÃO validado (depende de infraestrutura ou credenciais)
 - `kubectl apply` em um cluster real (só `kubeconform` foi executado) e execução das imagens em arm64 de verdade.
 - Paridade fina de respostas da `galindogamerbr-api` com as Pages Functions antigas (rotas testadas contra Postgres real, mas não comparadas lado a lado com o D1 de produção).
-- Login admin (código por e-mail ou Twitch, direto no Supabase): exige SMTP no Supabase com a Resend (`supabase-auth-config.ps1 -Smtp`), as Redirect URLs `/admin/login` e a role `admin` definida por SQL. Não testado com e-mail real.
+- Login admin (código por e-mail ou Twitch, direto no Supabase): exige SMTP no Supabase com a Resend (`supabase-auth-config.ps1 -Smtp`), as Redirect URLs `/login` e a role `admin` definida por SQL. Não testado com e-mail real.
 - OAuth Twitch/Kick/YouTube/TikTok, webhooks (WebSub, Instagram, Kick) e callbacks após a troca de origem (as URLs públicas continuam em `galindogamerbr.com.br` pelo proxy; confirmar redirect URIs nos provedores).
 - Realtime do multichat, monitor FS25 (Bisect real), mods-sync (SFTP real), CronJobs, recuperação de pods, ARM64 em runtime.
 - Cloudflare Tunnel/Traefik/runner self-hosted na VM Oracle (não existe ainda); o proxy do Pages só funciona com `API_ORIGIN` e `ORIGIN_AUTH_SECRET` definidos.

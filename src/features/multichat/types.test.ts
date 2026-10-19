@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { appendMessages, messageSchema, parseHistory, type ChatMessage } from "./types";
+import { appendMessages, applyModeration, messageSchema, moderationSchema, parseHistory, type ChatMessage, type ModerationEvent } from "./types";
 const message = (
   id: string,
   platform: ChatMessage["platform"] = "twitch",
@@ -65,5 +65,50 @@ describe("multichat buffer", () => {
     expect(parseHistory("nao e lista")).toEqual([]);
     const merged = appendMessages([at("live", "2026-10-09T12:00:15Z")], history);
     expect(merged.map((m) => m.platformMessageId)).toEqual(["1", "live", "2"]);
+  });
+});
+
+describe("reply, eventos e moderação", () => {
+  const at = (id: string, sec: number, over: Partial<ChatMessage> = {}): ChatMessage => ({
+    ...message(id),
+    user: { id: "u1", username: "troll", displayName: "Troll" },
+    timestamp: new Date(Date.UTC(2026, 9, 16, 12, 0, sec)).toISOString(),
+    ...over,
+  });
+  const mod = (over: Partial<ModerationEvent>): ModerationEvent => ({
+    type: "moderation", platform: "twitch", action: "delete", timestamp: new Date(Date.UTC(2026, 9, 16, 12, 0, 30)).toISOString(), ...over,
+  });
+  it("aceita reply, bits e avisos do canal no metadata e recusa aviso de tipo desconhecido", () => {
+    const withMeta = { ...message("1"), metadata: { replyTo: { platformMessageId: "p1", displayName: "Bob", text: "oi" }, bits: 100, event: { type: "raid", viewers: 42 } } };
+    const parsed = messageSchema.safeParse(withMeta);
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.metadata?.replyTo?.platformMessageId).toBe("p1");
+    expect(messageSchema.safeParse({ ...message("1"), metadata: { event: { type: "ritual" } } }).success).toBe(false);
+    expect(messageSchema.safeParse({ ...message("1"), metadata: { replyTo: { platformMessageId: "" } } }).success).toBe(false);
+  });
+  it("valida o evento de moderação vindo do reader", () => {
+    expect(moderationSchema.safeParse(mod({ action: "timeout", targetUserId: "u1", duration: 350 })).success).toBe(true);
+    expect(moderationSchema.safeParse({ type: "moderation", platform: "twitch", action: "explode", timestamp: "x" }).success).toBe(false);
+    expect(moderationSchema.safeParse({ type: "other" }).success).toBe(false);
+  });
+  it("delete marca só a mensagem do id, na plataforma certa, e devolve a mesma lista se nada casou", () => {
+    const list = [at("a", 10), at("b", 20), at("a", 10, { platform: "kick", id: "kick:a" })];
+    const next = applyModeration(list, mod({ targetMessageId: "a" }));
+    expect(next.map((m) => m.metadata?.removed)).toEqual(["delete", undefined, undefined]);
+    expect(applyModeration(list, mod({ targetMessageId: "nao-existe" }))).toBe(list);
+  });
+  it("ban e timeout atingem as mensagens do usuário até o horário do evento, não as seguintes nem as de outros", () => {
+    const list = [at("a", 10), at("b", 20, { user: { id: "u2", username: "ok", displayName: "Ok" } }), at("c", 25), at("d", 40)];
+    const next = applyModeration(list, mod({ action: "timeout", targetUserId: "u1", duration: 60 }));
+    expect(next.map((m) => m.metadata?.removed)).toEqual(["timeout", undefined, "timeout", undefined]);
+    expect(applyModeration(list, mod({ action: "ban" }))).toBe(list);
+  });
+  it("clear marca o que veio antes, poupa avisos do canal e mensagens provisórias, e não repete o que já foi removido", () => {
+    const notice = at("n", 5, { metadata: { event: { type: "raid", viewers: 3 } } });
+    const pending = at("p", 6, { metadata: { pending: true } });
+    const list = [at("a", 10), notice, pending, at("z", 50)];
+    const next = applyModeration(list, mod({ action: "clear" }));
+    expect(next.map((m) => m.metadata?.removed)).toEqual(["clear", undefined, undefined, undefined]);
+    expect(applyModeration(next, mod({ action: "clear" }))).toBe(next);
   });
 });

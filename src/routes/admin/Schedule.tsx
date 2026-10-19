@@ -124,7 +124,7 @@ export function Schedule() {
   }
 
   if (sessionLoading) return null
-  if (!email) return <Navigate to="/admin/login" replace />
+  if (!email) return <Navigate to="/login" replace />
   if (loading) return null
 
   return (

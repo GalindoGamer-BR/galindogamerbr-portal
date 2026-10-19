@@ -52,3 +52,18 @@ describe("emotes", () => {
     expect(emoteSchema.safeParse(emote).success).toBe(true);
   });
 });
+
+describe("emotes do 7TV", () => {
+  const seven = { id: "01G3WEGZN0000ET2J0MQP5YJ0G", code: "GAMBA", provider: "7tv", source: "channel", url: "https://cdn.7tv.app/emote/01G3WEGZN0000ET2J0MQP5YJ0G/2x.webp" };
+  it("aceita o provider 7tv só com URL do CDN do 7TV", () => {
+    expect(emoteSchema.safeParse(seven).success).toBe(true);
+    expect(emoteSchema.safeParse({ ...seven, url: "https://evil.example/emote/x/2x.webp" }).success).toBe(false);
+    expect(emoteSchema.safeParse({ ...seven, url: "http://cdn.7tv.app/emote/x/2x.webp" }).success).toBe(false);
+  });
+  it("reconhece o código do 7TV no texto recebido, como faz com BTTV e FFZ", () => {
+    const parsed = emoteSchema.parse(seven);
+    const parts = messageParts(message("vai de GAMBA hoje"), new Map([["GAMBA", parsed]]));
+    expect(parts.filter((p) => p.emote).map((p) => p.emote?.provider)).toEqual(["7tv"]);
+    expect(parts.map((p) => p.text).join("")).toBe("vai de GAMBA hoje");
+  });
+});

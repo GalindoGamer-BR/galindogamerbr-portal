@@ -50,7 +50,7 @@ export function FarmWelcomeVideo() {
   }
 
   if (sessionLoading) return null
-  if (!email) return <Navigate to="/admin/login" replace />
+  if (!email) return <Navigate to="/login" replace />
 
   return (
     <section className="py-16 sm:py-24">

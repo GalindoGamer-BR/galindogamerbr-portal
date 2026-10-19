@@ -5,7 +5,7 @@ export function useEmotes() {
   const [state, setState] = useState("Carregando emotes…");
   useEffect(() => {
     const controller = new AbortController();
-    void fetch("/api/multichat-emotes?v=3", { signal: controller.signal })
+    void fetch("/api/multichat-emotes?v=4", { signal: controller.signal })
       .then(async (r) => {
         if (!r.ok) throw new Error();
         const data = await r.json();

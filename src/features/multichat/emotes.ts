@@ -3,8 +3,8 @@ import type { ChatMessage } from "./types";
 export const emoteSchema = z.object({
   id: z.string(),
   code: z.string(),
-  provider: z.enum(["twitch", "bttv", "kick", "ffz"]),
-  // "channel": emote do canal (sub, follower, bits, BTTV do canal); "global": globais. Ausente = desconhecido.
+  provider: z.enum(["twitch", "bttv", "kick", "ffz", "7tv"]),
+  // "channel": emote do canal (sub, follower, bits, BTTV e 7TV do canal); "global": globais. Ausente = desconhecido.
   source: z.enum(["channel", "global"]).optional(),
   subOnly: z.boolean().optional(),
   // Emotes do canal na Twitch: o que desbloqueia e o tier mínimo de sub.
@@ -17,7 +17,7 @@ export const emoteSchema = z.object({
       const u = new URL(value);
       return (
         u.protocol === "https:" &&
-        ["static-cdn.jtvnw.net", "cdn.betterttv.net", "files.kick.com", "cdn.frankerfacez.com"].includes(u.hostname)
+        ["static-cdn.jtvnw.net", "cdn.betterttv.net", "files.kick.com", "cdn.frankerfacez.com", "cdn.7tv.app"].includes(u.hostname)
       );
     }),
 });

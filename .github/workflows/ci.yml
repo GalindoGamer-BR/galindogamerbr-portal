@@ -50,6 +50,8 @@ jobs:
           VITE_MULTICHAT_COMMAND_URL: ${{ vars.VITE_MULTICHAT_COMMAND_URL }}
           VITE_TIKTOK_LINKING_ENABLED: ${{ vars.TIKTOK_LINKING_ENABLED }}
           VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
+          VITE_GOOGLE_LOGIN_ENABLED: ${{ vars.GOOGLE_LOGIN_ENABLED }}
+          VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED: ${{ vars.GOOGLE_LOGIN_YOUTUBE_ENABLED }}
 
       # deploy.yml (workflow_run, só dispara depois desse CI passar em main)
       # reusa esse artefato em vez de buildar de novo.

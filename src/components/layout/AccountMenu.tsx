@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { NavMember } from './useNavSession'
-import { LogoutIcon, UserIcon } from '../ui/Icons'
+import { LogoutIcon, SettingsIcon, UserIcon } from '../ui/Icons'
 
 type AccountMenuProps = {
   member: NavMember | null
@@ -48,6 +48,7 @@ export function AccountMenu({ member, onLogout }: AccountMenuProps) {
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-line bg-panel shadow-xl">
           <Link to="/membro" onClick={() => setOpen(false)} className={itemClass}><UserIcon className={iconClass} />Área do membro</Link>
+          {member?.isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className={itemClass}><SettingsIcon className={iconClass} />Painel admin</Link>}
           <button type="button" onClick={() => { setOpen(false); onLogout() }} className={`${itemClass} border-t border-line`}><LogoutIcon className={iconClass} />Sair</button>
         </div>
       )}

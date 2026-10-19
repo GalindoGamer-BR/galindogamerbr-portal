@@ -45,7 +45,7 @@ export function MemberAccounts({ tiktokLogin }: { tiktokLogin?: string | null })
         const locked = !!account?.locked;
         return <li key={platform}>
           <span className={`member-account-icon member-account-${platform}`}><PlatformIcon platform={platform} /></span>
-          <div className="member-account-info"><strong>{labels[platform]}</strong><small><i className={`member-dot${connected ? " member-dot-on" : ""}`} aria-hidden="true" />{!chat ? "Carregando…" : connected ? account?.username || "Conectada" : "Não conectada"}</small></div>
+          <div className="member-account-info"><strong>{labels[platform]}</strong><small><i className={`member-dot${connected ? " member-dot-on" : ""}`} aria-hidden="true" />{!chat ? "Carregando…" : connected ? account?.username || "Conectada" : platform === "youtube" ? "Não conectada · autorização separada do login com Google" : "Não conectada"}</small></div>
           <div className="member-account-status">
             {chat && (connected
               ? locked
