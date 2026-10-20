@@ -108,7 +108,7 @@ export default function PortalMember() {
       <p className="member-since">Na comunidade desde {date(member.memberSince)}.</p>
       <details className="member-dropdown" open={accountsOpen} onToggle={event => setAccountsOpen(event.currentTarget.open)}>
         <summary><span><strong>Contas conectadas</strong><small>Contas usadas para enviar mensagens ao chat</small></span></summary>
-        <MemberAccounts tiktokLogin={member.tiktokName} />
+        <MemberAccounts tiktokLogin={member.tiktokName} isAdmin={member.isAdmin} />
       </details>
       <details className="member-dropdown" open={accessOpen} onToggle={event => setAccessOpen(event.currentTarget.open)}>
         <summary><span><strong>Logins e e-mails</strong><small>Como você entra na sua conta</small></span></summary>
