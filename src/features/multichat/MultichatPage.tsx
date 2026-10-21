@@ -1,4 +1,4 @@
-import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, WindowIcon } from "../../components/ui/Icons";
+import { BellIcon, ChatIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, UsersIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
 import { chatFilterPlatforms, linkablePlatforms, youtubeLinking } from "./flags";
@@ -133,6 +133,8 @@ export default function MultichatPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [accounts, setAccounts] = useState<Accounts>(emptyAccounts);
   const [filter, setFilter] = useState<Platform | "all">("all");
+  // Abas do painel lateral, como a lista de espectadores da Twitch: o chat ou os membros online.
+  const [sidePanel, setSidePanel] = useState<"chat" | "members">("chat");
   const [theater, setTheater] = useState(false);
   const [settings, setSettings] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -732,6 +734,19 @@ export default function MultichatPage() {
               <span className="mc-muted">{chat.connection}</span>
             </div>
           </div>
+          <div className="mc-side-tabs" role="tablist" aria-label="Painel lateral">
+            <button type="button" role="tab" aria-selected={sidePanel === "chat"} onClick={() => setSidePanel("chat")}>
+              <ChatIcon /> Chat
+            </button>
+            <button type="button" role="tab" aria-selected={sidePanel === "members"} onClick={() => setSidePanel("members")}>
+              <UsersIcon /> Membros
+              {chat.online.count > 0 && <span className="mc-side-count">{chat.online.count}</span>}
+            </button>
+          </div>
+          {sidePanel === "members" ? (
+            <OnlineMembers online={chat.online} canToggle={!!session} visible={presenceVisible} onToggle={changePresenceVisible} />
+          ) : (
+            <>
           <nav className="mc-chat-tabs" aria-label="Filtrar mensagens">
             {(["all", ...chatFilterPlatforms] as const).map((p) => (
               <button
@@ -762,8 +777,9 @@ export default function MultichatPage() {
           {!configured && (
             <div className="mc-notice">O Multichat está sendo preparado.</div>
           )}
-          <OnlineMembers online={chat.online} canToggle={!!session} visible={presenceVisible} onToggle={changePresenceVisible} />
           <ChatVirtualList messages={visible} catalog={emotes.catalog} badges={badges} hiddenBadges={hiddenBadges.hidden} onReply={session ? startReply : undefined} mentionNames={mentionNames} />
+            </>
+          )}
           {notice && (
             <div className="mc-notice" role="status">
               {notice}
