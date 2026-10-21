@@ -39,6 +39,16 @@ export function UserIcon({ className }: IconProps) {
   )
 }
 
+export function UsersIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={size(className)}>
+      <circle cx="7.6" cy="7" r="2.8" />
+      <path d="M2.4 16c.5-2.7 2.5-4.2 5.2-4.2s4.7 1.5 5.2 4.2" />
+      <path d="M12.6 4.4a2.6 2.6 0 0 1 0 5M14.2 11.9c1.7.4 3 1.8 3.4 4.1" />
+    </svg>
+  )
+}
+
 export function ChatIcon({ className }: IconProps) {
   return (
     <svg {...base} className={size(className)}>
