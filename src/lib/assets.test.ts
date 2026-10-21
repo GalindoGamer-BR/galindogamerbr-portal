@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { platformIconSrc } from '../features/multichat/PlatformIcon'
+import { shortsIconSrc } from '../features/multichat/ShortsIcon'
 import { platforms } from '../features/multichat/types'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
@@ -32,6 +33,10 @@ describe('imagens em /assets', () => {
     for (const platform of platforms) {
       expect(existsSync(join(ROOT, 'public', platformIconSrc(platform))), platform).toBe(true)
     }
+  })
+
+  it('o ícone oficial do YouTube Shorts existe', () => {
+    expect(existsSync(join(ROOT, 'public', shortsIconSrc))).toBe(true)
   })
 
   it('o diretório não guarda PNG/GIF pesados por engano (exceto os formatos exigidos)', () => {

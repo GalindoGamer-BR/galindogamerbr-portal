@@ -4,6 +4,7 @@ import { labels, type ChatMessage } from "./types";
 import { messageParts, type Emote } from "./emotes";
 import { EmoteImage } from "./EmotePicker";
 import { PlatformIcon } from "./PlatformIcon";
+import { ShortsIcon } from "./ShortsIcon";
 import { readableColor } from "./chatColors";
 import { noticeText } from "./notices";
 import { mentionsAny } from "./mentions";
@@ -114,6 +115,8 @@ export function ChatVirtualList({
                   <span className="mc-portal-icons" title={`Enviada pelo portal para ${message.metadata.portal.platforms.map((p) => labels[p]).join(", ")}`}>
                     {message.metadata.portal.platforms.map((p) => <PlatformIcon key={p} platform={p} />)}
                   </span>
+                ) : message.platform === "youtube" && message.metadata?.short ? (
+                  <ShortsIcon />
                 ) : (
                   <PlatformIcon platform={message.platform} />
                 )}
