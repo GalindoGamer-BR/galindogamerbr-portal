@@ -228,8 +228,6 @@ export default function MultichatPage() {
       }),
   );
   const [player, setPlayer] = useState<WritablePlatform>("twitch");
-  // Plataforma em que a pessoa pediu para abrir o player mesmo com o canal offline (arquivo da última live no YouTube).
-  const [openAnyway, setOpenAnyway] = useState<WritablePlatform | null>(null);
   const hiddenBadges = useHiddenBadges();
   // Quem está logado aparece na lista de online, a menos que escolha se esconder (fica salvo só neste navegador).
   const [presenceVisible, setPresenceVisible] = useState(() => {
@@ -280,7 +278,7 @@ export default function MultichatPage() {
     return mine.length ? appendMessages(real, mine) : real;
   }, [chat.messages, sentLog, pendingSends, ownNames, memberName]);
   const liveStatus = useLiveStatus();
-  const offline = playerOffline(player, liveStatus) && openAnyway !== player;
+  const offline = playerOffline(player, liveStatus);
   // Sem live no YouTube, o player mostra o arquivo da última live encerrada.
   const youtubeLastLive = useYoutubeLastLive(player === "youtube" && !liveStatus?.isLive);
   const youtubeChannel = useYoutubeChannel(player === "youtube");
@@ -469,8 +467,8 @@ export default function MultichatPage() {
     outbox.length < MAX_OUTBOX &&
     !busy;
   const visible = chatMessages.filter((m) => showsIn(m, filter));
-  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : (openAnyway === "youtube" ? youtubeLastLive?.videoId : null) ?? null;
-  const playerUrl = offline ? null : playerEmbedUrl(player, window.location.hostname, youtubeVideoId);
+  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : null;
+  const playerUrl = playerEmbedUrl(player, window.location.hostname, youtubeVideoId);
   const insertEmote = (emote: PickerEmote) => {
     const code = emote.code;
     const input = composer.current;
@@ -562,38 +560,15 @@ export default function MultichatPage() {
             </button>
           </div>
           <div className="mc-video">
-            {playerUrl ? (
-              <iframe
-                key={player}
-                title={`Transmissão ${labels[player]}`}
-                src={playerUrl}
-                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                // O YouTube recusa o player embutido sem a origem da página (erro de configuração do player).
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            ) : (
-              <div className="mc-player-empty" role="status">
-                <span className="mc-offline-badge">Offline</span>
-                <strong>{offline ? `O canal está offline na ${labels[player]}` : "Nenhuma transmissão ativa no YouTube"}</strong>
-                {offline && player === "youtube" && youtubeLastLive && <span className="mc-muted">Última live: {youtubeLastLive.title}</span>}
-                <div className="mc-player-empty-actions">
-                  {offline && (player !== "youtube" || youtubeLastLive) && (
-                    <button type="button" className="mc-btn mc-btn-secondary" onClick={() => setOpenAnyway(player)}>
-                      {player === "youtube" ? "Assistir a última live" : "Abrir o player mesmo assim"}
-                    </button>
-                  )}
-                  <a
-                    className="mc-btn mc-btn-secondary"
-                    href={player === "twitch" ? twitchChannelUrl : player === "kick" ? kickChannelUrl : "https://www.youtube.com/@galindogamerbr/live"}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Abrir canal
-                  </a>
-                </div>
-              </div>
-            )}
+            <iframe
+              key={player}
+              title={`Transmissão ${labels[player]}`}
+              src={playerUrl}
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              // O YouTube recusa o player embutido sem a origem da página (erro de configuração do player).
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
           </div>
           <section className="mc-channel-info">
             <img
