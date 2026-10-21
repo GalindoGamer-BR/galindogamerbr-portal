@@ -24,6 +24,6 @@ describe("player do multichat", () => {
     expect(playerEmbedUrl("twitch", "galindogamerbr.com.br", null)).toContain("parent=galindogamerbr.com.br");
     expect(playerEmbedUrl("kick", "x", null)).toBe("https://player.kick.com/galindogamerbr?autoplay=false");
     expect(playerEmbedUrl("youtube", "x", "abc_123-XYZ")).toBe("https://www.youtube-nocookie.com/embed/abc_123-XYZ?autoplay=0&rel=0&playsinline=1");
-    expect(playerEmbedUrl("youtube", "x", null)).toBe("https://www.youtube-nocookie.com/embed/live_stream?channel=UCZGlbfvpoitCSFTsWVWVAow&autoplay=0&rel=0&playsinline=1");
+    expect(playerEmbedUrl("youtube", "x", null)).toBe("https://www.youtube-nocookie.com/embed/videoseries?list=UUZGlbfvpoitCSFTsWVWVAow&autoplay=0&rel=0&playsinline=1");
   });
 });
