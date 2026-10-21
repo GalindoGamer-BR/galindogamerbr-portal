@@ -467,7 +467,7 @@ export default function MultichatPage() {
     outbox.length < MAX_OUTBOX &&
     !busy;
   const visible = chatMessages.filter((m) => showsIn(m, filter));
-  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : null;
+  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : youtubeLastLive?.videoId ?? null;
   const playerUrl = playerEmbedUrl(player, window.location.hostname, youtubeVideoId);
   const insertEmote = (emote: PickerEmote) => {
     const code = emote.code;

@@ -1,7 +1,8 @@
 import type { LiveStatus } from "../../lib/api/live";
 import type { WritablePlatform } from "./types";
 
-const YOUTUBE_CHANNEL_ID = "UCZGlbfvpoitCSFTsWVWVAow";
+// Lista de envios do canal: o ID do canal com o prefixo UC trocado por UU.
+const YOUTUBE_UPLOADS_PLAYLIST = "UUZGlbfvpoitCSFTsWVWVAow";
 
 /**
  * O canal está offline na plataforma do player? Só vale quando o servidor confirmou: `stale` (consulta que falhou ou
@@ -21,7 +22,10 @@ export function playerEmbedUrl(player: WritablePlatform, hostname: string, youtu
   if (player === "kick") return "https://player.kick.com/galindogamerbr?autoplay=false";
   // youtube-nocookie: não grava cookie de rastreamento antes de o visitante dar play. `rel=0` limita os vídeos
   // relacionados ao mesmo canal e `playsinline` evita a tela cheia forçada no iOS.
-  // Sem vídeo ao vivo, `live_stream` abre a tela oficial do YouTube para canal offline.
-  const source = youtubeVideoId ? encodeURIComponent(youtubeVideoId) : `live_stream?channel=${YOUTUBE_CHANNEL_ID}&`;
-  return `https://www.youtube-nocookie.com/embed/${source}${youtubeVideoId ? "?" : ""}autoplay=0&rel=0&playsinline=1`;
+  // Sem transmissão o embed `live_stream` mostra "Vídeo indisponível": abre a última live encerrada e, se ela ainda não
+  // for conhecida, a lista de envios do canal (o player oficial toca o mais recente).
+  const source = youtubeVideoId
+    ? `${encodeURIComponent(youtubeVideoId)}?`
+    : `videoseries?list=${YOUTUBE_UPLOADS_PLAYLIST}&`;
+  return `https://www.youtube-nocookie.com/embed/${source}autoplay=0&rel=0&playsinline=1`;
 }
