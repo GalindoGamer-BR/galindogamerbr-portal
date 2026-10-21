@@ -141,6 +141,7 @@
   margin-right: 6px;
 }
 .mc-video {
+  position: relative;
   aspect-ratio: 16/9;
   width: 100%;
   background: #000;
@@ -1038,6 +1039,8 @@
 .mc-badge-option .mc-badge { width: 16px; height: 16px; margin: 0; vertical-align: 0; }
 
 .mc-player-empty .mc-offline-badge { padding: 3px 12px; border: 1px solid #ffffff22; border-radius: 999px; background: #ffffff0d; color: #adadb8; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.mc-offline-flag { position: absolute; top: 10px; left: 10px; z-index: 2; display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border: 1px solid #ffffff22; border-radius: 999px; background: #000000b3; color: #efeff1; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; pointer-events: none; }
+.mc-offline-flag .mc-dot { background: #adadb8; animation: none; }
 .mc-player-empty-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
 .mc-message .mc-portal-icons { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; }

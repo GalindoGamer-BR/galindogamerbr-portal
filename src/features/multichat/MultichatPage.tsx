@@ -467,7 +467,8 @@ export default function MultichatPage() {
     outbox.length < MAX_OUTBOX &&
     !busy;
   const visible = chatMessages.filter((m) => showsIn(m, filter));
-  const youtubeVideoId = liveStatus?.isLive && liveStatus.videoId ? liveStatus.videoId : youtubeLastLive?.videoId ?? null;
+  // Sem live: o último vídeo que o /api/live já traz (o mesmo da home) e, se faltar, a última live arquivada.
+  const youtubeVideoId = liveStatus?.videoId ?? youtubeLastLive?.videoId ?? null;
   const playerUrl = playerEmbedUrl(player, window.location.hostname, youtubeVideoId);
   const insertEmote = (emote: PickerEmote) => {
     const code = emote.code;
@@ -569,6 +570,11 @@ export default function MultichatPage() {
               referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
             />
+            {player === "youtube" && offline && (
+              <span className="mc-offline-flag" role="status">
+                <span className="mc-dot" /> Offline · último vídeo do canal
+              </span>
+            )}
           </div>
           <section className="mc-channel-info">
             <img
