@@ -78,6 +78,10 @@ describe("reply, eventos e moderação", () => {
   const mod = (over: Partial<ModerationEvent>): ModerationEvent => ({
     type: "moderation", platform: "twitch", action: "delete", timestamp: new Date(Date.UTC(2026, 9, 16, 12, 0, 30)).toISOString(), ...over,
   });
+  it("mantém a marca de live vertical (Shorts) no metadata", () => {
+    const parsed = messageSchema.safeParse({ ...message("1"), platform: "youtube", metadata: { short: true } });
+    expect(parsed.success && parsed.data.metadata?.short).toBe(true);
+  });
   it("aceita reply, bits e avisos do canal no metadata e recusa aviso de tipo desconhecido", () => {
     const withMeta = { ...message("1"), metadata: { replyTo: { platformMessageId: "p1", displayName: "Bob", text: "oi" }, bits: 100, event: { type: "raid", viewers: 42 } } };
     const parsed = messageSchema.safeParse(withMeta);

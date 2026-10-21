@@ -31,6 +31,8 @@ export const messageSchema = z.object({
       color: z.string().optional(),
       // Mensagem provisória do próprio usuário, ainda não confirmada pela plataforma (só existe no navegador).
       pending: z.boolean().optional(),
+      // Mensagem do chat da live vertical (Shorts) do YouTube, quando há duas lives ao mesmo tempo.
+      short: z.boolean().optional(),
       // Enviada pelo portal: uma linha só, com as plataformas de destino (as cópias de volta ficam escondidas; só existe no navegador).
       portal: z.object({ platforms: z.array(z.enum(platforms)) }).optional(),
       // Apagada ou punida pela moderação (marcada no navegador a partir do evento `live_event`).
