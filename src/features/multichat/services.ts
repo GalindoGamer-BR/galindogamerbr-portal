@@ -59,6 +59,22 @@ async function portalSession() {
     return result.data.session;
   } finally { clearTimeout(timer); }
 }
+/**
+ * `fetch` que repete UMA vez, só em GET, quando a rede falha ou o servidor responde 5xx: cobre a piscada momentânea
+ * (reinício de container, leitura do banco que estourou o tempo) sem que a pessoa veja erro. Envios (POST/PUT/DELETE)
+ * nunca são repetidos, para não duplicar efeito.
+ */
+export async function fetchRetryingGet(input: string, init: RequestInit, retryDelayMs = 800): Promise<Response> {
+  const retryable = (init.method ?? "GET").toUpperCase() === "GET";
+  try {
+    const response = await fetch(input, init);
+    if (!retryable || response.status < 500) return response;
+  } catch (error) {
+    if (!retryable) throw error;
+  }
+  await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+  return fetch(input, init);
+}
 export async function command<T>(
   path: string,
   options: RequestInit = {},
@@ -68,7 +84,7 @@ export async function command<T>(
   const session = await portalSession();
   let response: Response;
   try {
-    response = await fetch(`${commandUrl.replace(/\/$/, "")}${path}`, {
+    response = await fetchRetryingGet(`${commandUrl.replace(/\/$/, "")}${path}`, {
       ...options,
       credentials: "include",
       headers: {
