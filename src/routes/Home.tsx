@@ -4,13 +4,12 @@ import { Eyebrow } from '../components/ui/Eyebrow'
 import { Logo } from '../components/ui/Logo'
 import { SectionHead } from '../components/ui/SectionHead'
 import { Reveal } from '../components/ui/Reveal'
-import { LinkButton, NavButton } from '../components/ui/Button'
+import { NavButton } from '../components/ui/Button'
 import { HubLink } from '../components/shared/HubLink'
 import { ScheduleTabs } from '../components/shared/ScheduleTabs'
 import { PublicScheduleExportButton } from '../components/shared/PublicScheduleExportButton'
 import { LiveBanner } from '../components/shared/LiveBanner'
 import { LifetimeVisitsBanner } from '../components/shared/LifetimeVisitsBanner'
-import { useParallax } from '../hooks/useParallax'
 
 const HUB_TEASER = [
   {
@@ -44,61 +43,77 @@ export function Home() {
   )
 }
 
-// Fiel ao .reference-hero do site atual: banner de proporção fixa no
-// desktop (2365:665), retrato do Galindo ancorado à direita/embaixo,
-// gradiente de contraste em duas camadas (.hero-fade, em global.css).
-function Hero() {
-  const parallaxRef = useParallax<HTMLImageElement>(0.15)
+// Banner de imagem única (public/assets/hero-banner.webp, 1983x793) com o
+// brasão ao centro. A barra de redes fica sobre a imagem no desktop e vira
+// uma faixa logo abaixo no mobile. O h1 é só para leitores de tela/SEO: o
+// nome da marca já está desenhado na imagem.
+// Cores de marca dos selos, como na referência (TikTok preto, YouTube
+// vermelho, Kick verde com o K escuro, Twitch roxo).
+const HERO_LINKS = [
+  { label: 'TikTok', href: 'https://www.tiktok.com/@galindogamerbr', icon: '/assets/icons/tiktok.svg', badge: 'bg-black', glyph: '' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@galindogamerbr', icon: '/assets/icons/youtube.svg', badge: 'bg-[#ff0000]', glyph: '' },
+  { label: 'Kick', href: 'https://kick.com/galindogamerbr', icon: '/assets/icons/kick.svg', badge: 'bg-[#53fc18]', glyph: 'brightness-0' },
+  { label: 'Twitch', href: 'https://www.twitch.tv/galindogamerbr', icon: '/assets/icons/twitch.svg', badge: 'bg-[#9146ff]', glyph: '' },
+]
 
+// Linha única com divisórias finas entre as redes. No desktop vai sobre a
+// imagem; no mobile vira uma grade 2x2 abaixo dela.
+function HeroSocialBar() {
   return (
-    <section id="inicio" className="relative isolate min-h-[560px] overflow-hidden bg-bg xl:aspect-[2365/665] xl:min-h-0">
-      <img
-        ref={parallaxRef}
-        src="/assets/background.webp"
-        alt=""
-        fetchPriority="high"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      <div className="hero-fade absolute inset-0" />
-      <img
-        src="/assets/galindo.webp"
-        alt="Galindo, criador do GalindoGamerBR"
-        fetchPriority="high"
-        className="pointer-events-none absolute bottom-0 left-[62%] hidden h-[96%] w-auto max-w-[44%] -translate-x-1/2 object-contain object-bottom drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)] lg:block xl:max-w-[34%]"
-      />
-      <Container className="relative z-10 flex h-full flex-col justify-center gap-4 py-16 xl:py-0">
-        <div className="grid w-fit grid-cols-[auto_auto] items-center gap-x-3.5 gap-y-0.5">
-          <span className="col-span-2 text-xs font-bold uppercase tracking-widest text-gold">Boas vindas ao universo</span>
-          <Logo alt="" className="row-span-2 h-16 w-16 sm:h-20 sm:w-20" />
-          <h1 className="max-w-[600px] text-[clamp(32px,5.4vw,64px)] leading-[0.95]">
-            GALINDO<span className="text-gold">GAMER</span>BR
-          </h1>
-          <p className="col-start-2 text-sm font-extrabold uppercase tracking-[0.1em] text-[#dfe6ec]">
-            Simuladores <span className="text-gold">•</span> Games <span className="text-gold">•</span> Comunidade
-          </p>
+    <nav aria-label="Redes do GalindoGamerBR" className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-center sm:gap-0">
+      {HERO_LINKS.map((link) => (
+        <a
+          key={link.label}
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2.5 text-xs font-extrabold uppercase tracking-wide text-white transition hover:text-gold sm:px-5 sm:text-sm sm:[&:not(:first-child)]:border-l sm:[&:not(:first-child)]:border-white/30 md:px-7 md:text-base [text-shadow:0_1px_3px_rgba(0,0,0,1),0_0_10px_rgba(0,0,0,0.9)]"
+        >
+          <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 ${link.badge}`}>
+            <img src={link.icon} alt="" className={`h-4 w-4 sm:h-[18px] sm:w-[18px] ${link.glyph}`} />
+          </span>
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  )
+}
+
+// Painel único com as redes e o contador de visitas, no mesmo estilo.
+function HeroPanel() {
+  return (
+    <div className="mx-auto w-full max-w-fit rounded-lg border border-gold/40 bg-black/60 px-5 py-3 shadow-[0_0_30px_-12px_rgba(217,177,79,0.4)] backdrop-blur-sm sm:px-3">
+      <HeroSocialBar />
+      <div className="mt-3 flex justify-center border-t border-gold/25 pt-3 empty:hidden">
+        <LifetimeVisitsBanner compact />
+      </div>
+    </div>
+  )
+}
+
+function Hero() {
+  return (
+    <section id="inicio" className="relative isolate overflow-hidden bg-bg">
+      <div className="relative h-[340px] sm:h-auto sm:aspect-[1983/793]">
+        <img
+          src="/assets/hero-banner.webp"
+          alt="Galindo Streaming Community: brasão do GalindoGamerBR em um cenário épico"
+          fetchPriority="high"
+          className="h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/30 to-black/55" />
+        <img
+          src="/assets/galindo.webp"
+          alt="Galindo, criador do GalindoGamerBR"
+          className="pointer-events-none absolute bottom-0 left-[83%] hidden h-[90%] w-auto -translate-x-1/2 object-contain object-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.7)] md:block"
+        />
+        <div className="absolute inset-x-0 top-[74%] hidden justify-center sm:flex">
+          <HeroPanel />
         </div>
-        <p className="max-w-[480px] text-sm text-[#c3cdd6]">
-          Lives, séries e muita diversão todos os dias. Junte-se à nossa comunidade e faça parte dessa jornada.
-        </p>
-        <div className="mt-2 flex max-w-[460px] flex-wrap gap-2">
-          <LinkButton variant="purple" size="sm" href="https://www.twitch.tv/galindogamerbr" target="_blank" rel="noopener noreferrer">
-            <img src="/assets/icons/twitch.svg" alt="" className="h-4 w-4" /> Twitch
-          </LinkButton>
-          <LinkButton variant="green" size="sm" href="https://kick.com/galindogamerbr" target="_blank" rel="noopener noreferrer">
-            <img src="/assets/icons/kick.svg" alt="" className="h-4 w-4" /> Kick
-          </LinkButton>
-          <LinkButton variant="red" size="sm" href="https://www.youtube.com/@galindogamerbr" target="_blank" rel="noopener noreferrer">
-            <img src="/assets/icons/youtube.svg" alt="" className="h-4 w-4" /> YouTube
-          </LinkButton>
-          <LinkButton variant="default" size="sm" href="https://www.tiktok.com/@galindogamerbr" target="_blank" rel="noopener noreferrer">
-            <img src="/assets/icons/tiktok.svg" alt="" className="h-4 w-4" /> TikTok
-          </LinkButton>
-        </div>
-        <LifetimeVisitsBanner />
-      </Container>
-      <div className="relative z-10 mx-auto h-72 w-full lg:hidden">
-        <img src="/assets/galindo.webp" alt="Galindo, criador do GalindoGamerBR" className="absolute bottom-0 left-1/2 h-full max-w-none -translate-x-1/2 object-contain object-bottom" />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg to-transparent" />
+      </div>
+      <h1 className="sr-only">GalindoGamerBR: simuladores, games e comunidade</h1>
+      <div className="px-4 py-4 sm:hidden">
+        <HeroPanel />
       </div>
     </section>
   )
