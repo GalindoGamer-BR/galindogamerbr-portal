@@ -38,12 +38,12 @@ export function VipSteps({ variant = 'full' }: VipStepsProps) {
 
           <h2 className="mt-5 text-3xl sm:text-4xl">MAIS PERTO DO CANAL. MAIS PERTO DA COMUNIDADE.</h2>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
-            O grupo VIP reúne quem fortalece o canal e ajuda a manter vivos o servidor, os projetos e toda a resenha
+            O grupo VIP reúne quem fortalece o canal e ajuda a manter vivos os projetos e toda a resenha
             que construímos juntos.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            {['Grupo exclusivo', 'Acesso à Fazenda', 'Contato com a comunidade'].map((benefit) => (
+            {['Grupo exclusivo', 'Acesso aos jogos coop', 'Contato com a comunidade'].map((benefit) => (
               <span key={benefit} className="rounded-full border border-line bg-bg/40 px-3 py-1.5 text-xs font-semibold text-white/75">
                 {benefit}
               </span>

@@ -27,7 +27,7 @@ const SECTIONS = [
   },
   {
     label: 'Configuração de vídeos',
-    description: 'Configurar os vídeos de boas vindas e das regras da Fazenda.',
+    description: 'Configurar os vídeos de boas vindas e das regras (legado da Fazenda).',
     to: '/admin/fazenda/video',
     icon: '/assets/icons/youtube.svg',
   },

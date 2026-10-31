@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SendQueue, type QueueItem } from "./sendQueue";
-import { RateLimited } from "./services";
+import { RateLimited, TransientError } from "./services";
 import type { SendResult } from "./types";
 
 const item = (id: string): QueueItem => ({ id, text: `msg ${id}`, platforms: ["twitch"] });
@@ -83,6 +83,48 @@ describe("SendQueue", () => {
     await settle();
 
     expect(calls).toBe(3);
+    expect(log).toEqual(["start 1", "error 1"]);
+  });
+
+  it("falha passageira (rede/5xx) é repetida com espera crescente e a mensagem acaba enviada", async () => {
+    let calls = 0;
+    const { queue, log, sleeps } = setup(async () => {
+      if (++calls <= 3) throw new TransientError("fora do ar");
+      return ok;
+    });
+
+    queue.enqueue(item("1"));
+    await settle();
+    await settle();
+
+    expect(calls).toBe(4);
+    expect(sleeps).toEqual([1000, 2000, 4000]);
+    expect(log).toEqual(["start 1", "done 1"]);
+  });
+
+  it("desiste depois de ~45 s de falhas passageiras e segue para a próxima", async () => {
+    let calls = 0;
+    const { queue, log, sleeps } = setup(async (i) => {
+      if (i.id === "1") { calls++; throw new TransientError("fora do ar"); }
+      return ok;
+    });
+
+    queue.enqueue(item("1"));
+    queue.enqueue(item("2"));
+    await settle();
+    await settle();
+
+    expect(calls).toBe(7);
+    expect(sleeps).toEqual([1000, 2000, 4000, 8000, 15000, 15000]);
+    expect(log).toEqual(["start 1", "error 1", "start 2", "done 2"]);
+  });
+
+  it("erro comum (4xx, validação) não é repetido", async () => {
+    let calls = 0;
+    const { queue, log } = setup(async () => { calls++; throw new Error("Sua sessão expirou."); });
+    queue.enqueue(item("1"));
+    await settle();
+    expect(calls).toBe(1);
     expect(log).toEqual(["start 1", "error 1"]);
   });
 });

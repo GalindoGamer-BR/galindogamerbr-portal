@@ -8,13 +8,13 @@ export type SeoData = {
 }
 
 const DEFAULT_DESCRIPTION =
-  'Lives, séries, simuladores, games e a comunidade do GalindoGamerBR. Acompanhe os conteúdos e participe da Fazenda Nova Aliança.'
+  'Lives, séries, simuladores, games e a comunidade do GalindoGamerBR. Acompanhe os conteúdos e jogue junto com a comunidade.'
 
 export const ROUTE_SEO: Record<string, SeoData> = {
   '/': { description: DEFAULT_DESCRIPTION },
   '/boasvindas': {
     title: 'Boas vindas',
-    description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, da fazenda e da comunidade.',
+    description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, dos jogos e da comunidade.',
   },
   '/conteudos': {
     title: 'Conteúdos',
@@ -22,11 +22,11 @@ export const ROUTE_SEO: Record<string, SeoData> = {
   },
   '/jogar': {
     title: 'Jogue com o Galindo',
-    description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.',
+    description: 'Jogue com o Galindo: servidores abertos para quem segue o canal e coop com VIP, com regras e requisitos em um só lugar.',
   },
   '/mods': {
-    title: 'Mods da Fazenda',
-    description: 'Baixe e sincronize os mods oficiais usados no servidor da Fazenda Nova Aliança no Farming Simulator 25.',
+    title: 'Mod Sync',
+    description: 'Baixe e sincronize a coleção de mods da Fazenda Nova Aliança no Farming Simulator 25.',
   },
   '/comunidade': {
     title: 'Comunidade',

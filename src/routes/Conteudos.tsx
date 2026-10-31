@@ -4,10 +4,8 @@ import { Eyebrow } from '../components/ui/Eyebrow'
 import { Reveal } from '../components/ui/Reveal'
 import { GameCard } from '../components/shared/GameCard'
 import { GameHighlightCard } from '../components/shared/GameHighlightCard'
-import { VideoEmbed } from '../components/shared/VideoEmbed'
-import { LinkButton, NavButton } from '../components/ui/Button'
-import { GAMES, FAZENDA_NOVA_ALIANCA, FURIA_REBORN, DICAS, ETS2, SNOWRUNNER, CONTRABAND_POLICE } from '../data/games'
-import { useFlagshipVideos } from '../hooks/useFlagshipVideo'
+import { LiveFeatureCard } from '../components/shared/LiveFeatureCard'
+import { GAMES, FURIA_REBORN, DICAS, ETS2, SNOWRUNNER, CONTRABAND_POLICE } from '../data/games'
 import { useFuriaVideos } from '../hooks/useFuriaVideos'
 import { useDicasVideos } from '../hooks/useDicasVideos'
 import { useEts2Videos } from '../hooks/useEts2Videos'
@@ -15,11 +13,13 @@ import { useSnowrunnerVideos } from '../hooks/useSnowrunnerVideos'
 import { useContrabandPoliceVideos } from '../hooks/useContrabandPoliceVideos'
 import { useSeriesVideos } from '../hooks/useSeriesVideos'
 import { rankGameCards } from '../lib/rankGameCards'
+import { matchLiveGameSlug } from '../lib/matchLiveGame'
+import { PLAY_TOGETHER } from '../data/playTogether'
+import { useYoutubeLastLive } from '../features/multichat/useYoutubeLastLive'
 import { useLiveStatus } from '../hooks/useLiveStatus'
 
 const OTHER_GAMES = GAMES.filter(
   (game) =>
-    !game.flagship &&
     game.slug !== 'furia-reborn-rp' &&
     game.slug !== 'dicas' &&
     game.slug !== 'ets2' &&
@@ -28,11 +28,9 @@ const OTHER_GAMES = GAMES.filter(
 )
 
 export function Conteudos() {
-  const [flagship, ...recent] = useFlagshipVideos()
   // Mesmo polling de /api/live que o LiveBanner usa — evita um segundo
   // poller independente rodando em paralelo nesta rota.
   const live = useLiveStatus()
-  const flagshipHref = flagship?.videoId ? `https://www.youtube.com/watch?v=${flagship.videoId}` : FAZENDA_NOVA_ALIANCA.href
   const furiaVideos = useFuriaVideos()
   const dicasVideos = useDicasVideos()
   const ets2Videos = useEts2Videos()
@@ -46,14 +44,7 @@ export function Conteudos() {
     if (!latestVideoBySlug.has(video.slug)) latestVideoBySlug.set(video.slug, video.videoId)
   }
 
-  const isLiveNow = live?.isLive && live.videoId === flagship?.videoId
-
-  // Fúria Reborn, ETS2, SnowRunner — se o canal estiver ao vivo com um vídeo
-  // que já apareceu na playlist recente de um desses jogos (mesma checagem
-  // de pertencimento usada no carro-chefe, ver useFlagshipVideo.ts), esse
-  // jogo sobe pra cima do carro-chefe, em destaque, com a live embutida em
-  // vez da imagem estática (liveVideoId, ver GameHighlightCard.tsx) — sai da
-  // lista normal de "Outros jogos" enquanto estiver promovido.
+  // Destaques grandes (com endpoint próprio de vídeos). Os demais jogos entram pela lista de séries.
   const otherGameHighlights = [
     {
       slug: 'furia-reborn-rp',
@@ -99,19 +90,48 @@ export function Conteudos() {
       variant: 'red' as const,
       videos: contrabandPoliceVideos,
     },
-  ].map((game) => ({
-    ...game,
-    liveVideoId: live?.isLive && game.videos.some((video) => video.videoId === live.videoId) ? live.videoId : null,
-  }))
-  const liveHighlightIndex = otherGameHighlights.findIndex((game) => game.liveVideoId)
+  ]
 
-  const promotedLiveGame = liveHighlightIndex >= 0 ? otherGameHighlights[liveHighlightIndex] : null
-  const remainingGameHighlights = otherGameHighlights.filter((_, index) => index !== liveHighlightIndex)
+  // Card principal (LiveFeatureCard) no topo da página: ao vivo, mostra a live; quando acaba (status já carregado e offline),
+  // mantém o mesmo layout com o aviso e a última live do canal. O jogo vem da playlist que já tem o vídeo; se a live ainda
+  // não entrou na playlist, vem do título; sem jogo reconhecido, o card mostra só o vídeo. O jogo promovido sai da lista
+  // normal só enquanto estiver ao vivo.
+  const isLive = Boolean(live?.isLive)
+  const lastLive = useYoutubeLastLive(live !== null && !live.isLive)
+  const liveVideoId = isLive ? (live?.videoId ?? null) : (lastLive?.videoId ?? null)
+  const liveVideoTitle = isLive ? live?.title : lastLive?.title
+  const liveSlug =
+    (liveVideoId
+      ? (otherGameHighlights.find((game) => game.videos.some((video) => video.videoId === liveVideoId))?.slug ??
+        seriesVideos.find((video) => video.videoId === liveVideoId)?.slug)
+      : undefined) ?? matchLiveGameSlug(liveVideoTitle)
+  const liveHighlight = otherGameHighlights.find((game) => game.slug === liveSlug)
+  const gameVideos = liveHighlight?.videos ?? seriesVideos.filter((video) => video.slug === liveSlug)
+  const channelVideos = [...seriesVideos].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const liveGame = GAMES.find((game) => game.slug === liveSlug)
+  const promotedLive = liveVideoId
+    ? {
+        videoId: liveVideoId,
+        videoTitle: liveVideoTitle || null,
+        isLive,
+        gameTitle: liveHighlight?.title ?? liveGame?.title.toUpperCase() ?? (isLive ? 'GALINDOGAMERBR AO VIVO' : 'ÚLTIMA LIVE DO CANAL'),
+        description: liveHighlight?.description ?? liveGame?.description ?? (isLive ? 'O canal está no ar agora. Entre na live e participe do chat.' : 'Reveja a última transmissão do GalindoGamerBR.'),
+        href: liveHighlight?.href ?? liveGame?.href ?? 'https://www.youtube.com/@galindogamerbr/videos',
+        // Vídeos do jogo primeiro e, para encher a coluna lateral, os mais recentes do resto do canal.
+        videos: [...gameVideos, ...channelVideos.filter((video) => !gameVideos.some((own) => own.videoId === video.videoId))].slice(0, 12),
+        // "Jogue com o Galindo" só para jogo que a comunidade joga em coop (ver data/playTogether.ts).
+        showPlayTogether: PLAY_TOGETHER.some((game) => game.slug === liveSlug),
+      }
+    : null
+  const promotedSlug = promotedLive && isLive ? liveSlug : undefined
+
+  const remainingGameHighlights = otherGameHighlights.filter((game) => game.slug !== promotedSlug)
+  const remainingGames = OTHER_GAMES.filter((game) => game.slug !== promotedSlug)
 
   // Todos os outros jogos (cards grandes e pequenos) seguem a atualização das playlists: o jogo com o vídeo mais recente
   // vem primeiro. Os primeiros ocupam os cards grandes, na quantidade que já existia; o resto vai para a grade.
   const SERIES_VARIANTS = ['purple', 'blue', 'red', 'green'] as const
-  const ranked = rankGameCards(remainingGameHighlights, OTHER_GAMES, seriesVideos, remainingGameHighlights.length)
+  const ranked = rankGameCards(remainingGameHighlights, remainingGames, seriesVideos, remainingGameHighlights.length)
   const bigCards = ranked.big.map((card, index) => {
     if (card.highlight) return card.highlight
     const game = card.game!
@@ -126,7 +146,6 @@ export function Conteudos() {
       href: game.href,
       variant: SERIES_VARIANTS[index % SERIES_VARIANTS.length],
       videos,
-      liveVideoId: null as string | null,
     }
   })
   const smallGames = ranked.small.map((card) => card.game ?? GAMES.find((game) => game.slug === card.slug)!)
@@ -143,147 +162,33 @@ export function Conteudos() {
               CADA JOGO ABRE UMA NOVA HISTÓRIA
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#c3cdd6] sm:text-lg">
-              Acompanhe a Fazenda Nova Aliança, descubra novas séries e encontre dicas para aproveitar cada jornada. Todo o canal reunido em um só lugar.
+              Descubra as séries do canal, acompanhe os capítulos mais recentes e encontre dicas para aproveitar cada jornada. Todo o canal reunido em um só lugar.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-[0.16em]">
-              <a href="#fazenda-nova-alianca" className="rounded-full border border-gold/50 bg-gold/10 px-4 py-2.5 text-gold transition hover:bg-gold hover:text-bg">
-                Fazenda Nova Aliança
-              </a>
-              <a href="#series-do-canal" className="rounded-full border border-white/20 bg-white/5 px-4 py-2.5 text-white transition hover:border-white/40 hover:bg-white/10">
+              <a href="#series-do-canal" className="rounded-full border border-gold/50 bg-gold/10 px-4 py-2.5 text-gold transition hover:bg-gold hover:text-bg">
                 Explorar todas as séries
+              </a>
+              <a href="#dicas" className="rounded-full border border-green/60 bg-green/10 px-4 py-2.5 text-white transition hover:bg-green">
+                💡 Dicas do Galindo
               </a>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* Se tiver ao vivo com Fúria/ETS2/SnowRunner, esse destaque assume o
-          topo da página, acima até do carro-chefe — "o que tá rolando agora"
-          importa mais que o vídeo mais recente da série fixa. */}
-      {promotedLiveGame && (
-        <section className="pb-8 sm:pb-12">
+      {/* Card principal no topo (ao vivo ou última live), com o layout de vídeo grande + vídeos recentes. */}
+      {promotedLive && (
+        <section className="py-12 sm:py-16">
           <Reveal>
             <Container>
-              <Eyebrow>Ao vivo agora</Eyebrow>
-              <GameHighlightCard {...promotedLiveGame} />
+              <div className="mb-6">
+                <Eyebrow>{isLive ? 'Ao vivo agora' : 'Última live'}</Eyebrow>
+              </div>
+              <LiveFeatureCard {...promotedLive} />
             </Container>
           </Reveal>
         </section>
       )}
-
-      {/* Carro-chefe do canal — destaque acima de tudo o resto. */}
-      <section id="fazenda-nova-alianca" className="scroll-mt-24 py-12 sm:py-16">
-        <Reveal>
-          <Container>
-            <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-              <div>
-                <Eyebrow>A série principal do canal</Eyebrow>
-                <h2 className="mt-1 text-3xl sm:text-4xl">A FAZENDA QUE CRESCE COM A COMUNIDADE</h2>
-              </div>
-              <p className="max-w-sm text-sm leading-relaxed text-muted sm:text-right">
-                Novos capítulos, decisões ao vivo e uma história construída junto de quem acompanha.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
-              <div className="group overflow-hidden rounded-xl border-2 border-gold bg-panel shadow-[0_20px_70px_-32px_rgba(217,177,79,0.55)] lg:col-span-5">
-                <div className="relative aspect-video w-full overflow-hidden">
-                  <div className="h-full w-full transition duration-500 group-hover:scale-105">
-                    {flagship?.videoId ? (
-                      <VideoEmbed videoId={flagship.videoId} title={flagship.title} autoplay={isLiveNow} />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-panel2">
-                        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="relative p-5 sm:p-7">
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
-                  <span className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-bold uppercase tracking-widest text-bg">
-                    🚜 Carro-chefe do canal
-                  </span>
-                  {isLiveNow && (
-                    <span className="ml-2 inline-flex items-center gap-2 rounded-full bg-red px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
-                      <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Ao vivo agora
-                    </span>
-                  )}
-                  <h2 className="mt-3 text-2xl sm:text-3xl">Farming Simulator 25 | Fazenda Nova Aliança</h2>
-                  {flagship?.title && (
-                    <span className="mt-1 block text-xs font-semibold uppercase tracking-widest text-gold">
-                      {flagship.title}
-                    </span>
-                  )}
-                  <p className="mt-3 max-w-3xl leading-relaxed text-muted">{FAZENDA_NOVA_ALIANCA.description}</p>
-                  <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <LinkButton className="w-full" variant="red" href={flagshipHref} target="_blank" rel="noopener noreferrer">
-                      Assistir no YouTube
-                    </LinkButton>
-                    <LinkButton
-                      className="w-full"
-                      variant="gold"
-                      href="https://www.youtube.com/playlist?list=PLj6h86FobQUn2vIz-FSyMlL_ldV6_kzrN"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Ver playlist completa
-                    </LinkButton>
-                    <NavButton className="w-full" variant="blue" to="/mods">
-                      Sincronize seus mods
-                    </NavButton>
-                    <NavButton className="w-full" variant="purple" to="/jogar">
-                      Jogue com o Galindo
-                    </NavButton>
-                  </div>
-                </div>
-              </div>
-
-              <aside className="hidden overflow-hidden rounded-xl border border-line bg-panel/80 lg:col-span-2 lg:flex lg:flex-col">
-                <div className="border-b border-line px-4 py-4">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-gold">Continue acompanhando</span>
-                  <h3 className="mt-1 text-xl">CAPÍTULOS RECENTES</h3>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 p-3">
-                {recent.map((video) => (
-                  <a
-                    key={video.videoId}
-                    href={`https://www.youtube.com/watch?v=${video.videoId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group/video flex flex-1 items-center gap-3 overflow-hidden rounded-md border border-transparent bg-panel2 p-2.5 transition hover:border-gold/60 hover:bg-gold/5"
-                  >
-                    <img src={video.thumbnailUrl} alt="" className="aspect-video w-28 shrink-0 rounded object-cover" />
-                    <p className="line-clamp-2 min-w-0 flex-1 text-xs font-semibold leading-relaxed transition group-hover/video:text-gold">{video.title}</p>
-                  </a>
-                ))}
-                </div>
-              </aside>
-            </div>
-          </Container>
-        </Reveal>
-      </section>
-
-      {/* Dicas do Galindo — logo abaixo do carro-chefe, antes do "Descubra mais". */}
-      <section className="pb-16 sm:pb-24">
-        <Reveal>
-          <Container>
-            <div className="mb-6">
-              <Eyebrow>Aprenda com o Galindo</Eyebrow>
-              <h2 className="mt-1 text-3xl sm:text-4xl">SOLUÇÕES PARA JOGAR MELHOR</h2>
-            </div>
-            <GameHighlightCard
-              image={DICAS.image}
-              title="DICAS DO GALINDO"
-              badgeEmoji="💡"
-              badgeLabel="Tutoriais do canal"
-              description={DICAS.description}
-              href={DICAS.href}
-              variant="green"
-              videos={dicasVideos}
-              imageFit="contain"
-            />
-          </Container>
-        </Reveal>
-      </section>
 
       <section id="series-do-canal" className="scroll-mt-24 border-t border-line/70 py-16 sm:py-24">
         <Reveal>
@@ -296,7 +201,7 @@ export function Conteudos() {
             {/* Fúria Reborn, ETS2 e SnowRunner — destaques secundários, mesmo
                 formato do teaser da Home (imagem+conteúdo 50/50, full width).
                 O que estiver ao vivo agora não aparece aqui — está promovido
-                acima do carro-chefe (ver promotedLiveGame). */}
+                no topo (ver promotedLiveGame). */}
             <div className="mt-8 flex flex-col gap-6">
               {bigCards.map((game) => (
                 <GameHighlightCard key={game.slug} {...game} />
@@ -315,6 +220,29 @@ export function Conteudos() {
                 )
               })}
             </div>
+          </Container>
+        </Reveal>
+      </section>
+
+      {/* Dicas do Galindo — no fim da página; o link do topo rola até aqui. */}
+      <section id="dicas" className="scroll-mt-24 border-t border-line/70 py-16 sm:py-24">
+        <Reveal>
+          <Container>
+            <div className="mb-6">
+              <Eyebrow>Aprenda com o Galindo</Eyebrow>
+              <h2 className="mt-1 text-3xl sm:text-4xl">SOLUÇÕES PARA JOGAR MELHOR</h2>
+            </div>
+            <GameHighlightCard
+              image={DICAS.image}
+              title="DICAS DO GALINDO"
+              badgeEmoji="💡"
+              badgeLabel="Tutoriais do canal"
+              description={DICAS.description}
+              href={DICAS.href}
+              variant="green"
+              videos={dicasVideos}
+              imageFit="contain"
+            />
           </Container>
         </Reveal>
       </section>

@@ -15,7 +15,7 @@ const LINK_CARDS = [
     to: '/jogar',
     icon: '🚜',
     title: 'Jogue com o Galindo',
-    text: 'Entre na Fazenda Nova Aliança e em outros jogos da comunidade: regras, mods e VIP em um só lugar.',
+    text: 'Entre nos jogos da comunidade: servidores abertos, coop com VIP e regras em um só lugar.',
     cta: 'Ver como jogar',
   },
   {
@@ -31,7 +31,7 @@ const LINK_CARDS = [
     to: '/conteudos',
     icon: '🎮',
     title: 'Conteúdos do canal',
-    text: 'Fazenda Nova Aliança, Fúria Reborn, ETS2, SnowRunner e muito mais.',
+    text: 'Fúria Reborn, ETS2, SnowRunner, Fazenda Nova Aliança e muito mais.',
     cta: 'Conhecer os conteúdos',
   },
 ] as const
@@ -68,7 +68,7 @@ export function BemVindo() {
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-2">
-                  {['Lives e séries', 'Fazenda 24/7', 'Comunidade ativa'].map((item) => (
+                  {['Lives e séries', 'Jogos em comunidade', 'Comunidade ativa'].map((item) => (
                     <span key={item} className="rounded-full border border-line bg-panel/80 px-3 py-1.5 text-xs font-semibold text-white/80">
                       {item}
                     </span>

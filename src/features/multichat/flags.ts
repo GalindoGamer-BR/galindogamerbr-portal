@@ -10,6 +10,9 @@ export const googleLogin = import.meta.env.VITE_GOOGLE_LOGIN_ENABLED === "true";
 // mundo que entra com Google: só vale a pena depois que o app passar pela verificação do Google.
 export const googleLoginYoutube = googleLogin && youtubeLinking && import.meta.env.VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED === "true";
 
+// Status ao vivo do servidor FS25 (card em /jogar). O servidor foi encerrado: desligado por padrão, ligue com VITE_FARM_STATUS_ENABLED=true.
+export const farmStatusEnabled = import.meta.env.VITE_FARM_STATUS_ENABLED === "true";
+
 // Plataformas que a pessoa pode vincular e usar para enviar mensagens (o player e a leitura nao mudam).
 export const linkablePlatforms = writablePlatforms.filter((platform) => platform !== "youtube" || youtubeLinking);
 

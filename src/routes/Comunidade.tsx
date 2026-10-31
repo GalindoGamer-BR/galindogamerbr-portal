@@ -25,8 +25,8 @@ const HUB_LINKS = [
   {
     icon: '🚜',
     eyebrow: 'Farming Simulator 25',
-    title: 'MODS DA FAZENDA',
-    description: 'Prepare seu jogo com a coleção oficial de mods usada na Fazenda Nova Aliança.',
+    title: 'MOD SYNC',
+    description: 'Prepare seu jogo com a coleção de mods usada na Fazenda Nova Aliança.',
     href: '/mods',
   },
 ] as const
@@ -34,7 +34,7 @@ const HUB_LINKS = [
 const COMMUNITY_VALUES = [
   { icon: '🤝', title: 'Gente que acolhe', text: 'Quem acabou de chegar encontra espaço para conversar, aprender e participar.' },
   { icon: '🎥', title: 'Conteúdo compartilhado', text: 'Lives, vídeos e momentos que continuam rendendo assunto depois da transmissão.' },
-  { icon: '🌱', title: 'Projetos que crescem', text: 'A comunidade ajuda a manter o servidor, a fazenda e novas ideias em movimento.' },
+  { icon: '🌱', title: 'Projetos que crescem', text: 'A comunidade ajuda a manter o canal, as séries e novas ideias em movimento.' },
 ] as const
 
 export function Comunidade() {
@@ -75,7 +75,7 @@ export function Comunidade() {
                   <LinkButton variant="default" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Entrar no WhatsApp</LinkButton>
                 </div>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {['Lives e jogos', 'Servidor da Fazenda', 'Resenha todos os dias'].map((item) => (
+                  {['Lives e jogos', 'Servidores abertos', 'Resenha todos os dias'].map((item) => (
                     <span key={item} className="rounded-full border border-line bg-panel/80 px-3 py-1.5 text-xs font-semibold text-white/75">{item}</span>
                   ))}
                 </div>
@@ -112,7 +112,7 @@ export function Comunidade() {
             <div className="max-w-2xl">
               <Eyebrow>Escolha seu espaço</Eyebrow>
               <h2 className="mt-1 text-3xl sm:text-4xl">TODOS OS CAMINHOS PARA CHEGAR JUNTO</h2>
-              <p className="mt-3 text-muted">Entre na conversa, acompanhe os avisos ou prepare seu jogo para participar da fazenda.</p>
+              <p className="mt-3 text-muted">Entre na conversa, acompanhe os avisos ou prepare seu jogo para jogar junto.</p>
             </div>
             <div className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-3">
               {HUB_LINKS.map((link) => <HubLink key={link.title} {...link} />)}
@@ -127,8 +127,8 @@ export function Comunidade() {
             <div className="flex flex-col items-start justify-between gap-5 rounded-xl border border-gold/40 bg-panel p-6 sm:flex-row sm:items-center sm:p-8">
               <div className="max-w-2xl">
                 <Eyebrow>Quer jogar com a gente?</Eyebrow>
-                <h2 className="mt-1 text-2xl sm:text-3xl">FAZENDA, VIP E OUTROS JOGOS EM UM SÓ LUGAR</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted">Veja como entrar no servidor, virar VIP e jogar junto com a comunidade.</p>
+                <h2 className="mt-1 text-2xl sm:text-3xl">SERVIDORES ABERTOS, COOP E VIP EM UM SÓ LUGAR</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">Veja como entrar nos jogos, virar VIP e jogar junto com a comunidade.</p>
               </div>
               <NavButton variant="gold" to="/jogar">Jogue com o Galindo</NavButton>
             </div>

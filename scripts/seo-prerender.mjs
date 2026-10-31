@@ -11,22 +11,22 @@ import { fileURLToPath } from 'node:url'
 const SITE_NAME = 'GalindoGamerBR'
 const SITE_URL = 'https://galindogamerbr.com.br'
 const DEFAULT_DESCRIPTION =
-  'Lives, séries, simuladores, games e a comunidade do GalindoGamerBR. Acompanhe os conteúdos e participe da Fazenda Nova Aliança.'
+  'Lives, séries, simuladores, games e a comunidade do GalindoGamerBR. Acompanhe os conteúdos e jogue junto com a comunidade.'
 
 export const ROUTES = {
   '/': { description: DEFAULT_DESCRIPTION },
-  '/boasvindas': { title: 'Boas vindas', description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, da fazenda e da comunidade.' },
+  '/boasvindas': { title: 'Boas vindas', description: 'Conheça o GalindoGamerBR e descubra como participar dos conteúdos, dos jogos e da comunidade.' },
   '/conteudos': { title: 'Conteúdos', description: 'Assista às séries, lives e vídeos de simuladores e games do canal GalindoGamerBR.' },
-  '/jogar': { title: 'Jogue com o Galindo', description: 'Jogue com o Galindo: entre na Fazenda Nova Aliança (Farming Simulator 25) e em outros jogos da comunidade, com mods, regras e VIP em um só lugar.' ,
+  '/jogar': { title: 'Jogue com o Galindo', description: 'Jogue com o Galindo: servidores abertos para quem segue o canal e coop com VIP, com regras e requisitos em um só lugar.' ,
     // Conteúdo estático que os robôs leem antes (ou sem) o JavaScript; o React o substitui ao montar (createRoot).
     fallback: {
       h1: 'Venha jogar com a gente',
-      text: 'A Fazenda Nova Aliança, no Farming Simulator 25, e outros jogos em comunidade. Tudo começa no Discord.',
-      items: ['Como entrar: 18 anos ou mais, regras em vídeo, VIP e mods', 'Fazenda Nova Aliança: o servidor, a série e os mods da fazenda', 'VIP: como virar VIP e pedir a liberação', 'Outros jogos: WARDOGS, Hell Let Loose, Construction Simulator, ETS2 e SnowRunner'],
-      links: [{ href: '/discord', label: 'Entrar no Discord' }, { href: '/mods', label: 'Baixar o Mod Sync' }, { href: '/comunidade', label: 'Conhecer a comunidade' }],
+      text: 'Servidores abertos para quem segue o canal e coop exclusivo para VIPs. Tudo começa no Discord.',
+      items: ['Como entrar: 18 anos ou mais, Discord e regras', 'Servidores abertos (basta seguir o canal): WARDOGS, War Thunder, Hell Let Loose e ETS2', 'Coop com VIP: Construction Simulator e SnowRunner', 'VIP: como virar VIP e pedir a liberação'],
+      links: [{ href: '/discord', label: 'Entrar no Discord' }, { href: '/comunidade', label: 'Conhecer a comunidade' }],
     },
   },
-  '/mods': { title: 'Mods da Fazenda', description: 'Baixe e sincronize os mods oficiais usados no servidor da Fazenda Nova Aliança no Farming Simulator 25.' },
+  '/mods': { title: 'Mod Sync', description: 'Baixe e sincronize a coleção de mods da Fazenda Nova Aliança no Farming Simulator 25.' },
   '/comunidade': { title: 'Comunidade', description: 'Entre nos canais oficiais e faça parte da comunidade GalindoGamerBR.' },
   '/sobre': { title: 'Sobre', description: 'Conheça Galindo, a história do canal GalindoGamerBR e a paixão por simuladores, games e comunidade.' },
   '/parceiros': { title: 'Parceiros', description: 'Conheça os parceiros do GalindoGamerBR e as possibilidades de parceria com o canal.' },

@@ -58,11 +58,11 @@ type GameHighlightCardProps = {
   imageFit?: 'cover' | 'contain'
   // Quando o canal está ao vivo com um vídeo desse jogo (ver Conteudos.tsx),
   // troca a imagem estática pelo embed ao vivo, autoplay, com selo "Ao vivo
-  // agora" — mesmo tratamento do card carro-chefe.
+  // agora" — mesmo tratamento dos demais destaques.
   liveVideoId?: string | null
 }
 
-// Segundo/terceiro destaque de um jogo (não carro-chefe) — mesmo formato do
+// Segundo/terceiro destaque de um jogo — mesmo formato do
 // teaser da Home (imagem+conteúdo 50/50, full width) usado pra Fúria Reborn
 // e SnowRunner, com os últimos vídeos da playlist do jogo como cards menores.
 export function GameHighlightCard({

@@ -11,22 +11,13 @@ import { PublicScheduleExportButton } from '../components/shared/PublicScheduleE
 import { LiveBanner } from '../components/shared/LiveBanner'
 import { LifetimeVisitsBanner } from '../components/shared/LifetimeVisitsBanner'
 
-const HUB_TEASER = [
-  {
-    icon: '🚜',
-    eyebrow: 'Farming Simulator 25',
-    title: 'MODS DA FAZENDA',
-    description: 'Central de mods da Fazenda Nova Aliança.',
-    href: '/mods',
-  },
-  {
-    icon: '🎮',
-    eyebrow: 'Discord oficial',
-    title: 'SERVIDOR DA COMUNIDADE',
-    description: 'Regras, avisos e os espaços oficiais do canal.',
-    href: '/discord',
-  },
-]
+const DISCORD_HUB = {
+  icon: '🎮',
+  eyebrow: 'Discord oficial',
+  title: 'SERVIDOR DA COMUNIDADE',
+  description: 'Regras, avisos e os espaços oficiais do canal.',
+  href: '/discord',
+}
 
 export function Home() {
   return (
@@ -137,12 +128,12 @@ function FazendaTeaser() {
             </Link>
 
             <Link to="/jogar" className="group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-xl border border-line bg-gradient-to-br from-panel to-panel2 p-7 transition duration-300 hover:-translate-y-1 hover:border-green/60 sm:p-8">
-              <span className="absolute -right-5 -top-6 text-9xl opacity-[0.06] transition group-hover:scale-110">🚜</span>
+              <span className="absolute -right-5 -top-6 text-9xl opacity-[0.06] transition group-hover:scale-110">🎮</span>
               <div className="relative">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-green/40 bg-green/10 text-2xl">🚜</span>
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-green/40 bg-green/10 text-2xl">🎮</span>
                 <Eyebrow className="mt-6">Jogue com o Galindo</Eyebrow>
                 <h2 className="mt-1 text-3xl sm:text-4xl">VENHA JOGAR COM A GENTE</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">A Fazenda Nova Aliança e outros jogos em comunidade: confira os requisitos e prepare tudo para entrar.</p>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">Servidores abertos para quem segue o canal e coop para VIPs: confira os requisitos e prepare tudo para entrar.</p>
               </div>
               <span className="relative mt-7 text-sm font-semibold uppercase text-green transition group-hover:translate-x-1">Ver como jogar</span>
             </Link>
@@ -192,8 +183,7 @@ function TransmissoesTeaser() {
   )
 }
 
-// Chamada de largura cheia pra /jogos, logo abaixo do vídeo — antes do
-// destaque específico da Fazenda Nova Aliança (JogosTeaser).
+// Chamada de largura cheia pra /conteudos, logo abaixo do vídeo.
 function JogosBannerCta() {
   return (
     <section className="pb-16 sm:pb-24">
@@ -226,18 +216,16 @@ function ComunidadeTeaser() {
       <Reveal>
         <Container>
           <SectionHead eyebrow="Central da comunidade" title="TODOS OS CAMINHOS PARA CHEGAR JUNTO" />
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {HUB_TEASER.map((link) => (
-              <HubLink key={link.title} {...link} />
-            ))}
-          </div>
-          <div className="mt-6 flex flex-col justify-between gap-5 rounded-xl border border-gold/35 bg-gradient-to-r from-gold/10 via-panel to-panel p-6 sm:flex-row sm:items-center sm:p-8">
-            <div>
-              <Eyebrow>Mais perto do canal</Eyebrow>
-              <h3 className="mt-1 text-2xl sm:text-3xl">CONVERSE, PARTICIPE E ACOMPANHE CADA NOVIDADE.</h3>
-              <p className="mt-2 max-w-2xl text-sm text-muted">Todos os grupos, redes e caminhos oficiais estão reunidos em uma única página.</p>
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)]">
+            <HubLink {...DISCORD_HUB} />
+            <div className="flex flex-col justify-center gap-5 rounded-lg border border-gold/35 bg-gradient-to-br from-gold/10 via-panel to-panel p-6 sm:p-8">
+              <div>
+                <Eyebrow>Mais perto do canal</Eyebrow>
+                <h3 className="mt-1 text-2xl sm:text-3xl">CONVERSE, PARTICIPE E ACOMPANHE CADA NOVIDADE.</h3>
+                <p className="mt-2 max-w-2xl text-sm text-muted">Todos os grupos, redes e caminhos oficiais estão reunidos em uma única página.</p>
+              </div>
+              <NavButton to="/comunidade" variant="gold" className="self-start">Explorar a comunidade</NavButton>
             </div>
-            <NavButton to="/comunidade" variant="gold" className="shrink-0">Explorar a comunidade</NavButton>
           </div>
         </Container>
       </Reveal>
