@@ -37,6 +37,7 @@ jobs:
           VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
           VITE_GOOGLE_LOGIN_ENABLED: ${{ vars.GOOGLE_LOGIN_ENABLED }}
           VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED: ${{ vars.GOOGLE_LOGIN_YOUTUBE_ENABLED }}
+          VITE_SEND_OUTBOX_ENABLED: ${{ vars.SEND_OUTBOX_ENABLED }}
 
       # Todo preview publica sob o mesmo alias fixo (--branch=preview abaixo),
       # não o nome da branch de verdade — só existe "o" preview atual, nunca

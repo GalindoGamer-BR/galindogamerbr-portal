@@ -75,6 +75,7 @@ jobs:
           VITE_YOUTUBE_LINKING_ENABLED: ${{ vars.YOUTUBE_LINKING_ENABLED }}
           VITE_GOOGLE_LOGIN_ENABLED: ${{ vars.GOOGLE_LOGIN_ENABLED }}
           VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED: ${{ vars.GOOGLE_LOGIN_YOUTUBE_ENABLED }}
+          VITE_SEND_OUTBOX_ENABLED: ${{ vars.SEND_OUTBOX_ENABLED }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4
