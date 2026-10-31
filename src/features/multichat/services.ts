@@ -18,12 +18,6 @@ export class RateLimited extends Error {
   }
 }
 
-/**
- * Falha passageira: a rede caiu ou o servidor respondeu 5xx (reinício de container, deploy, túnel fora por alguns segundos).
- * A fila de envios repete o mesmo envio (mesmo `id`, que o servidor deduplica) em vez de mostrar erro.
- */
-export class TransientError extends Error {}
-
 // Entrar com a Twitch (conta nova ou já vinculada) conecta o chat sem nova autorização: o Supabase entrega o token da
 // Twitch só na sessão recém-aberta pelo OAuth, e o auth-service o valida (cliente, usuário e escopo) antes de guardar
 // criptografado. Falhas aqui não afetam o login.
@@ -101,7 +95,7 @@ export async function command<T>(
       signal: AbortSignal.timeout(20_000),
     });
   } catch {
-    throw new TransientError(
+    throw new Error(
       "O serviço do portal não respondeu. Tente novamente em instantes.",
     );
   }
@@ -154,7 +148,6 @@ export async function command<T>(
     if (details?.error === "provider_not_configured")
       throw new Error("Esta plataforma ainda precisa das credenciais de conexão no servidor.");
     if (response.status === 429) throw new RateLimited(Number(response.headers.get("Retry-After")) || 5);
-    if (response.status >= 500) throw new TransientError("Não foi possível concluir a solicitação.");
     throw new Error(
       response.status === 401
         ? "Sua sessão expirou. Entre novamente."
