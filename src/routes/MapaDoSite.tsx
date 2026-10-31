@@ -32,13 +32,13 @@ const BRANCHES: MapBranch[] = [
   },
   {
     number: '02',
-    title: 'CONTEÚDOS E FAZENDA',
+    title: 'CONTEÚDOS E JOGOS',
     description: 'Séries, jogos e ferramentas para acompanhar cada jornada.',
     color: 'green',
     pages: [
       { label: 'Conteúdos', to: '/conteudos', description: 'Vídeos, séries, dicas e jogos do canal.' },
-      { label: 'Jogue com o Galindo', to: '/jogar', description: 'Fazenda Nova Aliança e outros jogos: regras, mods e VIP.' },
-      { label: 'Mods da Fazenda', to: '/mods', description: 'Lista e sincronização dos mods do servidor.', direct: true },
+      { label: 'Jogue com o Galindo', to: '/jogar', description: 'Servidores abertos, coop com VIP e regras da comunidade.' },
+      { label: 'Mod Sync', to: '/mods', description: 'Sincronização dos mods do Farming Simulator 25.', direct: true },
     ],
   },
   {

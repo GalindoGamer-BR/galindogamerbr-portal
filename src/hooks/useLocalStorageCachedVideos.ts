@@ -16,7 +16,7 @@ function sameVideoIds(a: VideoLike[], b: VideoLike[]): boolean {
 }
 
 // Padrão comum aos hooks de vídeo de playlist (Fúria, Dicas, ETS2,
-// SnowRunner, carro-chefe): hidrata o estado inicial do localStorage (evita
+// SnowRunner...): hidrata o estado inicial do localStorage (evita
 // flash de loading em visitas repetidas), busca uma vez ao montar, e só
 // atualiza estado/persiste quando a lista vier de fato diferente da que já
 // estava em cache (comparando por videoId) — se vier igual, não dispara

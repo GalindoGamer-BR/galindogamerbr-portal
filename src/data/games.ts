@@ -6,19 +6,17 @@ export type Game = {
   description: string
   image: string
   href: string
-  flagship?: boolean
 }
 
 export const GAMES: Game[] = [
   {
     slug: 'fs25',
     title: 'Farming Simulator 25',
-    tag: 'Carro-chefe',
+    tag: 'Simulação',
     icon: '/assets/logos/trator.webp',
-    description: 'Fazendas, máquinas, produção, mods e histórias da comunidade, incluindo a série Fazenda Nova Aliança.',
-    image: '', // carro-chefe: a pagina mostra o video, nao um banner (o arquivo nao existe mais)
+    description: 'Fazendas, máquinas, produção e a série Fazenda Nova Aliança: do primeiro fordinho velho a uma fazenda enorme, construída ao vivo com a comunidade.',
+    image: '/assets/banners/fs25.webp', // recorte 16:9 da capa antiga (sem o título; o card já mostra o nome)
     href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUn2vIz-FSyMlL_ldV6_kzrN',
-    flagship: true,
   },
   {
     slug: 'furia-reborn-rp',
@@ -105,17 +103,6 @@ export const GAMES: Game[] = [
     href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUnGQatZojTChJMyQHYAr1ou',
   },
 ]
-
-export const FAZENDA_NOVA_ALIANCA = {
-  // Thumbnail/vídeo reais vêm de /api/flagship (src/hooks/useFlagshipVideo.ts),
-  // sempre o mais recente da playlist — com fallback pro último vídeo salvo
-  // em D1 se a busca ao vivo falhar (ver functions/api/flagship.ts). Sem
-  // imagem estática fixa aqui — não há garantia de imagem antes do primeiro
-  // request bem-sucedido, mas isso é aceitável (self-heal na próxima visita).
-  description:
-    'A Fazenda Nova Aliança é um gameplay num servidor dedicado, jogado ao vivo ao lado de parceiros do canal e membros VIP da comunidade. A história começou do zero: só um fordinho velho e um sonho grande demais pra caber numa live só. Antes de conseguir comprar nosso primeiro terreno de verdade, fechamos contrato atrás de contrato com os vizinhos, plantando, colhendo e prestando serviço pra juntar cada centavo. Máquina por máquina, hectare por hectare, transmissão após transmissão, aquele projeto pequeno virou algo muito maior do que qualquer um de nós imaginou. Hoje, depois de muito suor (e alguns imprevistos daqueles que só o campo sabe dar), somos donos de uma fazenda enorme, e a comunidade acompanha ao vivo cada decisão, cada expansão e cada capítulo novo dessa saga.',
-  href: 'https://www.youtube.com/playlist?list=PLj6h86FobQUn2vIz-FSyMlL_ldV6_kzrN',
-}
 
 export const FURIA_REBORN = {
   // Vídeos recentes reais vêm de /api/furia (src/hooks/useFuriaVideos.ts).

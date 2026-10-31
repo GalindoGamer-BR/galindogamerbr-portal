@@ -6,7 +6,7 @@ const SECTIONS: LegalSection[] = [
     content: (
       <div className="space-y-3">
         <p>Estes Termos de Uso regulam o acesso ao portal galindogamerbr.com.br, página institucional do canal GalindoGamerBR. Ao navegar, criar uma conta ou utilizar seus recursos, você declara estar de acordo com estas condições e com a Política de Privacidade.</p>
-        <p>O portal reúne informações sobre o canal, programação, vídeos, comunidade, Fazenda Nova Aliança, parceiros e caminhos para serviços mantidos em outras plataformas.</p>
+        <p>O portal reúne informações sobre o canal, programação, vídeos, comunidade, jogos em comunidade, parceiros e caminhos para serviços mantidos em outras plataformas.</p>
       </div>
     ),
   },
@@ -38,11 +38,11 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
-    title: 'Comunidade e Fazenda',
+    title: 'Comunidade e jogos',
     content: (
       <div className="space-y-3">
         <p>O acesso ao Discord, WhatsApp, servidores de jogos e demais espaços da comunidade pode depender de regras próprias, disponibilidade técnica, moderação e requisitos adicionais.</p>
-        <p>A participação no servidor da Fazenda Nova Aliança é reservada a maiores de 18 anos que atendam aos requisitos informados, conheçam as regras e recebam a liberação da administração. A participação pode ser suspensa em caso de descumprimento das regras da comunidade.</p>
+        <p>A participação nos jogos em comunidade é reservada a maiores de 18 anos que atendam aos requisitos informados (seguir o canal nos servidores abertos ou ser VIP nos jogos cooperativos restritos), conheçam as regras e, quando exigido, recebam a liberação da administração. A participação pode ser suspensa em caso de descumprimento das regras da comunidade.</p>
       </div>
     ),
   },

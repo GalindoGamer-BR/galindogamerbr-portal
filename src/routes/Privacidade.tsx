@@ -130,7 +130,7 @@ const SECTIONS: LegalSection[] = [
     content: (
       <div className="space-y-3">
         <p>O acesso público não utiliza cookies de publicidade ou rastreamento comportamental. O Cloudflare Web Analytics é usado em formato voltado à privacidade e seu marcador não lê cookies nem outros armazenamentos do navegador.</p>
-        <p>O portal utiliza armazenamento local para guardar temporariamente dados públicos já consultados, como vídeos, status da Fazenda e números da comunidade. Também pode usar armazenamento de sessão para recuperação técnica após uma atualização do site. Esses registros de cache de conteúdo público não criam um perfil pessoal. O armazenamento de sessão dos membros é descrito na seção Login com TikTok.</p>
+        <p>O portal utiliza armazenamento local para guardar temporariamente dados públicos já consultados, como vídeos, status dos servidores e números da comunidade. Também pode usar armazenamento de sessão para recuperação técnica após uma atualização do site. Esses registros de cache de conteúdo público não criam um perfil pessoal. O armazenamento de sessão dos membros é descrito na seção Login com TikTok.</p>
         <p>No acesso administrativo, um cookie técnico, seguro e inacessível a scripts é criado após o login. A sessão expira em até sete dias ou pode ser encerrada antes pelo usuário.</p>
       </div>
     ),
