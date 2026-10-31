@@ -13,6 +13,10 @@ export const googleLoginYoutube = googleLogin && youtubeLinking && import.meta.e
 // Status ao vivo do servidor FS25 (card em /jogar). O servidor foi encerrado: desligado por padrão, ligue com VITE_FARM_STATUS_ENABLED=true.
 export const farmStatusEnabled = import.meta.env.VITE_FARM_STATUS_ENABLED === "true";
 
+// Envio pela fila persistente do Supabase (multichat.send_queue): sobrevive a deploy sem retry no navegador. Desligado por padrao;
+// so ligue (VITE_SEND_OUTBOX_ENABLED=true) depois de aplicar a migration e ligar SEND_OUTBOX_ENABLED no multichat-command.
+export const sendOutboxEnabled = import.meta.env.VITE_SEND_OUTBOX_ENABLED === "true";
+
 // Plataformas que a pessoa pode vincular e usar para enviar mensagens (o player e a leitura nao mudam).
 export const linkablePlatforms = writablePlatforms.filter((platform) => platform !== "youtube" || youtubeLinking);
 

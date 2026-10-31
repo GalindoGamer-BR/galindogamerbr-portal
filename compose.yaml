@@ -198,6 +198,7 @@ services:
       TWITCH_BROADCASTER_ID: ${TWITCH_BROADCASTER_ID:-}
       KICK_BROADCASTER_ID: ${KICK_BROADCASTER_ID:-}
       YOUTUBE_LINKING_ENABLED: ${YOUTUBE_LINKING_ENABLED:-false}
+      SEND_OUTBOX_ENABLED: ${SEND_OUTBOX_ENABLED:-false}   # fila persistente de envio (so command usa; ligue depois da migration)
       TIKTOK_LINKING_ENABLED: ${TIKTOK_LINKING_ENABLED:-false}
       MOCK_PLATFORMS: "false"
       MOCK_PLATFORM_URL: http://mock-platform:3100
@@ -300,6 +301,7 @@ services:
       VITE_TIKTOK_LINKING_ENABLED: ${TIKTOK_LINKING_ENABLED:-false}
       VITE_GOOGLE_LOGIN_ENABLED: ${GOOGLE_LOGIN_ENABLED:-false}
       VITE_GOOGLE_LOGIN_YOUTUBE_ENABLED: ${GOOGLE_LOGIN_YOUTUBE_ENABLED:-false}
+      VITE_SEND_OUTBOX_ENABLED: ${SEND_OUTBOX_ENABLED:-false}
     volumes:
       - .:/app
       - portal-node-modules:/app/node_modules

@@ -1,12 +1,13 @@
 import { BellIcon, CrownIcon, HelpIcon, HomeIcon, SettingsIcon, WindowIcon } from "../../components/ui/Icons";
 import { MultichatUserMenu } from "./MultichatUserMenu";
 import { useNavSession } from "../../components/layout/useNavSession";
-import { chatFilterPlatforms, linkablePlatforms, youtubeLinking } from "./flags";
+import { chatFilterPlatforms, linkablePlatforms, sendOutboxEnabled, youtubeLinking } from "./flags";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useLiveStatus } from "../../hooks/useLiveStatus";
 import { command, configured, supabase } from "./services";
 import { SendQueue } from "./sendQueue";
+import { sendViaOutbox } from "./outboxSend";
 import { applyDisplayName, type OutboxItem, type OwnNames } from "./outbox";
 import { hideEchoes, parseSentLog, portalMessages, pruneSentLog, showsIn, type SentEntry } from "./sentLog";
 import { useMemberName } from "./useMemberName";
@@ -191,6 +192,7 @@ export default function MultichatPage() {
     () =>
       new SendQueue({
         send: async (item) => {
+          if (sendOutboxEnabled) return sendViaOutbox(item);
           const data = await command<{ results: SendResult[] }>("/api/chat/messages", {
             method: "POST",
             body: JSON.stringify({
